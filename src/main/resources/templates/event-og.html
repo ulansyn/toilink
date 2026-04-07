@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${event.title}">Событие</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website"/>
+    <meta property="og:title"       th:content="${event.title}"/>
+    <meta property="og:description" th:content="${ogDescription}"/>
+    <meta property="og:image"       th:content="${ogImage}"/>
+    <meta property="og:url"         th:content="${ogUrl}"/>
+    <meta property="og:locale"      content="ru_RU"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image"/>
+    <meta name="twitter:title"       th:content="${event.title}"/>
+    <meta name="twitter:description" th:content="${ogDescription}"/>
+    <meta name="twitter:image"       th:content="${ogImage}"/>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div id="app"></div>
+    <script th:src="@{/js/event.js}"></script>
+</body>
+</html>
