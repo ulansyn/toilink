@@ -9,6 +9,12 @@ public record UpdateEventRequest(
         @Size(max = 200, message = "Title must not exceed 200 characters")
         String title,
 
+        @Size(max = 100, message = "Person1 name must not exceed 100 characters")
+        String person1,
+
+        @Size(max = 100, message = "Person2 name must not exceed 100 characters")
+        String person2,
+
         LocalDateTime eventDate,
 
         @Size(max = 500, message = "Location must not exceed 500 characters")
