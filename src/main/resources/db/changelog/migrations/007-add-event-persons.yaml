@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 007-add-event-persons
+      author: toilink
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: person1
+                  type: varchar(100)
+                  remarks: "Primary person name (groom, birthday person, etc.)"
+              - column:
+                  name: person2
+                  type: varchar(100)
+                  remarks: "Secondary person name (bride, optional)"

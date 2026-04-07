@@ -31,6 +31,12 @@ public class Event {
     @Column(nullable = false, length = 200)
     private String title;
 
+    @Column(length = 100)
+    private String person1;
+
+    @Column(length = 100)
+    private String person2;
+
     private LocalDateTime eventDate;
 
     @Column(length = 500)

@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/migrations/005-create-rsvp-responses.yaml
   - include:
       file: db/changelog/migrations/006-seed-templates.yaml
+  - include:
+      file: db/changelog/migrations/007-add-event-persons.yaml
