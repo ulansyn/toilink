@@ -1,4 +1,13 @@
 databaseChangeLog:
-  - includeAll:
-      path: db/changelog/migrations/
-      relativeToChangelogFile: false
+  - include:
+      file: db/changelog/migrations/001-create-users.sql
+  - include:
+      file: db/changelog/migrations/002-create-templates.sql
+  - include:
+      file: db/changelog/migrations/003-create-events.sql
+  - include:
+      file: db/changelog/migrations/004-create-guests.sql
+  - include:
+      file: db/changelog/migrations/005-create-rsvp-responses.sql
+  - include:
+      file: db/changelog/migrations/006-seed-templates.sql
