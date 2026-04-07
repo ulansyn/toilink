@@ -13,3 +13,5 @@ databaseChangeLog:
       file: db/changelog/migrations/006-seed-templates.yaml
   - include:
       file: db/changelog/migrations/007-add-event-persons.yaml
+  - include:
+      file: db/changelog/migrations/008-update-wedding-blocks-schema.yaml

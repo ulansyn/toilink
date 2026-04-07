@@ -49,30 +49,55 @@ async function saveEvent(phone, data, id = null) {
 
 // ─── Field labels ─────────────────────────────────────────────────────────────
 const fieldLabels = {
-  title:     'Заголовок',
-  subtitle:  'Подзаголовок',
-  image_url: 'URL обложки',
-  date:      'Дата',
-  address:   'Адрес',
-  map_url:   'Ссылка на карту (2GIS, Google Maps)',
-  text:      'Текст',
+  title:       'Заголовок',
+  subtitle:    'Подзаголовок',
+  badge:       'Бейдж (напр. ✦ Свадьба ✦)',
+  image_url:   'URL обложки',
+  date:        'Дата',
+  address:     'Адрес',
+  map_url:     'Ссылка на карту (2GIS, Google Maps)',
+  text:        'Текст',
+  // Template-1 specific
+  photo1:      'Главное фото (URL)',
+  carousel1:   'Фото для карусели 1 (URL)',
+  carousel2:   'Фото для карусели 2 (URL)',
+  carousel3:   'Фото для карусели 3 (URL)',
+  photoBottom: 'Нижнее фото (URL)',
+  items:       'Программа дня (каждый пункт с новой строки: "15:00 Сбор гостей")',
+  placeName:   'Название заведения',
+  mapLink:     'Ссылка на карту',
+  btnText:     'Текст кнопки карты',
+  palette:     'Цвета дресс-кода (hex через запятую: #E8EBE6,#2C3531,...)',
+  author:      'Автор цитаты',
 };
 
 function fieldPlaceholder(field) {
   const ph = {
-    title:     'Свадьба Айны и Марата',
-    subtitle:  'Приглашаем вас разделить этот особенный день',
-    image_url: 'https://...',
-    date:      '',
-    address:   'Бишкек, ресторан Арашан',
-    map_url:   'https://2gis.kg/...',
-    text:      'Введите текст...',
+    title:       'Свадьба Айны и Марата',
+    subtitle:    'Приглашаем вас разделить этот особенный день',
+    badge:       '✦ Свадьба ✦',
+    image_url:   'https://...',
+    date:        '',
+    address:     'Бишкек, ресторан Арашан',
+    map_url:     'https://2gis.kg/...',
+    text:        'Введите текст...',
+    photo1:      'https://...',
+    carousel1:   'https://...',
+    carousel2:   'https://...',
+    carousel3:   'https://...',
+    photoBottom: 'https://...',
+    items:       '15:00 Сбор гостей\n16:00 Торжественная церемония\n17:00 Праздничный банкет',
+    placeName:   'Ресторан Royal Hall',
+    mapLink:     'https://2gis.kg/...',
+    btnText:     'Показать на карте',
+    palette:     '#E8EBE6,#2C3531,#B9C4BC,#F2F4F1,#7C9082',
+    author:      'Антуан де Сент-Экзюпери',
   };
   return ph[field] || '';
 }
 
-function isDateField(field) { return field === 'date'; }
-function isTextareaField(field) { return field === 'text' || field === 'subtitle'; }
+function isDateField(field)     { return field === 'date'; }
+function isTextareaField(field) { return ['text', 'subtitle', 'items'].includes(field); }
 
 // ─── Step 1 — Template picker ─────────────────────────────────────────────────
 function renderTemplatePicker(templates) {

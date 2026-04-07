@@ -36,6 +36,11 @@ public class EventPageController {
         model.addAttribute("ogDescription", ogDescription);
         model.addAttribute("ogUrl", baseUrl + "/e/" + slug);
 
+        // Route to template-specific Thymeleaf view
+        String category = (event.getTemplate() != null) ? event.getTemplate().getCategory() : null;
+        if ("WEDDING".equalsIgnoreCase(category)) {
+            return "event-wedding";
+        }
         return "event-og";
     }
 
