@@ -1,0 +1,95 @@
+databaseChangeLog:
+  - changeSet:
+      id: 003-create-events
+      author: toilink
+      changes:
+        - createTable:
+            tableName: events
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: events_pkey
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_events_user
+                    references: users(id)
+              - column:
+                  name: template_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_events_template
+                    references: templates(id)
+              - column:
+                  name: title
+                  type: varchar(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: event_date
+                  type: timestamp
+              - column:
+                  name: location
+                  type: varchar(500)
+              - column:
+                  name: cover_image_url
+                  type: varchar(500)
+              - column:
+                  name: slug
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: status
+                  type: varchar(20)
+                  defaultValue: DRAFT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: rsvp_deadline
+                  type: timestamp
+              - column:
+                  name: language
+                  type: varchar(10)
+                  defaultValue: ru
+                  constraints:
+                    nullable: false
+              - column:
+                  name: blocks_config
+                  type: jsonb
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_events_slug
+            tableName: events
+            columns:
+              - column:
+                  name: slug
+        - createIndex:
+            indexName: idx_events_user_id
+            tableName: events
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_events_status
+            tableName: events
+            columns:
+              - column:
+                  name: status

@@ -1,13 +1,13 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/migrations/001-create-users.sql
+      file: db/changelog/migrations/001-create-users.yaml
   - include:
-      file: db/changelog/migrations/002-create-templates.sql
+      file: db/changelog/migrations/002-create-templates.yaml
   - include:
-      file: db/changelog/migrations/003-create-events.sql
+      file: db/changelog/migrations/003-create-events.yaml
   - include:
-      file: db/changelog/migrations/004-create-guests.sql
+      file: db/changelog/migrations/004-create-guests.yaml
   - include:
-      file: db/changelog/migrations/005-create-rsvp-responses.sql
+      file: db/changelog/migrations/005-create-rsvp-responses.yaml
   - include:
-      file: db/changelog/migrations/006-seed-templates.sql
+      file: db/changelog/migrations/006-seed-templates.yaml
