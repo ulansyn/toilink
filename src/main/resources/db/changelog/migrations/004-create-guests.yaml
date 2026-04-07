@@ -1,0 +1,57 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-guests
+      author: toilink
+      changes:
+        - createTable:
+            tableName: guests
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: guests_pkey
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_guests_event
+                    references: events(id)
+                    deleteCascade: true
+              - column:
+                  name: name
+                  type: varchar(100)
+              - column:
+                  name: phone
+                  type: varchar(20)
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: token
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_guests_event_id
+            tableName: guests
+            columns:
+              - column:
+                  name: event_id
+        - createIndex:
+            indexName: idx_guests_token
+            tableName: guests
+            columns:
+              - column:
+                  name: token
