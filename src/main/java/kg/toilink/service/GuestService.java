@@ -45,6 +45,17 @@ public class GuestService {
         return GuestResponse.from(guestRepository.save(guest));
     }
 
+    @Transactional
+    public void deleteGuest(Long eventId, Long guestId, String phone) {
+        verifyOwnership(eventId, phone);
+        Guest guest = guestRepository.findById(guestId)
+                .orElseThrow(() -> NotFoundException.guest(guestId));
+        if (!guest.getEvent().getId().equals(eventId)) {
+            throw NotFoundException.guest(guestId);
+        }
+        guestRepository.delete(guest);
+    }
+
     private Event verifyOwnership(Long eventId, String phone) {
         User user = userService.findOrCreate(phone);
         Event event = eventRepository.findById(eventId)

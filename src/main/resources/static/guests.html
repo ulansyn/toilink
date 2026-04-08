@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>ToiLink — Гости</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { inter: ['Inter','sans-serif'], cormorant: ['Cormorant Garamond','serif'] }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { display: none; }
+    body { font-family: 'Inter', sans-serif; background: #FAFAF8; overscroll-behavior: none; }
+    .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+    /* M3 Top App Bar */
+    .top-app-bar {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(250,250,248,0.92); backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid #E8E4DE;
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .app-bar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 56px;
+    }
+
+    /* Icon button */
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #EDE9E4; color: #5C5850; cursor: pointer;
+      transition: background 0.15s, transform 0.1s; text-decoration: none;
+    }
+    .icon-btn:active { transform: scale(0.92); background: #E0DBD4; }
+
+    /* Stats card */
+    .stat-card {
+      border-radius: 20px; padding: 14px 8px; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+    }
+
+    /* M3 Guest List Item */
+    .list-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 12px 16px; background: #fff; margin-bottom: 2px;
+      transition: background 0.15s;
+    }
+    .list-item:first-child { border-radius: 20px 20px 0 0; }
+    .list-item:last-child { border-radius: 0 0 20px 20px; margin-bottom: 0; }
+    .list-item:only-child { border-radius: 20px; }
+    .list-item:active { background: #F0EDE8; }
+
+    /* Guest card (filled) */
+    .guest-card {
+      background: #fff; border-radius: 20px; overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 6px rgba(0,0,0,0.04);
+    }
+
+    /* M3 Input Field */
+    .m3-input-wrapper { position: relative; }
+    .m3-input {
+      width: 100%; padding: 18px 16px 6px;
+      background: #EDE9E4; border: none; border-radius: 14px 14px 0 0;
+      border-bottom: 2px solid #B0AB9E;
+      font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
+      color: #1E2820; outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .m3-input:focus { border-bottom-color: #3D6B45; background: #E8E4DC; }
+    .m3-input::placeholder { color: transparent; }
+    .m3-label {
+      position: absolute; left: 16px; top: 12px;
+      font-size: 15px; color: #6B6860; pointer-events: none;
+      transition: all 0.2s ease;
+    }
+    .m3-input:focus ~ .m3-label,
+    .m3-input:not(:placeholder-shown) ~ .m3-label {
+      top: 5px; font-size: 11px; font-weight: 600; color: #3D6B45; letter-spacing: 0.3px;
+    }
+
+    /* FAB */
+    .fab {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 22px; background: #3D6B45; color: #fff;
+      border-radius: 18px; font-weight: 600; font-size: 14px;
+      box-shadow: 0 4px 12px rgba(61,107,69,0.38), 0 1px 4px rgba(0,0,0,0.14);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer; border: none; text-decoration: none;
+    }
+    .fab:active { transform: scale(0.95); box-shadow: 0 2px 6px rgba(61,107,69,0.28); }
+
+    /* Bottom sheet */
+    .sheet-slide { transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
+    .sheet-slide.open { transform: translateY(0); }
+
+    /* Filled button */
+    .btn-filled {
+      width: 100%; padding: 16px; border-radius: 14px;
+      background: #3D6B45; color: white; font-weight: 600; font-size: 15px;
+      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none;
+      box-shadow: 0 2px 8px rgba(61,107,69,0.28);
+    }
+    .btn-filled:active { transform: scale(0.97); }
+    .btn-filled:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    /* Shimmer skeleton */
+    @keyframes shimmer {
+      0% { background-position: -400px 0; }
+      100% { background-position: 400px 0; }
+    }
+    .skeleton-box {
+      background: linear-gradient(90deg, #E8E4DE 25%, #F0EDE8 50%, #E8E4DE 75%);
+      background-size: 800px 100%; animation: shimmer 1.6s infinite;
+    }
+  </style>
+</head>
+<body class="bg-[#FAFAF8] text-[#1E2820] min-h-screen">
+
+  <!-- ── Desktop header ─────────────────────────────── -->
+  <header class="hidden md:flex sticky top-0 z-30 bg-[#FAFAF8]/90 backdrop-blur-xl border-b border-[#E8E4DE] px-8 h-16 items-center justify-between">
+    <a href="/" class="font-cormorant text-2xl font-semibold italic text-[#1E2820]">ToiLink</a>
+    <span id="hdr-event-title" class="text-sm font-medium text-[#6B6860] font-cormorant italic"></span>
+    <button onclick="openAddSheet()"
+      class="inline-flex items-center gap-2 px-5 py-2.5 bg-[#3D6B45] text-white rounded-full text-sm font-semibold hover:bg-[#2d5235] transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+      Добавить гостя
+    </button>
+  </header>
+
+  <!-- ── Mobile Top App Bar ─────────────────────────── -->
+  <div class="top-app-bar md:hidden">
+    <div class="app-bar-inner">
+      <a href="/" class="icon-btn">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <span class="font-cormorant text-[19px] font-semibold italic text-[#1E2820]" id="mob-event-title">Гости</span>
+      <div class="w-10"></div>
+    </div>
+  </div>
+
+  <!-- ── Main ──────────────────────────────────────── -->
+  <main class="max-w-3xl mx-auto px-4 md:px-8 pt-4 pb-36 md:pb-12">
+
+    <!-- Stats -->
+    <div id="stats" class="grid grid-cols-3 gap-3 mb-5">
+      <div class="stat-card skeleton-box h-[72px] rounded-2xl"></div>
+      <div class="stat-card skeleton-box h-[72px] rounded-2xl"></div>
+      <div class="stat-card skeleton-box h-[72px] rounded-2xl"></div>
+    </div>
+
+    <!-- Guest list -->
+    <div id="guest-list">
+      <div class="space-y-2">
+        <div class="guest-card flex items-center gap-3 p-4 skeleton-box h-[72px]"></div>
+        <div class="guest-card flex items-center gap-3 p-4 skeleton-box h-[72px]"></div>
+        <div class="guest-card flex items-center gap-3 p-4 skeleton-box h-[72px]"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── FAB — Add guest (mobile) ───────────────────── -->
+  <button onclick="openAddSheet()"
+    class="fab md:hidden fixed z-20 right-4"
+    style="bottom: calc(16px + env(safe-area-inset-bottom, 0px))">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+    </svg>
+    Добавить
+  </button>
+
+  <!-- ── Add Guest Bottom Sheet ─────────────────────── -->
+  <div id="add-backdrop" class="hidden fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"></div>
+  <div id="add-sheet"
+    class="sheet-slide fixed bottom-0 left-0 right-0 z-50 bg-[#FAFAF8] rounded-t-[28px] md:max-w-lg md:left-1/2 md:-translate-x-1/2"
+    style="padding-bottom: env(safe-area-inset-bottom, 16px);">
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 bg-[#1E2820]/10 rounded-full"></div>
+    </div>
+    <div class="px-6 pt-4 pb-6">
+      <p class="font-cormorant text-[26px] font-semibold italic text-[#1E2820] mb-5">Новый гость</p>
+      <form id="add-form" onsubmit="submitAddGuest(event)" class="space-y-3">
+        <div class="m3-input-wrapper">
+          <input id="add-name" type="text" autocomplete="name" placeholder="Имя" class="m3-input"/>
+          <label for="add-name" class="m3-label">Имя</label>
+        </div>
+        <div class="m3-input-wrapper">
+          <input id="add-phone" type="tel" autocomplete="tel" placeholder="Телефон" class="m3-input"/>
+          <label for="add-phone" class="m3-label">Телефон</label>
+        </div>
+        <div class="m3-input-wrapper">
+          <input id="add-notes" type="text" placeholder="Заметка" class="m3-input"/>
+          <label for="add-notes" class="m3-label">Заметка (необязательно)</label>
+        </div>
+        <div class="pt-2">
+          <button type="submit" class="btn-filled">Добавить и получить ссылку</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/initAuth.js"></script>
+  <script src="/js/guests.js"></script>
+</body>
+</html>

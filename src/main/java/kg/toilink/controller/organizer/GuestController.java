@@ -30,4 +30,12 @@ public class GuestController {
                              @RequestHeader("X-User-Phone") String phone) {
         return guestService.addGuest(eventId, request, phone);
     }
+
+    @DeleteMapping("/{guestId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long eventId,
+                       @PathVariable Long guestId,
+                       @RequestHeader("X-User-Phone") String phone) {
+        guestService.deleteGuest(eventId, guestId, phone);
+    }
 }
