@@ -1,0 +1,75 @@
+databaseChangeLog:
+  - changeSet:
+      id: 009-blocks-schema-v2
+      author: toilink
+      changes:
+        - sql:
+            sql: |
+              UPDATE templates
+              SET blocks_schema = '[
+                {
+                  "type": "hero",
+                  "label": "Главный экран",
+                  "optional": false,
+                  "fields": [
+                    {"name": "badge",     "type": "text",  "label": "Бейдж"},
+                    {"name": "subtitle",  "type": "text",  "label": "Подзаголовок"},
+                    {"name": "heroPhoto", "type": "photo", "label": "Главное фото"}
+                  ]
+                },
+                {
+                  "type": "greeting",
+                  "label": "Приветствие",
+                  "optional": true,
+                  "fields": [
+                    {"name": "title", "type": "text",     "label": "Заголовок"},
+                    {"name": "text",  "type": "textarea", "label": "Текст"}
+                  ]
+                },
+                {
+                  "type": "carousel",
+                  "label": "Фото-галерея",
+                  "optional": true,
+                  "fields": [
+                    {"name": "photos", "type": "photo-list", "label": "Фотографии", "min": 1, "max": 5}
+                  ]
+                },
+                {
+                  "type": "schedule",
+                  "label": "Программа дня",
+                  "optional": true,
+                  "fields": [
+                    {"name": "items", "type": "schedule-items", "label": "Программа"}
+                  ]
+                },
+                {
+                  "type": "location",
+                  "label": "Место",
+                  "optional": true,
+                  "fields": [
+                    {"name": "placeName",  "type": "text",  "label": "Название заведения"},
+                    {"name": "address",    "type": "text",  "label": "Адрес"},
+                    {"name": "mapLink",    "type": "url",   "label": "Ссылка на карту (2GIS / Google Maps)"},
+                    {"name": "venuePhoto", "type": "photo", "label": "Фото заведения"}
+                  ]
+                },
+                {
+                  "type": "dresscode",
+                  "label": "Дресс-код",
+                  "optional": true,
+                  "fields": [
+                    {"name": "text",    "type": "text",    "label": "Описание"},
+                    {"name": "palette", "type": "palette", "label": "Цвета"}
+                  ]
+                },
+                {
+                  "type": "quote",
+                  "label": "Цитата",
+                  "optional": true,
+                  "fields": [
+                    {"name": "text",   "type": "textarea", "label": "Текст цитаты"},
+                    {"name": "author", "type": "text",     "label": "Автор"}
+                  ]
+                }
+              ]'::jsonb
+              WHERE category = 'WEDDING';

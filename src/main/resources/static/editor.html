@@ -7,16 +7,11 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { inter: ['Inter','sans-serif'], cormorant: ['Cormorant Garamond','serif'] }
-        }
-      }
+      theme: { extend: { fontFamily: { cormorant: ['Cormorant Garamond','serif'] } } }
     }
   </script>
 
@@ -24,14 +19,290 @@
     *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     * { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; }
+    html, body { height: 100%; overflow: hidden; }
     body { font-family: 'Inter', sans-serif; background: #FAFAF8; overscroll-behavior: none; }
-    .font-cormorant { font-family: 'Cormorant Garamond', serif; }
 
-    /* M3 Top App Bar */
+    /* ── Step 1 scrolls ── */
+    #step1-wrap { height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+    /* ── Interactive Editor Overlay ── */
+    #editorOverlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      /* width/height will be overridden by visualViewport JS */
+      z-index: 60;
+      display: flex; flex-direction: column;
+      background: #EEECEA;
+      /* Prevent iOS rubber-band scroll inside overlay */
+      overscroll-behavior: none;
+    }
+    #editorOverlay.hidden { display: none; }
+
+    /* Editor top bar */
+    .editor-bar {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px;
+      padding: 0 12px;
+      padding-top: env(safe-area-inset-top, 0px);
+      height: calc(52px + env(safe-area-inset-top, 0px));
+      background: #FAFAF8;
+      border-bottom: 1px solid #E8E5E1;
+      position: relative; z-index: 2;
+    }
+    .editor-bar__back {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #EDE9E4; color: #5C5850; cursor: pointer; flex-shrink: 0;
+      border: none; transition: background 0.15s;
+    }
+    .editor-bar__back:active { background: #E0DBD4; transform: scale(0.93); }
+    .editor-bar__title {
+      flex: 1; font-size: 14px; font-weight: 500; color: #1E2820;
+      background: transparent; border: none; outline: none; text-align: center;
+      min-width: 0; padding: 4px 0;
+    }
+    .editor-bar__title::placeholder { color: #B0AB9E; }
+    .editor-bar__save {
+      flex-shrink: 0; padding: 8px 16px; background: #1E2820; color: white;
+      border: none; border-radius: 100px; font-size: 13px; font-weight: 600;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .editor-bar__save:active { opacity: 0.75; }
+    .editor-bar__save:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Preview area */
+    #previewWrap {
+      flex: 1; min-height: 0; position: relative; overflow: hidden;
+    }
+    #previewFrame {
+      width: 100%; height: 100%; border: none;
+      background: #FAFAF8;
+    }
+    /* Gradient fade merging preview with sheet */
+    #previewFade {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 48px;
+      background: linear-gradient(transparent, #EEECEA);
+      pointer-events: none;
+    }
+
+    /* Bottom Sheet */
+    #bottomSheet {
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -2px 20px rgba(0,0,0,0.10);
+      display: flex; flex-direction: column;
+      height: 46dvh; min-height: 11dvh;
+      position: relative; z-index: 10;
+      transition: height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    /* Drag handle */
+    #sheetHandle {
+      flex-shrink: 0;
+      padding: 10px 16px 4px;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: grab; touch-action: none; user-select: none;
+    }
+    #sheetHandle:active { cursor: grabbing; }
+    .handle-pill {
+      width: 36px; height: 4px; border-radius: 2px; background: #DDD9D4;
+      pointer-events: none;
+    }
+    /* Eye toggle button — visible always, collapses/expands sheet */
+    #sheetPeek {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #F5F3F0; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #9A9491; flex-shrink: 0; pointer-events: all;
+      transition: background 0.15s, color 0.15s;
+    }
+    #sheetPeek:active { background: #E8E5E1; }
+
+    /* Block tabs */
+    #blockTabs {
+      flex-shrink: 0;
+      display: flex; gap: 8px;
+      padding: 4px 16px 12px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .btab {
+      flex-shrink: 0;
+      display: flex; align-items: center; gap: 5px;
+      padding: 7px 13px; border-radius: 100px;
+      border: 1.5px solid #E8E5E1;
+      background: #FAFAF8; color: #6B6860;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.15s; line-height: 1;
+    }
+    .btab:active { transform: scale(0.95); }
+    .btab.active {
+      background: #1E2820; color: white; border-color: #1E2820;
+    }
+    .btab .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #3D6B45; flex-shrink: 0;
+      display: none;
+    }
+    .btab.has-data .dot { display: block; }
+    .btab.active .dot { background: #A8CEB0; }
+
+    /* Panel content */
+    #panelContent {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 6px 16px 36px;
+    }
+
+    /* ── Panel field styles ── */
+    .pfield { margin-bottom: 10px; }
+    .plabel {
+      display: block; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; color: #9A9491;
+      margin-bottom: 4px; text-transform: uppercase;
+    }
+    .pinput, .pselect, .ptextarea {
+      width: 100%; padding: 11px 13px;
+      background: #F5F3F0; border: 1.5px solid transparent;
+      border-radius: 12px; font-family: 'Inter', sans-serif;
+      font-size: 15px; font-weight: 400; color: #1E2820;
+      outline: none; transition: border-color 0.15s, background 0.15s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .pinput:focus, .pselect:focus, .ptextarea:focus {
+      background: #EDEAE6; border-color: #3D6B45;
+    }
+    .pinput::placeholder, .ptextarea::placeholder { color: #C0BBB5; }
+    .ptextarea { resize: none; min-height: 88px; line-height: 1.55; }
+
+    /* Section divider */
+    .psection {
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #F0EDE9;
+    }
+    .psection:last-child { border-bottom: none; }
+    .psection-title {
+      font-size: 13px; font-weight: 600; color: #1E2820; margin-bottom: 8px;
+    }
+
+    /* Toggle row */
+    .ptoggle-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #F0EDE9;
+    }
+    .ptoggle-label { font-size: 15px; font-weight: 500; color: #1E2820; }
+    .ptoggle-hint  { font-size: 12px; color: #B0AB9E; margin-top: 1px; }
+    .pswitch {
+      width: 46px; height: 26px; border-radius: 13px; position: relative;
+      background: #DDD9D4; transition: background 0.18s; cursor: pointer;
+      flex-shrink: 0;
+    }
+    .pswitch.on { background: #3D6B45; }
+    .pswitch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 20px; height: 20px; border-radius: 50%; background: white;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+      transition: transform 0.18s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .pswitch.on::after { transform: translateX(20px); }
+
+    /* Photo upload */
+    .photo-upload {
+      width: 100%; aspect-ratio: 4/3; border-radius: 14px;
+      border: 2px dashed #DDD9D4; background: #F5F3F0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; overflow: hidden; position: relative;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .photo-upload:active { background: #EDEAE6; }
+    .photo-upload.has-image { border: none; }
+    .photo-upload img {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      object-fit: cover; display: none;
+    }
+    .photo-upload.has-image img { display: block; }
+    .photo-upload-placeholder {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+    }
+    .photo-upload.has-image .photo-upload-placeholder { display: none; }
+    .photo-upload-icon {
+      width: 44px; height: 44px; border-radius: 14px; background: #E8E5E1;
+      display: flex; align-items: center; justify-content: center; color: #9A9491;
+    }
+    .photo-upload-text { font-size: 13px; color: #9A9491; text-align: center; line-height: 1.4; }
+    .photo-change-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,0.35);
+      display: none; align-items: center; justify-content: center;
+      color: white; font-size: 13px; font-weight: 500;
+    }
+    .photo-upload.has-image:hover .photo-change-overlay,
+    .photo-upload.has-image:active .photo-change-overlay { display: flex; }
+    .photo-url-hint {
+      font-size: 12px; color: #B0AB9E; margin-top: 8px; text-align: center;
+    }
+
+    /* Schedule rows */
+    .sched-row {
+      display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
+    }
+    .sched-time {
+      width: 70px; flex-shrink: 0; padding: 11px 10px;
+      background: #F5F3F0; border: 1.5px solid transparent;
+      border-radius: 10px; font-family: 'Inter', sans-serif;
+      font-size: 14px; font-weight: 500; color: #1E2820; outline: none; text-align: center;
+    }
+    .sched-time:focus { background: #EDEAE6; border-color: #3D6B45; }
+    .sched-title {
+      flex: 1; padding: 11px 12px;
+      background: #F5F3F0; border: 1.5px solid transparent;
+      border-radius: 10px; font-family: 'Inter', sans-serif;
+      font-size: 14px; color: #1E2820; outline: none;
+    }
+    .sched-title:focus { background: #EDEAE6; border-color: #3D6B45; }
+    .sched-del {
+      width: 32px; height: 32px; border-radius: 50%; border: none;
+      background: #F5F3F0; color: #B0AB9E; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      font-size: 16px; line-height: 1; transition: background 0.15s;
+    }
+    .sched-del:active { background: #FBDDDD; color: #C25252; }
+    .sched-add {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 14px; margin-top: 4px;
+      border: 1.5px dashed #DDD9D4; border-radius: 10px;
+      background: none; font-size: 13px; color: #6B6860; cursor: pointer;
+      width: 100%; transition: border-color 0.15s, color 0.15s;
+    }
+    .sched-add:active { border-color: #3D6B45; color: #3D6B45; }
+
+    /* Palette */
+    .palette-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+    .palette-swatch {
+      width: 40px; height: 40px; border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.06); cursor: pointer; overflow: hidden;
+      transition: transform 0.15s;
+    }
+    .palette-swatch:active { transform: scale(0.9); }
+    .palette-swatch input[type="color"] {
+      width: 200%; height: 200%; margin: -25% 0 0 -25%;
+      opacity: 0; cursor: pointer;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: calc(52dvh + 12px); left: 50%; transform: translateX(-50%);
+      background: #1E2820; color: white; padding: 10px 18px; border-radius: 100px;
+      font-size: 13px; font-weight: 500; white-space: nowrap; z-index: 200;
+      opacity: 0; transition: opacity 0.25s; pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+
+    /* M3 Top App Bar (step 1) */
     .top-app-bar {
       position: sticky; top: 0; z-index: 30;
       background: rgba(250,250,248,0.92); backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid #E8E4DE;
       padding-top: env(safe-area-inset-top, 0px);
     }
@@ -39,195 +310,108 @@
       display: flex; align-items: center; justify-content: space-between;
       padding: 0 16px; height: 56px;
     }
-
-    /* Icon button */
     .icon-btn {
       width: 40px; height: 40px; border-radius: 50%;
       display: flex; align-items: center; justify-content: center;
       background: #EDE9E4; color: #5C5850; cursor: pointer;
-      transition: background 0.15s, transform 0.1s; text-decoration: none;
+      transition: background 0.15s; text-decoration: none; border: none;
     }
     .icon-btn:active { transform: scale(0.92); background: #E0DBD4; }
-
-    /* M3 Input Field */
-    .m3-input-wrapper { position: relative; margin-bottom: 4px; }
-    .m3-input {
-      width: 100%; padding: 18px 16px 6px;
-      background: #EDE9E4; border: none; border-radius: 14px 14px 0 0;
-      border-bottom: 2px solid #B0AB9E;
-      font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
-      color: #1E2820; outline: none;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .m3-input:focus { border-bottom-color: #3D6B45; background: #E8E4DC; }
-    .m3-input::placeholder { color: transparent; }
-    .m3-label {
-      position: absolute; left: 16px; top: 12px;
-      font-size: 15px; color: #6B6860; pointer-events: none;
-      transition: all 0.2s ease; font-weight: 400;
-    }
-    .m3-input:focus ~ .m3-label,
-    .m3-input:not(:placeholder-shown) ~ .m3-label {
-      top: 6px; font-size: 11px; font-weight: 600;
-      color: #3D6B45; letter-spacing: 0.3px;
-    }
-    .m3-input:not(:focus) ~ .m3-label { color: #6B6860; }
-    .m3-input:focus ~ .m3-label { color: #3D6B45; }
-
-    /* M3 Textarea */
-    .m3-textarea {
-      width: 100%; padding: 18px 16px 10px;
-      background: #EDE9E4; border: none; border-radius: 14px 14px 0 0;
-      border-bottom: 2px solid #B0AB9E;
-      font-family: 'Inter', sans-serif; font-size: 15px;
-      color: #1E2820; outline: none; resize: none; min-height: 90px;
-      transition: border-color 0.2s, background 0.2s;
-    }
-    .m3-textarea:focus { border-bottom-color: #3D6B45; background: #E8E4DC; }
-
-    /* Filled button (primary) */
     .btn-filled {
       width: 100%; padding: 16px; border-radius: 14px;
       background: #3D6B45; color: white; font-weight: 600; font-size: 15px;
-      cursor: pointer; transition: transform 0.15s, box-shadow 0.15s; border: none;
+      cursor: pointer; transition: transform 0.15s; border: none;
       box-shadow: 0 2px 8px rgba(61,107,69,0.28);
     }
-    .btn-filled:active { transform: scale(0.97); box-shadow: 0 1px 4px rgba(61,107,69,0.2); }
-    .btn-filled:disabled { opacity: 0.5; transform: none; cursor: not-allowed; }
-
-    /* Tonal button */
-    .btn-tonal {
-      padding: 14px 20px; border-radius: 12px;
-      background: #C2E0C6; color: #1A3D20; font-weight: 600; font-size: 14px;
-      cursor: pointer; transition: transform 0.15s, background 0.15s; border: none;
-    }
-    .btn-tonal:active { transform: scale(0.97); background: #B0D4B6; }
-
-    /* M3 Card */
-    .m3-card {
-      background: #fff; border-radius: 20px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
-    }
-
-    /* Template card */
+    .btn-filled:active { transform: scale(0.97); }
+    .btn-filled:disabled { opacity: 0.5; cursor: not-allowed; }
     .template-card {
       background: #fff; border-radius: 20px; overflow: hidden; cursor: pointer;
       box-shadow: 0 1px 3px rgba(0,0,0,0.07), 0 2px 8px rgba(0,0,0,0.04);
-      border: 2px solid transparent; transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+      border: 2px solid transparent; transition: border-color 0.2s, transform 0.15s;
     }
     .template-card:active { transform: scale(0.98); }
     .template-card.selected { border-color: #3D6B45; }
-    .template-card.selected .template-badge { display: flex; }
-    .template-badge { display: none; }
-
-    /* Section label */
-    .section-label {
-      font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
-      color: #6B6860; text-transform: uppercase; margin-bottom: 12px;
-    }
-
-    /* Segment control (M3 segmented button) */
-    .segment-group { display: flex; background: #EDE9E4; border-radius: 12px; padding: 3px; gap: 2px; }
-    .segment-btn {
-      flex: 1; padding: 8px 12px; border-radius: 10px; border: none; cursor: pointer;
-      font-size: 13px; font-weight: 500; color: #6B6860; background: transparent;
-      transition: background 0.2s, color 0.2s; text-align: center;
-    }
-    .segment-btn.active { background: #fff; color: #1E2820; font-weight: 600;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
-
-    /* M3 Navigation Bar */
-    .nav-item {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; flex: 1; height: 64px; cursor: pointer; text-decoration: none;
-      position: relative; color: #6B6860;
-    }
-    .nav-pill {
-      position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-      width: 64px; height: 32px; border-radius: 16px; background: transparent;
-    }
-    .nav-item.active .nav-pill { background: #C2E0C6; }
-    .nav-item.active { color: #1A3D20; }
-    .nav-icon { position: relative; z-index: 1; margin-top: 4px; }
-    .nav-label { font-size: 11px; font-weight: 500; position: relative; z-index: 1; }
-    .nav-icon .filled { display: none; }
-    .nav-icon .outline { display: block; }
-    .nav-item.active .nav-icon .filled { display: block; }
-    .nav-item.active .nav-icon .outline { display: none; }
   </style>
 </head>
-<body class="bg-[#FAFAF8] text-[#1E2820] min-h-screen">
+<body>
 
-  <!-- ── Desktop Navbar ─────────────────────────────── -->
-  <header class="hidden md:flex sticky top-0 z-30 bg-[#FAFAF8]/90 backdrop-blur-xl border-b border-[#E8E4DE] px-8 h-16 items-center justify-between">
-    <a href="/" class="font-cormorant text-2xl font-semibold italic text-[#1E2820]">ToiLink</a>
-    <nav class="flex items-center gap-1">
-      <a href="/" class="px-4 py-2 rounded-full text-[#6B6860] text-sm font-medium hover:bg-[#EDE9E4] transition-colors">Мои события</a>
-      <a href="/editor.html" class="px-4 py-2 rounded-full bg-[#C2E0C6] text-[#1A3D20] text-sm font-semibold">Создать</a>
-    </nav>
-    <div class="flex items-center gap-3">
-      <button id="preview-btn" onclick=""
-        class="hidden px-5 py-2.5 bg-[#C2E0C6] text-[#1A3D20] rounded-full text-sm font-semibold hover:bg-[#B0D4B6] transition-colors">
-        Предпросмотр →
-      </button>
-      <a href="/" class="px-4 py-2.5 border border-[#E8E4DE] rounded-full text-sm text-[#6B6860] hover:bg-[#EDE9E4] transition-colors">← Назад</a>
+  <!-- ══ STEP 1 — Template picker ════════════════════════════════════════════ -->
+  <div id="step1-wrap">
+    <div class="top-app-bar md:hidden">
+      <div class="app-bar-inner">
+        <a href="/" class="icon-btn">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </a>
+        <span class="font-cormorant text-[20px] italic font-semibold text-[#1E2820]">Выбор шаблона</span>
+        <div class="w-10"></div>
+      </div>
     </div>
-  </header>
-
-  <!-- ── Mobile Top App Bar ─────────────────────────── -->
-  <div class="top-app-bar md:hidden">
-    <div class="app-bar-inner">
-      <a href="/" class="icon-btn">
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-        </svg>
-      </a>
-      <span class="font-cormorant text-[19px] font-semibold italic text-[#1E2820]">Создать событие</span>
-      <button id="preview-btn" onclick=""
-        class="hidden text-xs font-semibold text-[#3D6B45] bg-[#C2E0C6] rounded-full px-3 py-1.5 active:scale-95 transition-transform">
-        Открыть
-      </button>
-      <div class="w-10 md:hidden" id="preview-placeholder"></div>
-    </div>
-  </div>
-
-  <!-- ── Main ──────────────────────────────────────── -->
-  <main class="max-w-2xl mx-auto px-4 md:px-8 pt-5 pb-36 md:pb-12">
-    <div id="step1"></div>
-    <div id="step2" class="hidden"></div>
-  </main>
-
-  <!-- ── M3 Bottom Navigation Bar ───────────────────── -->
-  <nav class="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-[#FAFAF8]/95 backdrop-blur-xl border-t border-[#E8E4DE]"
-       style="padding-bottom: env(safe-area-inset-bottom, 0px);">
-    <div class="flex">
-
-      <a href="/" class="nav-item" data-tab="home">
-        <div class="nav-pill"></div>
-        <div class="nav-icon">
-          <svg class="filled w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-          <svg class="outline w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+    <main class="max-w-2xl mx-auto px-4 pt-5 pb-32">
+      <div id="step1"></div>
+    </main>
+    <!-- M3 Bottom Nav -->
+    <nav class="fixed bottom-0 left-0 right-0 z-30 bg-[#FAFAF8]/95 backdrop-blur-xl border-t border-[#E8E4DE]"
+         style="padding-bottom:env(safe-area-inset-bottom,0px)">
+      <div class="flex">
+        <a href="/" class="flex flex-col items-center justify-center gap-1 flex-1 py-3 text-[#6B6860] text-xs font-medium no-underline">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
-        </div>
-        <span class="nav-label">Главная</span>
-      </a>
-
-      <a href="/editor.html" class="nav-item active" data-tab="create">
-        <div class="nav-pill"></div>
-        <div class="nav-icon">
-          <svg class="filled w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-            <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/>
-          </svg>
-          <svg class="outline w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          Главная
+        </a>
+        <a href="/editor.html" class="flex flex-col items-center justify-center gap-1 flex-1 py-3 text-[#1A3D20] text-xs font-semibold no-underline">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
           </svg>
-        </div>
-        <span class="nav-label">Создать</span>
-      </a>
+          Создать
+        </a>
+      </div>
+    </nav>
+  </div>
 
+  <!-- ══ EDITOR OVERLAY (Step 2) ══════════════════════════════════════════════ -->
+  <div id="editorOverlay" class="hidden">
+
+    <!-- Top bar -->
+    <div class="editor-bar">
+      <button class="editor-bar__back" id="editorBack">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </button>
+      <input class="editor-bar__title" id="editorTitle" type="text" placeholder="Название события" maxlength="80">
+      <button class="editor-bar__save" id="editorSave">Сохранить</button>
     </div>
-  </nav>
+
+    <!-- Live preview -->
+    <div id="previewWrap">
+      <iframe id="previewFrame" scrolling="yes"></iframe>
+      <div id="previewFade"></div>
+    </div>
+
+    <!-- Bottom sheet -->
+    <div id="bottomSheet">
+      <div id="sheetHandle">
+        <div style="width:32px"></div>
+        <div class="handle-pill"></div>
+        <button id="sheetPeek" onclick="toggleSheetPeek()" title="Свернуть / развернуть">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+      <div id="blockTabs"></div>
+      <div id="panelContent"></div>
+    </div>
+
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
 
   <script src="/js/initAuth.js"></script>
   <script src="/js/editor.js"></script>

@@ -193,13 +193,10 @@ class LuxuryEnvelope {
     }
 }
 
-// Автоматический запуск при загрузке DOM
-document.addEventListener('DOMContentLoaded', () => {
-    // Ждём WEDDING_CONFIG из config.js
-    if (typeof WEDDING_CONFIG !== 'undefined') {
-        const envelope = new LuxuryEnvelope(WEDDING_CONFIG);
-        envelope.init();
-    } else {
-        console.warn('[Envelope] WEDDING_CONFIG not found. Ensure config.js loads first.');
-    }
-});
+// Запуск немедленно — работает и при динамической загрузке (api-bridge), и при <script> в конце body
+if (typeof WEDDING_CONFIG !== 'undefined') {
+    const envelope = new LuxuryEnvelope(WEDDING_CONFIG);
+    envelope.init();
+} else {
+    console.warn('[Envelope] WEDDING_CONFIG not found. Ensure config.js or api-bridge.js loads first.');
+}

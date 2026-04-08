@@ -10,7 +10,7 @@
  * Все изменения — через config.js!
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
     'use strict';
 
     // ─── Load config ───
@@ -120,49 +120,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. 📸 PHOTOS + CAROUSEL
     // ═══════════════════════════════════════════
     if (C.photos) {
+        // Hero photo (full-width block below hero section)
         if (C.photos.photo1) {
             setAttr('photo1', 'src', C.photos.photo1.src);
             setAttr('photo1', 'alt', C.photos.photo1.alt);
         }
-        if (C.photos.carousel && C.photos.carousel.length >= 3) {
-            setAttr('carouselImg1', 'src', C.photos.carousel[0].src);
-            setAttr('carouselImg1', 'alt', C.photos.carousel[0].alt);
-            setAttr('carouselImg2', 'src', C.photos.carousel[1].src);
-            setAttr('carouselImg2', 'alt', C.photos.carousel[1].alt);
-            setAttr('carouselImg3', 'src', C.photos.carousel[2].src);
-            setAttr('carouselImg3', 'alt', C.photos.carousel[2].alt);
-        } else if (C.photos.carousel && C.photos.carousel.length > 0) {
-            // Handle variable number of carousel images
-            C.photos.carousel.forEach((photo, i) => {
-                setAttr(`carouselImg${i + 1}`, 'src', photo.src);
-                setAttr(`carouselImg${i + 1}`, 'alt', photo.alt);
-            });
-        } else {
-            // Fallback to old config structure
-            if (C.photos.photo1) setAttr('carouselImg1', 'src', C.photos.photo1.src);
-            if (C.photos.photo2) setAttr('carouselImg2', 'src', C.photos.photo2.src);
-            if (C.photos.photo3) setAttr('carouselImg3', 'src', C.photos.photo3.src);
+
+        // Carousel: rebuild slides dynamically based on actual photo count
+        const carouselPhotos = C.photos.carousel || [];
+        if (carouselPhotos.length > 0) {
+            const track = document.getElementById('carouselTrack');
+            const dotsContainer = document.getElementById('carouselDots');
+            const totalEl = document.getElementById('carouselTotal');
+
+            if (track) {
+                track.innerHTML = carouselPhotos.map(photo => `
+                    <div class="carousel__slide">
+                        <div class="carousel__frame">
+                            <img class="carousel__img" src="${photo.src}" alt="${photo.alt}" loading="lazy">
+                        </div>
+                    </div>`).join('');
+            }
+            if (dotsContainer) {
+                dotsContainer.innerHTML = carouselPhotos.map((_, i) => `
+                    <button class="carousel__dot ${i === 0 ? 'carousel__dot--active' : ''}" data-index="${i}"></button>`).join('');
+            }
+            if (totalEl) totalEl.textContent = carouselPhotos.length;
         }
 
+        // Bottom photo (below quote section)
         if (C.photos.photoBottom) {
             setAttr('photo3', 'src', C.photos.photoBottom.src);
             setAttr('photo3', 'alt', C.photos.photoBottom.alt);
-        } else if (C.photos.photo3 && typeof C.photos.photo3 === 'object') {
-            setAttr('photo3', 'src', C.photos.photo3.src);
         }
     }
 
-    // ─── Carousel Interactivity ───
-    const carouselTrack = document.getElementById('carouselTrack');
-    const carouselDots = document.querySelectorAll('.carousel__dot');
-    const carouselCurrent = document.getElementById('carouselCurrent');
+    // ─── Carousel Interactivity (runs after slides are rendered) ───
+    function initCarousel() {
+        const carouselTrack = document.getElementById('carouselTrack');
+        const carouselCurrent = document.getElementById('carouselCurrent');
+        if (!carouselTrack) return;
 
-    if (carouselTrack && carouselDots.length) {
+        // Re-query dots after dynamic render
+        const carouselDots = document.querySelectorAll('.carousel__dot');
+
         function updateCarouselUI() {
             const scrollLeft = carouselTrack.scrollLeft;
             const slideWidth = carouselTrack.offsetWidth;
             const activeIndex = Math.round(scrollLeft / slideWidth);
-
             carouselDots.forEach((dot, i) => {
                 dot.classList.toggle('carousel__dot--active', i === activeIndex);
             });
@@ -190,6 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         carouselTrack.addEventListener('touchstart', () => clearInterval(autoplayInterval), { passive: true });
     }
+    initCarousel();
 
     // ═══════════════════════════════════════════
     // 4. 💌 GREETING
@@ -239,6 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setAttr('locationMapBtn', 'target', '_blank');
         setAttr('locationMapBtn', 'rel', 'noopener noreferrer');
         setText('locationMapText', C.location.btnText || C.location.mapButtonText);
+        if (C.location.venuePhoto) {
+            setAttr('locationPhoto', 'src', C.location.venuePhoto);
+        }
     }
 
     // ═══════════════════════════════════════════
@@ -754,4 +763,4 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     console.log(`✅ Wedding invitation loaded: ${C.wedding.groom} & ${C.wedding.bride}`);
-});
+})();

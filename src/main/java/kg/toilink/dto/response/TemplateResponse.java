@@ -8,6 +8,7 @@ public record TemplateResponse(
         String description,
         String thumbnailUrl,
         String category,
+        String templatePath,
         String blocksSchema,
         int sortOrder
 ) {
@@ -18,6 +19,7 @@ public record TemplateResponse(
                 t.getDescription(),
                 t.getThumbnailUrl(),
                 t.getCategory(),
+                t.getTemplatePath(),
                 t.getBlocksSchema(),
                 t.getSortOrder()
         );

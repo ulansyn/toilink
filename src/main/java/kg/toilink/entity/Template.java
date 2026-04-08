@@ -32,6 +32,9 @@ public class Template {
     @Column(nullable = false, length = 50)
     private String category;
 
+    @Column(length = 100)
+    private String templatePath;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, columnDefinition = "jsonb")
     private String blocksSchema;

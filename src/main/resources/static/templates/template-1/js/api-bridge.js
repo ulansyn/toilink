@@ -16,6 +16,10 @@
         let bc = {};
         try { bc = JSON.parse(event.blocksConfig || '{}'); } catch (_) {}
 
+        // ─── Helpers
+        const blockEnabled = (blockData) =>
+            !blockData ? false : (blockData.enabled !== false);
+
         // ─── Schedule: "15:00 Сбор гостей\n16:00 Банкет" → [{time, title}]
         const scheduleItems = ((bc.schedule && bc.schedule.items) || '')
             .split('\n')
@@ -39,9 +43,18 @@
             ? `${pad(dateObj.getDate())}.${pad(dateObj.getMonth() + 1)}.${dateObj.getFullYear()}`
             : '';
 
-        // ─── Photos
-        const ph = (bc.photos) || {};
+        // ─── Photos (new schema: hero.heroPhoto + carousel.photos array)
         const fallback = '/images/og-placeholder.svg';
+        const heroPhoto = (bc.hero && bc.hero.heroPhoto) || fallback;
+
+        // carousel.photos is stored as JSON array string: '["url1","url2"]'
+        let carouselPhotos = [];
+        try {
+            const raw = bc.carousel && bc.carousel.photos;
+            carouselPhotos = raw ? (typeof raw === 'string' ? JSON.parse(raw) : raw) : [];
+        } catch (_) { carouselPhotos = []; }
+
+        const venuePhoto = (bc.location && bc.location.venuePhoto) || null;
 
         // ─── Build CONFIG
         window.WEDDING_CONFIG = {
@@ -49,14 +62,14 @@
                 envelope:  true,
                 music:     false,
                 hero:      true,
-                greeting:  !!(ph.photo1 || (bc.greeting && bc.greeting.text)),
+                greeting:  blockEnabled(bc.greeting),
                 countdown: !!event.eventDate,
                 calendar:  !!event.eventDate,
-                carousel:  !!(ph.carousel1 || ph.carousel2 || ph.photo1),
-                schedule:  scheduleItems.length > 0,
-                location:  !!(bc.location && (bc.location.placeName || bc.location.address || event.location)),
-                dresscode: !!(bc.dresscode && bc.dresscode.text),
-                quote:     !!(bc.quote && bc.quote.text),
+                carousel:  blockEnabled(bc.carousel) && carouselPhotos.length > 0,
+                schedule:  blockEnabled(bc.schedule) && scheduleItems.length > 0,
+                location:  blockEnabled(bc.location) && !!(bc.location && (bc.location.placeName || bc.location.address || event.location)),
+                dresscode: blockEnabled(bc.dresscode) && !!(bc.dresscode && bc.dresscode.text),
+                quote:     blockEnabled(bc.quote) && !!(bc.quote && bc.quote.text),
                 rsvp:      event.status !== 'CLOSED',
                 footer:    true,
             },
@@ -85,13 +98,10 @@
                 text:  (bc.greeting && bc.greeting.text)  || '',
             },
             photos: {
-                photo1:      { src: ph.photo1      || fallback, alt: 'Фото' },
-                carousel: [
-                    { src: ph.carousel1  || ph.photo1 || fallback, alt: 'Фото 1' },
-                    { src: ph.carousel2  || ph.photo1 || fallback, alt: 'Фото 2' },
-                    { src: ph.carousel3  || ph.photo1 || fallback, alt: 'Фото 3' },
-                ],
-                photoBottom: { src: ph.photoBottom || ph.photo1 || fallback, alt: 'Фото' },
+                photo1:      { src: heroPhoto, alt: 'Фото' },
+                carousel:    carouselPhotos.map((src, i) => ({ src, alt: `Фото ${i + 1}` })),
+                photoBottom: { src: carouselPhotos[0] || heroPhoto, alt: 'Фото' },
+                venuePhoto:  venuePhoto,
             },
             schedule: scheduleItems,
             location: {
@@ -99,7 +109,8 @@
                 placeName: (bc.location && bc.location.placeName) || '',
                 address:   (bc.location && bc.location.address)   || event.location || '',
                 mapLink:   (bc.location && bc.location.mapLink)   || '#',
-                btnText:   (bc.location && bc.location.btnText)   || 'Показать на карте',
+                btnText:   'Показать на карте',
+                venuePhoto: venuePhoto,
             },
             dresscode: {
                 title:   'Дресс-код',

@@ -25,6 +25,14 @@ spring:
     enabled: true
     change-log: classpath:db/changelog/db.changelog-master.yaml
 
+  servlet:
+    multipart:
+      max-file-size: 15MB
+      max-request-size: 15MB
+
+app:
+  upload-dir: uploads
+
 logging:
   level:
     liquibase: INFO

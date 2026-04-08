@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 010-add-template-path
+      author: toilink
+      changes:
+        - addColumn:
+            tableName: templates
+            columns:
+              - column:
+                  name: template_path
+                  type: VARCHAR(100)
+        - sql:
+            sql: |
+              UPDATE templates SET template_path = 'template-1' WHERE category = 'WEDDING';

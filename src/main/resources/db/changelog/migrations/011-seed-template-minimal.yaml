@@ -1,0 +1,61 @@
+databaseChangeLog:
+  - changeSet:
+      id: 011-seed-template-minimal
+      author: toilink
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO templates (name, description, category, template_path, sort_order, blocks_schema)
+              VALUES (
+                'Минимал',
+                'Чистый минималистичный шаблон',
+                'WEDDING',
+                'template-2',
+                2,
+                '[
+                  {
+                    "type": "hero",
+                    "label": "Главный экран",
+                    "optional": false,
+                    "fields": [
+                      {"name": "badge",    "type": "text", "label": "Бейдж"},
+                      {"name": "subtitle", "type": "text", "label": "Подзаголовок"}
+                    ]
+                  },
+                  {
+                    "type": "photo",
+                    "label": "Фотография",
+                    "optional": true,
+                    "fields": [
+                      {"name": "url", "type": "photo", "label": "Фото пары"}
+                    ]
+                  },
+                  {
+                    "type": "greeting",
+                    "label": "Приветствие",
+                    "optional": true,
+                    "fields": [
+                      {"name": "title", "type": "text",     "label": "Заголовок"},
+                      {"name": "text",  "type": "textarea", "label": "Текст"}
+                    ]
+                  },
+                  {
+                    "type": "schedule",
+                    "label": "Программа дня",
+                    "optional": true,
+                    "fields": [
+                      {"name": "items", "type": "schedule-items", "label": "Программа"}
+                    ]
+                  },
+                  {
+                    "type": "location",
+                    "label": "Место",
+                    "optional": true,
+                    "fields": [
+                      {"name": "placeName", "type": "text", "label": "Название заведения"},
+                      {"name": "address",   "type": "text", "label": "Адрес"},
+                      {"name": "mapLink",   "type": "url",  "label": "Ссылка на карту (2GIS / Google Maps)"}
+                    ]
+                  }
+                ]'::jsonb
+              );

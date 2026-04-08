@@ -15,3 +15,11 @@ databaseChangeLog:
       file: db/changelog/migrations/007-add-event-persons.yaml
   - include:
       file: db/changelog/migrations/008-update-wedding-blocks-schema.yaml
+  - include:
+      file: db/changelog/migrations/009-blocks-schema-v2.yaml
+  - include:
+      file: db/changelog/migrations/010-add-template-path.yaml
+  - include:
+      file: db/changelog/migrations/011-seed-template-minimal.yaml
+  - include:
+      file: db/changelog/migrations/012-add-dresscode-to-template2.yaml

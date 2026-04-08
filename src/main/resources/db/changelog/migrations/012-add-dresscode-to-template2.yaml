@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: 012-add-dresscode-to-template2
+      author: toilink
+      changes:
+        - sql:
+            sql: |
+              UPDATE templates
+              SET blocks_schema = blocks_schema || '[
+                {
+                  "type": "dresscode",
+                  "label": "Дресс-код",
+                  "optional": true,
+                  "fields": [
+                    {"name": "text",    "type": "text",    "label": "Описание"},
+                    {"name": "palette", "type": "palette", "label": "Цвета"}
+                  ]
+                }
+              ]'::jsonb
+              WHERE template_path = 'template-2';
