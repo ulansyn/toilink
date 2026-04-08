@@ -1,0 +1,73 @@
+databaseChangeLog:
+  - changeSet:
+      id: 005-create-rsvp-responses
+      author: toilink
+      changes:
+        - createTable:
+            tableName: rsvp_responses
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: rsvp_responses_pkey
+              - column:
+                  name: guest_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rsvp_guest
+                    references: guests(id)
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_rsvp_event
+                    references: events(id)
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: group_size
+                  type: int
+                  defaultValueNumeric: 1
+                  constraints:
+                    nullable: false
+              - column:
+                  name: comment
+                  type: text
+              - column:
+                  name: responded_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: rsvp_responses
+            columnNames: guest_id, event_id
+            constraintName: uq_rsvp_guest_event
+        - createIndex:
+            indexName: idx_rsvp_event_id
+            tableName: rsvp_responses
+            columns:
+              - column:
+                  name: event_id
+        - createIndex:
+            indexName: idx_rsvp_status
+            tableName: rsvp_responses
+            columns:
+              - column:
+                  name: event_id
+              - column:
+                  name: status

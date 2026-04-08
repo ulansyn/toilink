@@ -1,0 +1,18 @@
+databaseChangeLog:
+  - changeSet:
+      id: 008-update-wedding-blocks-schema
+      author: toilink
+      changes:
+        - sql:
+            sql: |
+              UPDATE templates
+              SET blocks_schema = '[
+                {"type":"hero",      "label":"Главный экран",  "fields":["badge","subtitle"]},
+                {"type":"greeting",  "label":"Приветствие",    "fields":["title","text"]},
+                {"type":"photos",    "label":"Фотографии",     "fields":["photo1","carousel1","carousel2","carousel3","photoBottom"]},
+                {"type":"schedule",  "label":"Программа дня",  "fields":["items"]},
+                {"type":"location",  "label":"Место",          "fields":["placeName","address","mapLink","btnText"]},
+                {"type":"dresscode", "label":"Дресс-код",      "fields":["text","palette"]},
+                {"type":"quote",     "label":"Цитата",         "fields":["text","author"]}
+              ]'::jsonb
+              WHERE category = 'WEDDING';

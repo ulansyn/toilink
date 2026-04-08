@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title th:text="${event.title}">Свадебное приглашение</title>
+    <meta name="description" id="metaDescription" th:content="${ogDescription}">
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website"/>
+    <meta property="og:title"       th:content="${event.title}"/>
+    <meta property="og:description" th:content="${ogDescription}"/>
+    <meta property="og:image"       th:content="${ogImage}"/>
+    <meta property="og:url"         th:content="${ogUrl}"/>
+    <meta property="og:locale"      content="ru_RU"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image"/>
+    <meta name="twitter:title"       th:content="${event.title}"/>
+    <meta name="twitter:description" th:content="${ogDescription}"/>
+    <meta name="twitter:image"       th:content="${ogImage}"/>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Italiana&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+
+    <!-- Template CSS -->
+    <link rel="stylesheet" th:href="@{/templates/template-1/css/style.css}">
+    <link rel="stylesheet" th:href="@{/templates/template-1/envelope.css}">
+</head>
+
+<body class="loading-active">
+    <!-- ═══ TEXTURE ═══ -->
+    <div class="bg-texture"></div>
+
+    <!-- ═══ DESKTOP BLOCKER ═══ -->
+    <div class="desktop-block">
+        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2C3531" stroke-width="1" stroke-linecap="round">
+            <rect x="5" y="2" width="14" height="20" rx="3"/>
+            <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2"/>
+        </svg>
+        <h2 style="margin-top: 20px;">Откройте на телефоне</h2>
+        <p>Это приглашение создано для просмотра на мобильном устройстве</p>
+    </div>
+
+    <!-- ═══ PARTICLES ═══ -->
+    <canvas id="particles"></canvas>
+
+    <!-- ═══ HEADER ═══ -->
+    <header class="header" id="header">
+        <button class="header__music" id="musicBtn" aria-label="Музыка"><span>♪</span></button>
+        <span class="header__title">Приглашение</span>
+        <div class="header__menu" id="menuBtn" role="button" aria-label="Меню">
+            <span></span><span></span><span></span>
+        </div>
+    </header>
+
+    <!-- ═══ NAV OVERLAY ═══ -->
+    <div class="nav-overlay" id="navOverlay">
+        <div class="nav-overlay__close" id="navClose">✕</div>
+        <nav class="nav-overlay__content">
+            <ul class="nav-overlay__list">
+                <li><a href="#hero"      class="nav-link">Главная</a></li>
+                <li><a href="#greeting"  class="nav-link">Пожелание</a></li>
+                <li><a href="#countdown" class="nav-link">Таймер</a></li>
+                <li><a href="#calendar"  class="nav-link">Календарь</a></li>
+                <li><a href="#carousel"  class="nav-link">Фото</a></li>
+                <li><a href="#schedule"  class="nav-link">Программа</a></li>
+                <li><a href="#location"  class="nav-link">Место</a></li>
+                <li><a href="#dresscode" class="nav-link">Дресс-код</a></li>
+                <li><a href="#rsvp"      class="nav-link">RSVP</a></li>
+            </ul>
+        </nav>
+    </div>
+
+    <div class="mobile-content">
+
+        <!-- HERO -->
+        <section class="hero" id="hero">
+            <div class="floral-hero">
+                <img th:src="@{/templates/template-1/assets/decor/floral_top.png}" alt="" loading="eager">
+            </div>
+            <div class="branch branch--hero-left">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_dark.png}" alt="">
+            </div>
+            <div class="branch branch--hero-right">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_light.png}" alt="">
+            </div>
+            <h1 class="hero__name hero__name--first" id="heroGroom"></h1>
+            <div class="hero__ampersand">&amp;</div>
+            <h1 class="hero__name hero__name--second" id="heroBride"></h1>
+            <p class="hero__subtitle" id="heroSubtitle"></p>
+            <p class="hero__date" id="heroDate"></p>
+            <a href="#greeting" class="hero__scroll">
+                <div class="hero__scroll-pill"></div>
+                <div class="hero__scroll-text">Листайте</div>
+                <svg class="hero__scroll-chevron" width="22" height="14" viewBox="0 0 22 14" fill="none">
+                    <path d="M1 1L11 11L21 1" stroke="var(--c-sage-accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </a>
+        </section>
+
+        <!-- PHOTO 1 -->
+        <div class="photo-block photo-block--full reveal">
+            <img class="photo-block__img" id="photo1" src="" alt="" loading="lazy">
+        </div>
+        <div class="hero-divider reveal"></div>
+
+        <!-- GREETING -->
+        <section class="greeting section--light" id="greeting">
+            <div class="branch branch--greeting-tr">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_dark.png}" alt="">
+            </div>
+            <div class="reveal">
+                <svg class="section__icon" viewBox="0 0 50 49" xmlns="http://www.w3.org/2000/svg">
+                    <path fill="#232a50" fill-rule="evenodd" d="M48.2 26.5c3.3-10.3.2-21.8-10-25.2 1.5-1.6 3.2-2.1 4.8-2 .4 0 .5-.4.3-.7-.1-.1-.2-.2-.3-.2-2-.1-3.9.8-5.7 2.6-2.3-.6-4.6-.9-6.9-.8C22.8.2 16.8 2.8 11.4 7.8 8.4 10.7 5.4 16 4.8 20.1c-.9 5.8 1 10.5 6.5 11.1 7.1.6 12.5-6.2 15-12.5 2-5.3 1.4-9.4-1.7-10.4-.5-.2-1.1-.3-1.7-.2-2.8 0-5.8 2-7.5 6.3-2 5.2-2.4 9.6-.6 11.2.7.4.7-.8.3-1.1-1.3-1.1-1.1-4.5.3-7.7 1.3-5 3.8-8.5 7.5-8.5.5 0 1 .1 1.5.3 2.9 1.5 1.4 9-.5 15.5-3.4 8.4-10 21.5-21.7 19.9-8-1.1-9.2-8.8-7.6-16.3 1.5-6.6 5.8-13.9 8.4-17.4C14.7 3.7 25.8-2.8 34.6-2.8c1.2 0 2.3.1 3.5.4-4.3 4.7-8.2 14.2-10.1 20.1-1.2 3.5-5.1 12.8-8.4 17.7-3-1-6.1-1.8-9.3-1.8-3.2-.1-8.7.7-8.6 4.9.1 3.4 4.1 4.2 6.4 4.1 5.9-.3 9.3-2.1 13.4-6 3-1 5.4-1.4 8.2-1.3C39.5 35.6 46.3 29 48.2 26.5zm-10.5-5.5C40.3 11.5 44.1 1 48.9 1c1.3 0 2.3.5 2.5 1.8.5 4-4.1 14.1-8.7 19.3zM18.4 40.1c-2.6 3.5-7 6.2-11.5 6.2-2.6 0-5.1-1.1-4.7-3.8.4-3.3 4.3-4 7.1-4 3.1-.1 6.2.6 9 1.6z" opacity=".6"/>
+                </svg>
+            </div>
+            <h2 class="greeting__label reveal reveal-delay-1" id="greetingTitle"></h2>
+            <p class="greeting__text reveal reveal-delay-2" id="greetingText"></p>
+        </section>
+
+        <!-- COUNTDOWN -->
+        <section class="countdown section--accent" id="countdown">
+            <h2 class="section__title reveal">До свадьбы</h2>
+            <div class="countdown__grid reveal reveal-delay-1" id="countdownGrid">
+                <div class="countdown__item"><div class="countdown__number" id="cd-days">---</div><div class="countdown__label">дней</div></div>
+                <div class="countdown__item"><div class="countdown__number" id="cd-hours">--</div><div class="countdown__label">часов</div></div>
+                <div class="countdown__item"><div class="countdown__number" id="cd-mins">--</div><div class="countdown__label">минут</div></div>
+                <div class="countdown__item"><div class="countdown__number" id="cd-secs">--</div><div class="countdown__label">секунд</div></div>
+            </div>
+        </section>
+
+        <!-- CALENDAR -->
+        <section class="calendar section--light reveal" id="calendar">
+            <div class="branch branch--calendar-bl">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_light.png}" alt="">
+            </div>
+            <h2 class="section__title" id="calendarTitle"></h2>
+            <div class="calendar__grid" id="calendarGrid"></div>
+        </section>
+
+        <!-- CAROUSEL -->
+        <section class="carousel reveal" id="carousel">
+            <div class="carousel__track" id="carouselTrack">
+                <div class="carousel__slide"><div class="carousel__frame"><img class="carousel__img" id="carouselImg1" src="" alt="" loading="lazy"></div></div>
+                <div class="carousel__slide"><div class="carousel__frame"><img class="carousel__img" id="carouselImg2" src="" alt="" loading="lazy"></div></div>
+                <div class="carousel__slide"><div class="carousel__frame"><img class="carousel__img" id="carouselImg3" src="" alt="" loading="lazy"></div></div>
+            </div>
+            <div class="carousel__dots" id="carouselDots">
+                <button class="carousel__dot carousel__dot--active" data-index="0"></button>
+                <button class="carousel__dot" data-index="1"></button>
+                <button class="carousel__dot" data-index="2"></button>
+            </div>
+            <div class="carousel__counter"><span id="carouselCurrent">1</span> / <span id="carouselTotal">3</span></div>
+        </section>
+
+        <!-- DIVIDER -->
+        <div class="divider reveal"></div>
+
+        <!-- SCHEDULE -->
+        <section class="schedule section" id="schedule">
+            <div class="branch branch--schedule-tr">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_light.png}" alt="">
+            </div>
+            <h2 class="section__title reveal">Программа дня</h2>
+            <div class="schedule__timeline" id="scheduleTimeline" style="margin-top: 28px;"></div>
+        </section>
+
+        <!-- LOCATION -->
+        <section class="location section--accent reveal" id="location">
+            <div class="branch branch--location-br">
+                <img th:src="@{/templates/template-1/assets/decor/eucalyptus_dark.png}" alt="">
+            </div>
+            <h2 class="section__title" id="locationTitle"></h2>
+            <div class="location__card">
+                <div class="location__photo">
+                    <img class="location__photo-img" id="locationPhoto" th:src="@{/templates/template-1/assets/venue/restaurant.jpg}" alt="Банкетный зал" loading="lazy">
+                </div>
+                <div class="location__name" id="locationName"></div>
+                <div class="location__address" id="locationAddress"></div>
+                <a id="locationMapBtn" href="#" class="location__btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span id="locationMapText"></span>
+                </a>
+            </div>
+        </section>
+
+        <!-- DRESSCODE -->
+        <section class="dresscode section reveal" id="dresscode">
+            <h2 class="section__title" id="dresscodeTitle"></h2>
+            <p class="dresscode__hint" id="dresscodeHint" style="margin-top:12px;"></p>
+            <div class="dresscode__palette" id="dresscodePalette"></div>
+        </section>
+
+        <!-- QUOTE -->
+        <section class="quote section--light reveal" id="quote">
+            <p class="quote__text" id="quoteText"></p>
+            <span class="quote__author" id="quoteAuthor"></span>
+        </section>
+
+        <!-- PHOTO BOTTOM -->
+        <div class="photo-block photo-block--round reveal">
+            <img class="photo-block__img" id="photo3" src="" alt="" loading="lazy">
+        </div>
+
+        <div class="divider reveal"></div>
+
+        <!-- RSVP -->
+        <section class="rsvp section--accent" id="rsvp">
+            <div class="branch branch--rsvp-tl"><img th:src="@{/templates/template-1/assets/decor/eucalyptus_light.png}" alt=""></div>
+            <div class="branch branch--rsvp-br"><img th:src="@{/templates/template-1/assets/decor/eucalyptus_dark.png}" alt=""></div>
+            <div class="rsvp-form-wrap" id="rsvpFormWrap">
+                <h2 class="section__title reveal" id="rsvpTitle"></h2>
+                <p class="reveal reveal-delay-1" id="rsvpSubtitle" style="font-size: 14px; color: #686974; margin-top: 8px;"></p>
+                <form class="rsvp__form reveal reveal-delay-2" id="rsvpForm">
+                    <input class="rsvp__input" type="text" id="rsvpName" required>
+                    <select class="rsvp__select" id="rsvpAttend"></select>
+                    <select class="rsvp__select" id="rsvpGuests"></select>
+                    <textarea class="rsvp__textarea" id="rsvpWish"></textarea>
+                    <button type="submit" class="rsvp__btn" id="rsvpBtn"></button>
+                </form>
+            </div>
+            <div class="rsvp-success" id="rsvpSuccess">
+                <div class="rsvp-success-icon-wrap">
+                    <div class="rsvp-success-circle">
+                        <svg viewBox="0 0 24 24" fill="none" class="check-icon" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </div>
+                </div>
+                <div class="rsvp-success-title">Ответ принят!</div>
+                <p class="rsvp-success-text">До нашей встречи осталось:</p>
+                <div class="rsvp-success-timer" id="rsvp-timer">
+                    <div class="timer-unit"><span class="timer-val" id="rsvp-d">0</span><span class="timer-lab">дней</span></div>
+                    <div class="timer-unit"><span class="timer-val" id="rsvp-h">0</span><span class="timer-lab">часов</span></div>
+                    <div class="timer-unit"><span class="timer-val" id="rsvp-m">0</span><span class="timer-lab">минут</span></div>
+                    <div class="timer-unit"><span class="timer-val" id="rsvp-s">00</span><span class="timer-lab">секунд</span></div>
+                </div>
+                <div class="rsvp-promo">
+                    <p class="rsvp-promo-text">Понравилось пригласительное? ✨<br>Создайте своё на ToiLink</p>
+                    <a href="/" class="rsvp-promo-link">toilink.kg</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="footer reveal">
+            <div class="branch branch--footer"><img th:src="@{/templates/template-1/assets/decor/eucalyptus_light.png}" alt=""></div>
+            <div class="footer__names" id="footerNames"></div>
+            <div class="footer__heart">♥</div>
+            <div style="font-size: 13px; color: #686974;" id="footerDate"></div>
+            <div class="footer__copy" id="footerCopy"></div>
+        </footer>
+
+    </div>
+
+    <!-- API Bridge loads envelope.js + main.js dynamically -->
+    <script th:src="@{/templates/template-1/js/api-bridge.js}"></script>
+</body>
+</html>

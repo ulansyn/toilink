@@ -1,0 +1,69 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-templates
+      author: toilink
+      changes:
+        - createTable:
+            tableName: templates
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: templates_pkey
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: thumbnail_url
+                  type: varchar(500)
+              - column:
+                  name: category
+                  type: varchar(50)
+                  defaultValue: OTHER
+                  constraints:
+                    nullable: false
+              - column:
+                  name: blocks_schema
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: sort_order
+                  type: int
+                  defaultValueNumeric: 0
+                  constraints:
+                    nullable: false
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_templates_category
+            tableName: templates
+            columns:
+              - column:
+                  name: category
+        - sql:
+            sql: CREATE INDEX idx_templates_sort ON templates (sort_order) WHERE is_active = TRUE

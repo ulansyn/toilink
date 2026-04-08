@@ -1,0 +1,58 @@
+package kg.toilink.controller;
+
+import jakarta.servlet.http.HttpServletRequest;
+import kg.toilink.entity.Event;
+import kg.toilink.exception.NotFoundException;
+import kg.toilink.repository.EventRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+
+@Controller
+@RequiredArgsConstructor
+public class EventPageController {
+
+    private final EventRepository eventRepository;
+
+    @GetMapping("/e/{slug}")
+    public String eventPage(@PathVariable String slug, Model model, HttpServletRequest request) {
+        Event event = eventRepository.findBySlug(slug)
+                .orElseThrow(() -> NotFoundException.eventBySlug(slug));
+
+        String baseUrl = request.getScheme() + "://" + request.getServerName()
+                + (request.getServerPort() != 80 && request.getServerPort() != 443
+                        ? ":" + request.getServerPort() : "");
+
+        String ogImage = (event.getCoverImageUrl() != null && !event.getCoverImageUrl().isBlank())
+                ? event.getCoverImageUrl()
+                : baseUrl + "/images/og-placeholder.svg";
+
+        String ogDescription = buildDescription(event);
+
+        model.addAttribute("event", event);
+        model.addAttribute("ogImage", ogImage);
+        model.addAttribute("ogDescription", ogDescription);
+        model.addAttribute("ogUrl", baseUrl + "/e/" + slug);
+
+        // Route to template-specific Thymeleaf view
+        String category = (event.getTemplate() != null) ? event.getTemplate().getCategory() : null;
+        if ("WEDDING".equalsIgnoreCase(category)) {
+            return "event-wedding";
+        }
+        return "event-og";
+    }
+
+    private String buildDescription(Event event) {
+        StringBuilder sb = new StringBuilder();
+        if (event.getEventDate() != null) {
+            sb.append(event.getEventDate().toLocalDate());
+        }
+        if (event.getLocation() != null && !event.getLocation().isBlank()) {
+            if (!sb.isEmpty()) sb.append(" • ");
+            sb.append(event.getLocation());
+        }
+        return sb.isEmpty() ? event.getTitle() : sb.toString();
+    }
+}

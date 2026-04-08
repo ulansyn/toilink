@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title th:text="${event.title}">Событие</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type"        content="website"/>
+    <meta property="og:title"       th:content="${event.title}"/>
+    <meta property="og:description" th:content="${ogDescription}"/>
+    <meta property="og:image"       th:content="${ogImage}"/>
+    <meta property="og:url"         th:content="${ogUrl}"/>
+    <meta property="og:locale"      content="ru_RU"/>
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card"        content="summary_large_image"/>
+    <meta name="twitter:title"       th:content="${event.title}"/>
+    <meta name="twitter:description" th:content="${ogDescription}"/>
+    <meta name="twitter:image"       th:content="${ogImage}"/>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              inter: ['Inter', 'sans-serif'],
+              cormorant: ['Cormorant Garamond', 'serif'],
+            },
+            colors: {
+              sage: '#6B8F71',
+              cream: '#FAFAF8',
+              graphite: '#1E2820',
+            }
+          }
+        }
+      }
+    </script>
+
+    <style>
+      body { font-family: 'Inter', sans-serif; }
+      .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+      .fade-in { opacity: 0; transform: translateY(16px); transition: opacity 0.5s ease, transform 0.5s ease; }
+      .fade-in.visible { opacity: 1; transform: translateY(0); }
+      ::-webkit-scrollbar { display: none; }
+      * { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-[#FAFAF8] text-[#1E2820] font-inter min-h-screen">
+
+  <!-- Page wrapper -->
+  <div class="max-w-lg mx-auto pb-10 px-4 pt-4">
+
+    <!-- Event meta (date · location) -->
+    <p id="event-meta" class="text-center text-sm text-[#1E2820]/40 mb-5 tracking-wide"></p>
+
+    <!-- Dynamic blocks rendered by event.js -->
+    <div id="blocks"></div>
+
+    <!-- Divider -->
+    <div class="flex items-center gap-3 my-8">
+      <div class="flex-1 h-px bg-[#E5E0D8]"></div>
+      <span class="font-cormorant italic text-[#1E2820]/30 text-lg">RSVP</span>
+      <div class="flex-1 h-px bg-[#E5E0D8]"></div>
+    </div>
+
+    <!-- RSVP form rendered by event.js -->
+    <div id="rsvp"></div>
+
+    <!-- Footer -->
+    <p class="text-center text-xs text-[#1E2820]/20 mt-10">
+      Создано с помощью <span class="font-cormorant italic">ToiLink</span>
+    </p>
+  </div>
+
+  <script th:src="@{/js/event.js}"></script>
+</body>
+</html>
