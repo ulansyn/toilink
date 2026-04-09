@@ -1,0 +1,10 @@
+databaseChangeLog:
+  - changeSet:
+      id: 013-fix-templates-keep-only-template1
+      author: toilink
+      changes:
+        - sql:
+            sql: |
+              UPDATE templates SET is_active = false;
+              UPDATE templates SET template_path = 'template-1', is_active = true
+              WHERE id = (SELECT id FROM templates ORDER BY id LIMIT 1);

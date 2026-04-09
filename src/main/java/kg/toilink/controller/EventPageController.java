@@ -36,14 +36,20 @@ public class EventPageController {
         model.addAttribute("ogDescription", ogDescription);
         model.addAttribute("ogUrl", baseUrl + "/e/" + slug);
 
+        // Pass serializable fields for JS injection (avoid lazy entity serialization)
+        model.addAttribute("eventPerson1", event.getPerson1() != null ? event.getPerson1() : "");
+        model.addAttribute("eventPerson2", event.getPerson2() != null ? event.getPerson2() : "");
+        model.addAttribute("eventDate", event.getEventDate() != null ? event.getEventDate().toString() : "");
+        model.addAttribute("eventBlocksConfig", event.getBlocksConfig() != null ? event.getBlocksConfig() : "{}");
+        model.addAttribute("eventSlug", event.getSlug());
+
         // Route to template-specific Thymeleaf view by templatePath
         String templatePath = (event.getTemplate() != null) ? event.getTemplate().getTemplatePath() : null;
+        if ("template-1".equals(templatePath)) {
+            return "event-wedding";
+        }
         if ("template-2".equals(templatePath)) {
             return "event-minimal";
-        }
-        if ("template-1".equals(templatePath) || "WEDDING".equalsIgnoreCase(
-                event.getTemplate() != null ? event.getTemplate().getCategory() : null)) {
-            return "event-wedding";
         }
         return "event-og";
     }

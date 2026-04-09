@@ -1,810 +1,889 @@
 // ═══════════════════════════════════════════════════════════════════════════
-// ToiLink Editor — Interactive bottom-sheet editor with live preview
+// ToiLink Editor v4 — Schema-driven, dynamic block system
+// Depends on: editor-utils.js, editor-api.js
 // ═══════════════════════════════════════════════════════════════════════════
 
-const BASE_URL = '';
-
-// ─── State ──────────────────────────────────────────────────────────────────
-let editEventId      = null;
-let existingEvent    = null;
-let selectedTemplate = null;
-let activeBlock      = 'main';
-let previewReady     = false;
-
-const state = {
-  title:        '',
-  person1:      '',
-  person2:      '',
-  eventDate:    '',
-  rsvpDeadline: '',
-  language:     'ru',
-  coverImageUrl:'',
-  blocks: {
-    hero:      { badge: '✦ Свадьба ✦', subtitle: 'приглашают на торжество' },
-    photo:     { enabled: true,  url: '' },
-    greeting:  { enabled: true,  title: 'Дорогие гости!', text: '' },
-    schedule:  { enabled: true,  rows: [] },
-    location:  { enabled: true,  placeName: '', address: '', mapLink: '' },
-    dresscode: { enabled: true,  text: '', palette: ['#E8EBE6','#2C3531','#B9C4BC','#F2F4F1','#7C9082'] },
+// ─── State ─────────────────────────────────────────────────────────────────
+const APP = {
+  form: {
+    title: '', person1: '', person2: '', eventDate: '', rsvpDeadline: '',
+    language: 'ru',
+  },
+  blocks: {},
+  schema: null,
+  ui: {
+    editEventId: null,
+    existingEvent: null,
+    selectedTemplate: null,
+    activeBlock: null,
+    previewReady: false,
+    mode: 'edit',
+    step1Category: 'ALL',
+    dirty: false,
+    savedSnapshot: '',
+    photoUploading: false,
+    lastExpandedSnap: 52,
+    // Per-block palette state: { 'dresscode.colors': 0 }
+    paletteSlots: {},
   },
 };
 
-// ─── Block definitions for template-2 ───────────────────────────────────────
-const BLOCKS = [
-  { type: 'main',      label: 'Основное',  icon: mainIcon(),    optional: false },
-  { type: 'hero',      label: 'Экран',     icon: heroIcon(),    optional: false },
-  { type: 'photo',     label: 'Фото',      icon: photoIcon(),   optional: true  },
-  { type: 'greeting',  label: 'Слово',     icon: wordIcon(),    optional: true  },
-  { type: 'schedule',  label: 'Программа', icon: schedIcon(),   optional: true  },
-  { type: 'location',  label: 'Место',     icon: pinIcon(),     optional: true  },
-  { type: 'dresscode', label: 'Стиль',     icon: styleIcon(),   optional: true  },
-];
+// ─── Schema helpers ───────────────────────────────────────────────────────
+function getBlockDefs() {
+  return APP.schema?.blocks || [];
+}
 
-// ─── API ────────────────────────────────────────────────────────────────────
-async function fetchTemplates() {
-  const res = await fetch(`${BASE_URL}/api/organizer/templates`);
-  if (!res.ok) throw new Error('Ошибка загрузки шаблонов');
-  return res.json();
+function getBlockDef(type) {
+  return getBlockDefs().find(b => b.type === type);
 }
-async function fetchEvent(id, phone) {
-  const res = await fetch(`${BASE_URL}/api/organizer/events/${id}`, {
-    headers: { 'X-User-Phone': phone },
-  });
-  if (!res.ok) throw new Error('Событие не найдено');
-  return res.json();
-}
-async function saveEvent(phone, data, id = null) {
-  const url    = id ? `${BASE_URL}/api/organizer/events/${id}` : `${BASE_URL}/api/organizer/events`;
-  const method = id ? 'PUT' : 'POST';
-  const res = await fetch(url, {
-    method,
-    headers: { 'Content-Type': 'application/json', 'X-User-Phone': phone },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || 'Ошибка сохранения');
+
+function initStateFromSchema(schema) {
+  APP.blocks = {};
+  for (const block of schema.blocks) {
+    const state = {};
+    if (block.toggleable) {
+      state.enabled = block.defaultEnabled !== false;
+    }
+    for (const section of block.sections || []) {
+      for (const field of section.fields || []) {
+        if (field.type === 'info') continue;
+        if (field.scope === 'form') continue; // form fields live in APP.form
+        if (field.type === 'rows') {
+          state[field.key] = [];
+        } else if (field.type === 'color-palette') {
+          state[field.key] = [...(field.default || [])];
+        } else if (field.type === 'photos') {
+          state[field.key] = [];
+        } else if (field.type === 'toggle') {
+          state[field.key] = field.default ?? false;
+        } else {
+          state[field.key] = field.default ?? '';
+        }
+      }
+    }
+    APP.blocks[block.type] = state;
   }
-  return res.json();
-}
-async function uploadPhoto(file) {
-  const fd = new FormData();
-  fd.append('file', file);
-  const res = await fetch(`${BASE_URL}/api/organizer/upload`, { method: 'POST', body: fd });
-  if (!res.ok) throw new Error('Ошибка загрузки');
-  return (await res.json()).url;
 }
 
-// ─── Toast ───────────────────────────────────────────────────────────────────
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+// ─── Debounce ─────────────────────────────────────────────────────────────
+const debouncedPreview = debounce(() => sendToPreview(), 200);
+
+// ─── Dirty tracking ──────────────────────────────────────────────────────
+function takeSnapshot() {
+  return JSON.stringify({ form: APP.form, blocks: APP.blocks });
+}
+function markClean() {
+  APP.ui.savedSnapshot = takeSnapshot();
+  APP.ui.dirty = false;
+  updateSaveButtonState();
+}
+function markDirty() {
+  APP.ui.dirty = takeSnapshot() !== APP.ui.savedSnapshot;
+  updateSaveButtonState();
+}
+function updateSaveButtonState() {
+  const btn = document.getElementById('editorSave');
+  if (!btn) return;
+  const lbl = btn.querySelector('.save-label');
+  btn.style.background = APP.ui.dirty ? '#3D6B45' : '#1E2820';
+  if (lbl) lbl.textContent = APP.ui.dirty ? '● Сохранить' : 'Сохранить';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// STEP 1 — Template Picker
+// STEP 2 — Editor overlay
 // ═══════════════════════════════════════════════════════════════════════════
-const CAT_LABEL = { WEDDING: 'Свадьба', BIRTHDAY: 'День рождения', TOY: 'Той', OTHER: 'Другое' };
 
-function renderTemplatePicker(templates) {
-  const s1 = document.getElementById('step1');
-  if (!s1) return;
-  s1.innerHTML = `
-    <div class="mb-6">
-      <h2 class="font-cormorant text-[28px] font-semibold italic text-[#1E2820] leading-tight">Выберите шаблон</h2>
-      <p class="text-[#6B6860] text-sm mt-1">Шаблон определяет оформление приглашения</p>
-    </div>
-    <div class="flex flex-col gap-3">
-      ${templates.map(t => templateCard(t)).join('')}
-    </div>
-    <button id="btn-next" onclick="goToEditor()" disabled
-      class="btn-filled mt-6" style="opacity:0.3">
-      Продолжить
-    </button>`;
-}
-
-function templateCard(t) {
-  const preview = t.templatePath === 'template-2'
-    ? `<div style="height:80px;background:linear-gradient(135deg,#FAFAF8,#F0EDE9);display:flex;align-items:center;justify-content:center;padding:12px">
-         <p style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:22px;color:#1A1A1A;opacity:0.5">А & Б</p>
-       </div>`
-    : `<div style="height:80px;background:linear-gradient(135deg,#F5F0E8,#EAE4D8);display:flex;align-items:center;justify-content:center">
-         <p style="font-family:Cormorant Garamond,serif;font-style:italic;font-size:22px;color:#2C3531;opacity:0.6">А & М</p>
-       </div>`;
-
-  return `
-    <div onclick="selectTemplate(${t.id})" id="tpl-${t.id}" class="template-card">
-      ${preview}
-      <div class="px-4 py-3 flex items-center justify-between">
-        <div>
-          <p class="font-semibold text-[#1E2820] text-[15px]">${t.name}</p>
-          ${t.description ? `<p class="text-xs text-[#6B6860] mt-0.5">${t.description}</p>` : ''}
-        </div>
-        <span class="text-[11px] px-2.5 py-1 rounded-full bg-[#C2E0C6] text-[#1A3D20] font-semibold flex-shrink-0">
-          ${CAT_LABEL[t.category] || t.category}
-        </span>
-      </div>
-    </div>`;
-}
-
-window.selectTemplate = function (id) {
-  selectedTemplate = window._templates?.find(t => t.id === id);
-  document.querySelectorAll('.template-card').forEach(el => el.classList.remove('selected'));
-  document.getElementById('tpl-' + id)?.classList.add('selected');
-  const btn = document.getElementById('btn-next');
-  if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
-};
-
-window.goToEditor = function () {
-  if (!selectedTemplate) return;
-  openEditorOverlay();
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
-// STEP 2 — Interactive Editor Overlay
-// ═══════════════════════════════════════════════════════════════════════════
 function openEditorOverlay() {
   const overlay = document.getElementById('editorOverlay');
   if (!overlay) return;
   overlay.classList.remove('hidden');
 
-  // Populate from existing event if editing
-  if (existingEvent) populateStateFromEvent(existingEvent);
+  if (APP.ui.existingEvent) populateFromEvent(APP.ui.existingEvent);
 
-  document.getElementById('editorTitle').value = state.title;
-  renderBlockTabs();
-  activateBlock('main');
+  document.getElementById('editorTitle').value = APP.form.title;
+  renderBlockNav();
+  activateBlock(APP.ui.activeBlock || getBlockDefs()[0]?.type);
   initDragHandle();
-
-  // Anchor overlay to visual viewport (keyboard-safe)
   initVisualViewport();
+  setMode('edit');
 
-  // Load preview iframe
+  document.getElementById('previewSkeleton').style.display = '';
   const frame = document.getElementById('previewFrame');
   window.addEventListener('message', onPreviewMessage);
-  frame.src = '/templates/template-2/index.html?mode=preview';
+
+  const tplPath = APP.ui.selectedTemplate?.templatePath || 'template-1';
+  frame.src = `/templates/${tplPath}/index.html?mode=preview`;
+
+  markClean();
 }
 
-function populateStateFromEvent(ev) {
-  state.title        = ev.title        || '';
-  state.person1      = ev.person1      || '';
-  state.person2      = ev.person2      || '';
-  state.eventDate    = ev.eventDate    ? ev.eventDate.substring(0, 16) : '';
-  state.rsvpDeadline = ev.rsvpDeadline ? ev.rsvpDeadline.substring(0, 16) : '';
-  state.language     = ev.language     || 'ru';
-  state.coverImageUrl= ev.coverImageUrl || '';
+function populateFromEvent(ev) {
+  APP.form.title        = ev.title        || '';
+  APP.form.person1      = ev.person1      || '';
+  APP.form.person2      = ev.person2      || '';
+  APP.form.eventDate    = ev.eventDate    ? ev.eventDate.substring(0, 16) : '';
+  APP.form.rsvpDeadline = ev.rsvpDeadline ? ev.rsvpDeadline.substring(0, 16) : '';
+  APP.form.language     = ev.language     || 'ru';
 
   let bc = {};
   try { bc = JSON.parse(ev.blocksConfig || '{}'); } catch (_) {}
 
-  if (bc.hero) {
-    state.blocks.hero.badge    = bc.hero.badge    || state.blocks.hero.badge;
-    state.blocks.hero.subtitle = bc.hero.subtitle || state.blocks.hero.subtitle;
-  }
-  if (bc.photo) {
-    state.blocks.photo.enabled = bc.photo.enabled !== false;
-    state.blocks.photo.url     = bc.photo.url || '';
-  }
-  if (bc.greeting) {
-    state.blocks.greeting.enabled = bc.greeting.enabled !== false;
-    state.blocks.greeting.title   = bc.greeting.title || '';
-    state.blocks.greeting.text    = bc.greeting.text  || '';
-  }
-  if (bc.schedule) {
-    state.blocks.schedule.enabled = bc.schedule.enabled !== false;
-    state.blocks.schedule.rows = (bc.schedule.items || '')
-      .split('\n').map(l => l.trim()).filter(Boolean)
-      .map(line => {
-        const m = line.match(/^(\d{1,2}:\d{2})\s+(.*)/);
-        return m ? { time: m[1], title: m[2] } : { time: '', title: line };
-      });
-  }
-  if (bc.location) {
-    state.blocks.location.enabled   = bc.location.enabled !== false;
-    state.blocks.location.placeName = bc.location.placeName || '';
-    state.blocks.location.address   = bc.location.address   || '';
-    state.blocks.location.mapLink   = bc.location.mapLink   || '';
-  }
-  if (bc.dresscode) {
-    state.blocks.dresscode.enabled = bc.dresscode.enabled !== false;
-    state.blocks.dresscode.text    = bc.dresscode.text || '';
-    if (bc.dresscode.palette) {
-      state.blocks.dresscode.palette = bc.dresscode.palette.split(',').map(s => s.trim());
+  for (const blockDef of getBlockDefs()) {
+    const type = blockDef.type;
+    const saved = bc[type];
+    if (!saved) continue;
+
+    const state = APP.blocks[type];
+    if (!state) continue;
+
+    // Restore enabled state
+    if (blockDef.toggleable && saved.enabled !== undefined) {
+      state.enabled = !!saved.enabled;
     }
+
+    // Restore field values
+    for (const section of blockDef.sections || []) {
+      for (const field of section.fields || []) {
+        if (field.type === 'info') continue;
+        if (field.scope === 'form') continue;
+
+        const key = field.key;
+        if (saved[key] === undefined) continue;
+
+        if (field.type === 'rows') {
+          // Handle legacy format (newline-joined string)
+          if (typeof saved[key] === 'string') {
+            state[key] = saved[key].split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+              const m = line.match(/^(\d{1,2}:\d{2})\s+(.*)/);
+              return m ? { time: m[1], title: m[2] } : { time: '', title: line };
+            });
+          } else if (Array.isArray(saved[key])) {
+            state[key] = saved[key];
+          }
+        } else if (field.type === 'color-palette') {
+          // Handle legacy format (comma-separated string)
+          if (typeof saved[key] === 'string') {
+            state[key] = saved[key].split(',').map(s => s.trim()).filter(Boolean);
+          } else if (Array.isArray(saved[key])) {
+            state[key] = saved[key];
+          }
+        } else if (field.type === 'photos') {
+          if (Array.isArray(saved[key])) state[key] = saved[key];
+        } else {
+          state[key] = saved[key];
+        }
+      }
+    }
+  }
+
+  // Legacy: hero fields that used different names
+  if (bc.hero) {
+    if (bc.hero.photoUrl && APP.blocks.hero) APP.blocks.hero.coverPhoto = bc.hero.photoUrl;
+    if (bc.hero.badge && APP.blocks.hero) APP.blocks.hero.badge = bc.hero.badge;
+    if (bc.hero.subtitle && APP.blocks.hero) APP.blocks.hero.subtitle = bc.hero.subtitle;
+    if (bc.hero.timer !== undefined && APP.blocks.hero) APP.blocks.hero.timer = !!bc.hero.timer;
+    if (bc.hero.music !== undefined && APP.blocks.hero) APP.blocks.hero.music = !!bc.hero.music;
+  }
+  // Legacy: timeline items as string
+  if (bc.timeline?.items && APP.blocks.timeline) {
+    APP.blocks.timeline.events = bc.timeline.items.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+      const m = line.match(/^(\d{1,2}:\d{2})\s+(.*)/);
+      return m ? { time: m[1], title: m[2] } : { time: '', title: line };
+    });
+  }
+  // Legacy: dresscode palette as CSV
+  if (bc.dresscode?.palette && typeof bc.dresscode.palette === 'string' && APP.blocks.dresscode) {
+    APP.blocks.dresscode.colors = bc.dresscode.palette.split(',').map(s => s.trim());
+  }
+  // Legacy: location fields
+  if (bc.location && APP.blocks.location) {
+    if (bc.location.placeName) APP.blocks.location.placeName = bc.location.placeName;
+    if (bc.location.address) APP.blocks.location.address = bc.location.address;
+    if (bc.location.mapLink) APP.blocks.location.mapLink = bc.location.mapLink;
+  }
+  // Legacy: greeting
+  if (bc.greeting && APP.blocks.greeting) {
+    if (bc.greeting.title) APP.blocks.greeting.title = bc.greeting.title;
+    if (bc.greeting.text) APP.blocks.greeting.text = bc.greeting.text;
+  }
+  // Legacy: gallery style
+  if (bc.gallery?.style && APP.blocks.gallery) {
+    APP.blocks.gallery.style = bc.gallery.style;
   }
 }
 
 function onPreviewMessage(e) {
-  if (e.data?.type === 'T2_READY') {
-    previewReady = true;
+  if (e.data?.type === 'TEMPLATE_READY') {
+    APP.ui.previewReady = true;
     sendToPreview();
+    const skel = document.getElementById('previewSkeleton');
+    if (skel) skel.style.display = 'none';
+  }
+  if (e.data?.type === 'TEMPLATE_CLICK' && e.data.block) {
+    setMode('edit');
+    activateBlock(e.data.block);
   }
 }
 
-// ─── Tabs ────────────────────────────────────────────────────────────────────
-function renderBlockTabs() {
-  const el = document.getElementById('blockTabs');
-  if (!el) return;
-  el.innerHTML = BLOCKS.map(b => `
-    <button class="btab${b.type === activeBlock ? ' active' : ''}${hasBlockData(b.type) ? ' has-data' : ''}"
-            id="tab-${b.type}" onclick="activateBlock('${b.type}')">
-      <span class="dot"></span>
-      ${b.icon}
-      ${b.label}
-    </button>`).join('');
-}
-
-function hasBlockData(type) {
-  if (type === 'main') return !!(state.person1 || state.person2 || state.eventDate);
-  if (type === 'hero') return !!(state.blocks.hero.badge || state.blocks.hero.subtitle);
-  const b = state.blocks[type];
-  return b && b.enabled;
-}
-
-window.activateBlock = function (type) {
-  activeBlock = type;
-  // If sheet is collapsed, expand to half
+// ─── Mode toggle ──────────────────────────────────────────────────────────
+function setMode(mode) {
+  APP.ui.mode = mode;
   const sheet = document.getElementById('bottomSheet');
-  if (sheet && window._snapSheet) {
-    const VH = window.innerHeight / 100;
-    if (sheet.offsetHeight < 28 * VH) {
-      window._snapSheet(46);
+  const toggle = document.getElementById('modeToggle');
+  if (!sheet || !toggle) return;
+
+  toggle.querySelectorAll('button').forEach(btn => {
+    const m = btn.dataset.mode;
+    if (m === mode) {
+      btn.classList.add('bg-white', 'text-[#1E2820]', 'shadow-sm');
+      btn.classList.remove('text-[#6B6860]');
+    } else {
+      btn.classList.remove('bg-white', 'text-[#1E2820]', 'shadow-sm');
+      btn.classList.add('text-[#6B6860]');
+    }
+  });
+
+  if (mode === 'preview') {
+    snapSheet(SHEET_SNAP.collapsed);
+  } else {
+    snapSheet(APP.ui.lastExpandedSnap);
+  }
+}
+
+// ─── Block navigation — numbered horizontal strip ────────────────────────
+function blockIcon(d) {
+  return `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+}
+
+function blockIsEnabled(def) {
+  if (def.required) return true;
+  return APP.blocks[def.type]?.enabled ?? true;
+}
+
+function blockIsFilled(def) {
+  for (const section of def.sections || []) {
+    for (const field of section.fields || []) {
+      if (field.type === 'info') continue;
+      const val = field.scope === 'form' ? APP.form[field.key] : APP.blocks[def.type]?.[field.key];
+      if (Array.isArray(val) && val.length > 0) return true;
+      if (val && String(val).trim()) return true;
     }
   }
-  // Update tab states
-  BLOCKS.forEach(b => {
-    const tab = document.getElementById('tab-' + b.type);
-    if (!tab) return;
-    tab.classList.toggle('active', b.type === type);
-    tab.classList.toggle('has-data', hasBlockData(b.type));
+  return false;
+}
+
+function renderBlockNav() {
+  const el = document.getElementById('blockGrid');
+  if (!el) return;
+  const defs = getBlockDefs();
+
+  el.innerHTML = `
+    <div class="relative -mx-0">
+      <div class="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none rounded-tl-[20px]"></div>
+      <div class="absolute right-0 top-0 bottom-0 w-3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+      <div data-block-scroller class="flex gap-2 px-4 pb-3 overflow-x-auto" style="scrollbar-width:none; -webkit-overflow-scrolling:touch">
+        ${defs.map(def => {
+          const active  = def.type === APP.ui.activeBlock;
+          const enabled = blockIsEnabled(def);
+          const numStr  = String(def.num).padStart(2, '0');
+          const filled  = blockIsFilled(def);
+          const badge   = def.affectsPrice
+            ? `<span class="absolute top-1 right-1 text-[8px] font-bold text-[#C9A96E] leading-none">₸</span>`
+            : (!enabled
+                ? `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-white/40' : 'bg-[#DDD9D4]'}"></span>`
+                : (filled
+                    ? `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-[#A8CEB0]' : 'bg-[#3D6B45]'}"></span>`
+                    : `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-[#F5C87A]/80' : 'bg-[#C9A96E]'}"></span>`
+                  ));
+          return `<button data-block="${def.type}"
+            class="relative flex-shrink-0 flex flex-col items-center gap-1 pt-4 pb-2.5 px-3 rounded-2xl w-[68px] text-[11px] font-semibold transition-all active:scale-95
+              ${active ? 'bg-[#1E2820] text-white' : 'bg-[#F5F3F0] text-[#6B6860]'}"
+            aria-label="${def.label} (блок ${def.num})">
+            <span class="absolute top-1.5 left-2 text-[9px] font-bold tracking-wide ${active ? 'text-white/50' : 'text-[#1E2820]/25'}">${numStr}</span>
+            ${badge}
+            ${blockIcon(def.icon)}
+            <span class="leading-tight text-center">${def.label}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+
+  requestAnimationFrame(() => {
+    const scroller = el.querySelector('[data-block-scroller]');
+    const activeBtn = el.querySelector(`[data-block="${APP.ui.activeBlock}"]`);
+    if (!scroller || !activeBtn) return;
+    const target = activeBtn.offsetLeft - scroller.offsetWidth / 2 + activeBtn.offsetWidth / 2;
+    scroller.scrollLeft = Math.max(0, target);
   });
-  // Scroll active tab into view
-  document.getElementById('tab-' + type)?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  // Render panel
+}
+
+function activateBlock(type) {
+  APP.ui.activeBlock = type;
+  const sheet = document.getElementById('bottomSheet');
+  if (sheet) {
+    const VH = window.innerHeight / 100;
+    if (sheet.offsetHeight < 28 * VH) setMode('edit');
+  }
+  renderBlockNav();
   renderPanel(type);
-  // Scroll preview to relevant section
   scrollPreviewTo(type);
-};
+}
 
 // ─── Preview communication ────────────────────────────────────────────────
 function buildPreviewConfig() {
-  const b = state.blocks;
-  const dateObj = state.eventDate ? new Date(state.eventDate) : null;
-  const pad = n => String(n).padStart(2, '0');
-  const dateDisplay = dateObj
-    ? `${dateObj.getDate()} · ${pad(dateObj.getMonth()+1)} · ${dateObj.getFullYear()}`
-    : '';
-  const dateShort = dateObj
-    ? `${pad(dateObj.getDate())}.${pad(dateObj.getMonth()+1)}.${dateObj.getFullYear()}`
-    : '';
-
   return {
-    modules: {
-      photo:     b.photo.enabled     && !!b.photo.url,
-      greeting:  b.greeting.enabled,
-      countdown: !!state.eventDate,
-      schedule:  b.schedule.enabled  && b.schedule.rows.length > 0,
-      location:  b.location.enabled,
-      dresscode: b.dresscode.enabled,
-      rsvp:      true,
-    },
-    badge:       b.hero.badge    || '✦ Свадьба ✦',
-    name1:       state.person1   || 'Имя 1',
-    name2:       state.person2   || 'Имя 2',
-    eventDate:   state.eventDate || null,
-    dateDisplay, dateShort,
-    subtitle:    b.hero.subtitle || '',
-    photoUrl:    b.photo.url     || null,
-    greeting:    { title: b.greeting.title, text: b.greeting.text },
-    schedule:    b.schedule.rows.filter(r => r.time || r.title),
-    location: {
-      placeName: b.location.placeName,
-      address:   b.location.address,
-      mapLink:   b.location.mapLink || '#',
-    },
-    dresscode: {
-      text:    b.dresscode.text,
-      palette: b.dresscode.palette,
-    },
-    rsvp: {
-      title:    'Подтверждение',
-      subtitle: state.rsvpDeadline
-        ? 'Просим подтвердить до ' + new Date(state.rsvpDeadline).toLocaleDateString('ru-RU')
-        : '',
-      _slug: null,
-    },
+    form: { ...APP.form },
+    blocks: JSON.parse(JSON.stringify(APP.blocks)),
+    sectionMap: APP.schema?.sectionMap || null,
   };
 }
 
 function sendToPreview() {
-  if (!previewReady) return;
+  if (!APP.ui.previewReady) return;
   try {
     const frame = document.getElementById('previewFrame');
-    frame.contentWindow.postMessage({ type: 'T2_UPDATE', config: buildPreviewConfig() }, '*');
+    frame.contentWindow.postMessage({ type: 'EDITOR_UPDATE', config: buildPreviewConfig() }, '*');
   } catch (_) {}
 }
 
 function scrollPreviewTo(blockType) {
-  const sectionMap = {
-    main: 'hero', hero: 'hero', photo: 'photo-block',
-    greeting: 'greeting', schedule: 'schedule',
-    location: 'location', dresscode: 'dresscode',
-  };
-  const id = sectionMap[blockType];
-  if (!id) return;
+  const sectionMap = APP.schema?.sectionMap || {};
+  const sectionId = sectionMap[blockType];
+  if (!sectionId) return;
   try {
     const frame = document.getElementById('previewFrame');
-    const target = frame.contentWindow.document.getElementById(id);
+    const target = frame.contentWindow.document.querySelector(`[data-section="${sectionId}"]`);
     if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (_) {}
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// PANELS
+// DYNAMIC PANEL RENDERER — reads schema, generates UI
 // ═══════════════════════════════════════════════════════════════════════════
 function renderPanel(type) {
   const el = document.getElementById('panelContent');
   if (!el) return;
-  const renderers = {
-    main:      renderMainPanel,
-    hero:      renderHeroPanel,
-    photo:     renderPhotoPanel,
-    greeting:  renderGreetingPanel,
-    schedule:  renderSchedulePanel,
-    location:  renderLocationPanel,
-    dresscode: renderDresscodePanel,
-  };
-  el.innerHTML = (renderers[type] || (() => ''))();
-  el.scrollTop = 0;
-  bindPanelListeners(type);
-}
+  const blockDef = getBlockDef(type);
+  if (!blockDef) { el.innerHTML = ''; return; }
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
-function field(label, input) {
-  return `<div class="pfield"><label class="plabel">${label}</label>${input}</div>`;
-}
-function inp(name, value, placeholder = '', type = 'text') {
-  return `<input class="pinput" type="${type}" data-field="${name}" value="${esc(value)}" placeholder="${esc(placeholder)}">`;
-}
-function esc(v) {
-  return String(v || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
-}
-function toggleRow(blockType, label, hint = '') {
-  const on = state.blocks[blockType]?.enabled;
-  return `
-    <div class="ptoggle-row">
+  let html = '';
+
+  // Toggle or required header
+  if (blockDef.toggleable) {
+    html += blockToggleRow(type, blockDef.label, {
+      affectsPrice: blockDef.affectsPrice,
+      hint: blockDef.toggleHint || '',
+    });
+  } else if (blockDef.required) {
+    html += `<div class="flex items-center justify-between mb-3 pb-3 border-b border-[#F0EDE9]">
       <div>
-        <div class="ptoggle-label">${label}</div>
-        ${hint ? `<div class="ptoggle-hint">${hint}</div>` : ''}
+        <span class="text-[15px] font-semibold text-[#1E2820]">${blockDef.label}</span>
+        <div class="text-[12px] text-[#B0AB9E] mt-0.5">Обязательный блок — всегда отображается.</div>
       </div>
-      <div class="pswitch ${on ? 'on' : ''}" onclick="toggleBlock('${blockType}')"></div>
-    </div>`;
-}
-
-window.toggleBlock = function (type) {
-  if (!state.blocks[type]) return;
-  state.blocks[type].enabled = !state.blocks[type].enabled;
-  // update switch
-  const sw = document.querySelector(`[onclick="toggleBlock('${type}')"]`);
-  if (sw) sw.classList.toggle('on', state.blocks[type].enabled);
-  sendToPreview();
-  // update tab dot
-  const tab = document.getElementById('tab-' + type);
-  if (tab) tab.classList.toggle('has-data', hasBlockData(type));
-};
-
-// ── Panel: Main (person1, person2, date) ─────────────────────────────────────
-function renderMainPanel() {
-  return `
-    <div class="psection">
-      <div class="psection-title">Имена</div>
-      ${field('Имя 1 (Жених / Организатор)', inp('person1', state.person1, 'Азамат'))}
-      ${field('Имя 2 (Невеста / и др.)',     inp('person2', state.person2, 'Бегимай'))}
-    </div>
-    <div class="psection">
-      <div class="psection-title">Дата и время</div>
-      ${field('Дата события', inp('eventDate', state.eventDate, '', 'datetime-local'))}
-      ${field('RSVP — принимать ответы до', inp('rsvpDeadline', state.rsvpDeadline, '', 'datetime-local'))}
-    </div>
-    <div class="psection">
-      <div class="psection-title">Название события</div>
-      ${field('Заголовок (только для организатора)', inp('title', state.title, 'Свадьба Азамата и Бегимай'))}
-    </div>`;
-}
-
-// ── Panel: Hero ────────────────────────────────────────────────────────────────
-function renderHeroPanel() {
-  return `
-    <div class="psection">
-      <div class="psection-title">Главный экран</div>
-      <p style="font-size:13px;color:#9A9491;margin-bottom:14px;line-height:1.5">
-        Первое что видит гость — имена, дата, бейдж и подзаголовок.
-      </p>
-      ${field('Бейдж (маленький текст сверху)', inp('hero.badge', state.blocks.hero.badge, '✦ Свадьба ✦'))}
-      ${field('Подзаголовок (под именами)',     inp('hero.subtitle', state.blocks.hero.subtitle, 'приглашают на торжество'))}
-    </div>`;
-}
-
-// ── Panel: Photo ──────────────────────────────────────────────────────────────
-function renderPhotoPanel() {
-  const url = state.blocks.photo.url;
-  return `
-    ${toggleRow('photo', 'Показывать фото', 'Фото пары')}
-    <div class="pfield">
-      <div class="photo-upload ${url ? 'has-image' : ''}" id="photoUpload" onclick="triggerPhotoFile()">
-        <img id="photoPreview" src="${esc(url)}" alt="">
-        <div class="photo-upload-placeholder">
-          <div class="photo-upload-icon">${photoIcon()}</div>
-          <div class="photo-upload-text">Нажмите, чтобы<br>выбрать фото</div>
-        </div>
-        <div class="photo-change-overlay">Заменить</div>
+      <div class="w-5 h-5 rounded-full bg-[#C2E0C6] flex items-center justify-center">
+        <svg width="12" height="12" fill="none" stroke="#1A3D20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
-      <input type="file" id="photoFile" accept="image/*" class="hidden" onchange="handlePhotoFile(event)">
     </div>`;
-}
-
-window.triggerPhotoFile = function () {
-  document.getElementById('photoFile')?.click();
-};
-
-window.handlePhotoFile = async function (e) {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  // Show local blob preview immediately
-  setPhotoPreview(URL.createObjectURL(file));
-  showToast('Загрузка...');
-
-  try {
-    const url = await uploadPhoto(file);
-    state.blocks.photo.url = url;
-    setPhotoPreview(url);
-    sendToPreview();
-    showToast('Фото сохранено');
-  } catch {
-    showToast('Ошибка загрузки фото');
-    setPhotoPreview(state.blocks.photo.url);
   }
-};
 
-function setPhotoPreview(url) {
-  const preview = document.getElementById('photoPreview');
-  const upload  = document.getElementById('photoUpload');
-  if (preview) preview.src = url;
-  if (upload) upload.classList.toggle('has-image', !!url);
-}
-
-// ── Panel: Greeting ────────────────────────────────────────────────────────────
-function renderGreetingPanel() {
-  return `
-    ${toggleRow('greeting', 'Показывать приветствие')}
-    ${field('Заголовок', inp('greeting.title', state.blocks.greeting.title, 'Дорогие гости!'))}
-    <div class="pfield">
-      <label class="plabel">Текст обращения</label>
-      <textarea class="ptextarea" data-field="greeting.text"
-                placeholder="С большой радостью приглашаем вас разделить с нами этот особенный день...">${esc(state.blocks.greeting.text)}</textarea>
-    </div>`;
-}
-
-// ── Panel: Schedule ────────────────────────────────────────────────────────────
-function renderSchedulePanel() {
-  return `
-    ${toggleRow('schedule', 'Показывать программу')}
-    <div id="schedRows">${renderSchedRows()}</div>
-    <button class="sched-add" onclick="addSchedRow()">
-      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
-      </svg>
-      Добавить пункт
-    </button>`;
-}
-
-function renderSchedRows() {
-  return state.blocks.schedule.rows.map((row, i) => `
-    <div class="sched-row" data-row="${i}">
-      <input class="sched-time" type="text" value="${esc(row.time)}" placeholder="15:00"
-             oninput="updateSchedRow(${i},'time',this.value)">
-      <input class="sched-title" type="text" value="${esc(row.title)}" placeholder="Название пункта"
-             oninput="updateSchedRow(${i},'title',this.value)">
-      <button class="sched-del" onclick="deleteSchedRow(${i})">×</button>
-    </div>`).join('');
-}
-
-window.addSchedRow = function () {
-  state.blocks.schedule.rows.push({ time: '', title: '' });
-  document.getElementById('schedRows').innerHTML = renderSchedRows();
-  sendToPreview();
-};
-
-window.updateSchedRow = function (i, field, value) {
-  if (state.blocks.schedule.rows[i]) {
-    state.blocks.schedule.rows[i][field] = value;
-    sendToPreview();
+  // Sections with fields
+  for (const section of blockDef.sections || []) {
+    let inner = '';
+    if (section.label) inner += sectionLabel(section.label);
+    for (const field of section.fields) {
+      inner += renderField(type, field);
+    }
+    html += sectionCard(inner);
   }
-};
 
-window.deleteSchedRow = function (i) {
-  state.blocks.schedule.rows.splice(i, 1);
-  document.getElementById('schedRows').innerHTML = renderSchedRows();
-  sendToPreview();
-};
+  el.innerHTML = html;
+  el.scrollTop = 0;
 
-// ── Panel: Location ────────────────────────────────────────────────────────────
-function renderLocationPanel() {
-  const l = state.blocks.location;
-  return `
-    ${toggleRow('location', 'Показывать место')}
-    ${field('Название заведения',              inp('location.placeName', l.placeName, 'Ресторан Royal Hall'))}
-    ${field('Адрес',                           inp('location.address',   l.address,   'г. Бишкек, ул. Мадиева 18/1'))}
-    ${field('Ссылка на карту (2GIS / Google)', inp('location.mapLink',   l.mapLink,   'https://2gis.kg/...', 'url'))}`;
+  // Post-render bindings
+  bindAllPhotoUploads(el, type);
+  bindAllPalettes(el, type);
 }
 
-// ── Panel: Dresscode ────────────────────────────────────────────────────────────
-function renderDresscodePanel() {
-  const d = state.blocks.dresscode;
-  const swatches = d.palette.slice(0, 5).map((c, i) => `
-    <div class="palette-swatch" style="background:${c}">
-      <input type="color" value="${c}" data-pal="${i}" oninput="updatePalette(${i},this.value)">
-    </div>`).join('');
-
-  return `
-    ${toggleRow('dresscode', 'Показывать дресс-код')}
-    ${field('Описание', inp('dresscode.text', d.text, 'Будем рады, если вы поддержите цветовую гамму нашей свадьбы'))}
-    <div class="pfield">
-      <label class="plabel">Цветовая палитра (нажмите для изменения)</label>
-      <div class="palette-row" id="paletteRow">${swatches}</div>
-    </div>`;
+// ─── State helpers ────────────────────────────────────────────────────────
+function setFieldState(path, value) {
+  const parts = path.split('.');
+  if (parts.length === 1) {
+    // form-level field
+    APP.form[parts[0]] = value;
+    if (parts[0] === 'title') {
+      const titleInput = document.getElementById('editorTitle');
+      if (titleInput) titleInput.value = value;
+    }
+  } else if (parts.length === 2) {
+    const [block, key] = parts;
+    if (APP.blocks[block] !== undefined) {
+      APP.blocks[block][key] = value;
+    } else {
+      // Fallback to form
+      APP.form[path] = value;
+    }
+  }
 }
 
-window.updatePalette = function (i, color) {
-  state.blocks.dresscode.palette[i] = color;
-  const swatch = document.querySelector(`[data-pal="${i}"]`)?.closest('.palette-swatch');
-  if (swatch) swatch.style.background = color;
-  sendToPreview();
-};
+// Helper to get rows array for a given path
+function getRowsArray(rowsKey) {
+  const [bType, fKey] = rowsKey.split('.');
+  return APP.blocks[bType]?.[fKey];
+}
 
-// ─── Bind input listeners ──────────────────────────────────────────────────
-function bindPanelListeners(type) {
+function getRowsFieldDef(rowsKey) {
+  const [bType, fKey] = rowsKey.split('.');
+  const blockDef = getBlockDef(bType);
+  if (!blockDef) return null;
+  for (const s of blockDef.sections || []) {
+    for (const f of s.fields || []) {
+      if (f.key === fKey && f.type === 'rows') return f;
+    }
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// EVENT DELEGATION
+// ═══════════════════════════════════════════════════════════════════════════
+function initEditorDelegation() {
   const panel = document.getElementById('panelContent');
   if (!panel) return;
 
-  panel.querySelectorAll('[data-field]').forEach(input => {
-    const eventType = input.tagName === 'TEXTAREA' ? 'input' : 'input';
-    input.addEventListener(eventType, () => {
-      setNestedState(input.dataset.field, input.value);
-      sendToPreview();
+  panel.addEventListener('input', (e) => {
+    // Regular data-field inputs
+    const field = e.target.closest('[data-field]');
+    if (field) {
+      setFieldState(field.dataset.field, field.value);
+      markDirty();
+      debouncedPreview();
+
+      // Обновляем счётчик символов для textarea
+      const counter = panel.querySelector(`[data-char-counter="${field.dataset.field}"]`);
+      if (counter) {
+        const len = field.value.length;
+        const max = field.maxLength > 0 ? field.maxLength : null;
+        counter.textContent = max ? `${len}/${max}` : `${len} симв.`;
+        counter.className = `text-[11px] flex-shrink-0 ${(max && len > max * 0.85) ? 'text-[#C9A96E]' : 'text-[#C5BFB8]'}`;
+      }
+
+      // Обновляем URL-статус для url-полей
+      if (field.dataset.urlValidate) {
+        const statusEl = panel.querySelector(`[data-url-status="${field.dataset.field}"]`);
+        if (statusEl) {
+          const v = field.value.trim();
+          if (!v) { statusEl.textContent = ''; return; }
+          try { new URL(v); statusEl.textContent = '✓'; statusEl.style.color = '#3D6B45'; }
+          catch { statusEl.textContent = '⚠'; statusEl.style.color = '#C9A96E'; }
+        }
+      }
+      return;
+    }
+    // Rows sub-field inputs
+    const rf = e.target.closest('[data-rows-field]');
+    if (rf) {
+      const arr = getRowsArray(rf.dataset.rowsField);
+      const idx = parseInt(rf.dataset.rowsIdx, 10);
+      if (arr && arr[idx]) {
+        arr[idx][rf.dataset.rowsSubkey] = rf.value;
+        markDirty();
+        debouncedPreview();
+      }
+      return;
+    }
+    // Palette hex input
+    const palInput = e.target.closest('[data-pal-input]');
+    if (palInput) {
+      const val = normalizeHex(palInput.value);
+      if (val) applyPaletteColor(palInput.dataset.palInput, val);
+    }
+  });
+
+  panel.addEventListener('click', (e) => {
+    // Block toggle switches
+    const tog = e.target.closest('[data-toggle]');
+    if (tog) {
+      const type = tog.dataset.toggle;
+      if (APP.blocks[type] !== undefined) {
+        APP.blocks[type].enabled = !APP.blocks[type].enabled;
+        tog.classList.toggle('on', APP.blocks[type].enabled);
+        markDirty();
+        debouncedPreview();
+        renderBlockNav();
+      }
+      return;
+    }
+
+    // Field toggle (premium features in blocks)
+    const fieldTog = e.target.closest('[data-toggle-field]');
+    if (fieldTog) {
+      const path = fieldTog.dataset.toggleField;
+      const [bType, fKey] = path.split('.');
+      if (APP.blocks[bType] !== undefined) {
+        APP.blocks[bType][fKey] = !APP.blocks[bType][fKey];
+        fieldTog.classList.toggle('on', APP.blocks[bType][fKey]);
+        markDirty();
+        debouncedPreview();
+      }
+      return;
+    }
+
+    // Select buttons
+    const selBtn = e.target.closest('[data-select]');
+    if (selBtn) {
+      const path = selBtn.dataset.select;
+      const val = selBtn.dataset.selectVal;
+      setFieldState(path, val);
+      renderPanel(APP.ui.activeBlock);
+      markDirty();
+      debouncedPreview();
+      return;
+    }
+
+    // Rows: add
+    const addBtn = e.target.closest('[data-rows-add]');
+    if (addBtn) {
+      const rowsKey = addBtn.dataset.rowsAdd;
+      const arr = getRowsArray(rowsKey);
+      const fieldDef = getRowsFieldDef(rowsKey);
+      if (arr && fieldDef) {
+        const newRow = {};
+        for (const rf of fieldDef.rowFields || []) newRow[rf.key] = '';
+        arr.push(newRow);
+        renderPanel(APP.ui.activeBlock);
+        markDirty();
+        debouncedPreview();
+      }
+      return;
+    }
+
+    // Rows: move
+    const moveBtn = e.target.closest('[data-rows-move]');
+    if (moveBtn) {
+      const arr = getRowsArray(moveBtn.dataset.rowsMove);
+      const idx = parseInt(moveBtn.dataset.rowsIdx, 10);
+      const dir = moveBtn.dataset.rowsDir === 'up' ? -1 : 1;
+      const next = idx + dir;
+      if (arr && next >= 0 && next < arr.length) {
+        [arr[idx], arr[next]] = [arr[next], arr[idx]];
+        renderPanel(APP.ui.activeBlock);
+        markDirty();
+        debouncedPreview();
+      }
+      return;
+    }
+
+    // Rows: delete (двойной тап для подтверждения)
+    const delBtn = e.target.closest('[data-rows-del]');
+    if (delBtn) {
+      if (delBtn.dataset.confirming) {
+        clearTimeout(Number(delBtn.dataset.confirmTimer));
+        const arr = getRowsArray(delBtn.dataset.rowsDel);
+        const idx = parseInt(delBtn.dataset.rowsIdx, 10);
+        if (arr) {
+          arr.splice(idx, 1);
+          renderPanel(APP.ui.activeBlock);
+          markDirty();
+          debouncedPreview();
+        }
+      } else {
+        delBtn.dataset.confirming = '1';
+        delBtn.classList.add('bg-[#FEE2E2]', 'text-[#C25252]', 'border-[#FECACA]');
+        delBtn.classList.remove('bg-[#FAFAF8]', 'text-[#9A9491]', 'border-[#E8E5E1]');
+        delBtn.title = 'Нажмите ещё раз для удаления';
+        const t = setTimeout(() => {
+          if (delBtn.isConnected) {
+            delete delBtn.dataset.confirming;
+            delBtn.classList.remove('bg-[#FEE2E2]', 'text-[#C25252]', 'border-[#FECACA]');
+            delBtn.classList.add('bg-[#FAFAF8]', 'text-[#9A9491]', 'border-[#E8E5E1]');
+            delBtn.title = '';
+          }
+        }, 2500);
+        delBtn.dataset.confirmTimer = String(t);
+      }
+      return;
+    }
+
+    // Photos: delete (двойной тап для подтверждения)
+    const photoDel = e.target.closest('[data-photos-del]');
+    if (photoDel) {
+      if (photoDel.dataset.confirming) {
+        clearTimeout(Number(photoDel.dataset.confirmTimer));
+        const [bType, fKey] = photoDel.dataset.photosDel.split('.');
+        const idx = parseInt(photoDel.dataset.photosIdx, 10);
+        if (APP.blocks[bType]?.[fKey]) {
+          APP.blocks[bType][fKey].splice(idx, 1);
+          renderPanel(APP.ui.activeBlock);
+          markDirty();
+          debouncedPreview();
+        }
+      } else {
+        photoDel.dataset.confirming = '1';
+        photoDel.classList.add('bg-red-500', 'scale-110');
+        photoDel.title = 'Ещё раз — удалить';
+        const t = setTimeout(() => {
+          if (photoDel.isConnected) {
+            delete photoDel.dataset.confirming;
+            photoDel.classList.remove('bg-red-500', 'scale-110');
+            photoDel.title = '';
+          }
+        }, 2500);
+        photoDel.dataset.confirmTimer = String(t);
+      }
+      return;
+    }
+
+    // Photos: move (↑↓ reorder)
+    const photoMove = e.target.closest('[data-photos-move]');
+    if (photoMove) {
+      const [bType, fKey] = photoMove.dataset.photosMove.split('.');
+      const arr = APP.blocks[bType]?.[fKey];
+      if (!Array.isArray(arr)) return;
+      const idx = parseInt(photoMove.dataset.photosIdx, 10);
+      const next = photoMove.dataset.photosDir === 'prev' ? idx - 1 : idx + 1;
+      if (next >= 0 && next < arr.length) {
+        [arr[idx], arr[next]] = [arr[next], arr[idx]];
+        renderPanel(APP.ui.activeBlock);
+        markDirty();
+        debouncedPreview();
+      }
+      return;
+    }
+
+    // Palette: slot select
+    const slotBtn = e.target.closest('[data-pal-slot]');
+    if (slotBtn) {
+      const paletteKey = slotBtn.dataset.palSlot;
+      APP.ui.paletteSlots[paletteKey] = Math.max(0, parseInt(slotBtn.dataset.palIdx, 10));
+      syncPaletteUI(paletteKey);
+      return;
+    }
+
+    // Palette: color preset
+    const colorBtn = e.target.closest('[data-pal-color]');
+    if (colorBtn) {
+      applyPaletteColor(colorBtn.dataset.palColor, colorBtn.dataset.palHex, true);
+      return;
+    }
+  });
+
+  // Photos: add (via file input change) — поддержка нескольких файлов
+  panel.addEventListener('change', (e) => {
+    const addInput = e.target.closest('[data-photos-add]');
+    if (addInput) {
+      const files = Array.from(addInput.files || []);
+      addInput.value = '';
+      if (!files.length) return;
+      const [bType, fKey] = addInput.dataset.photosAdd.split('.');
+      handlePhotosAdd(bType, fKey, files);
+    }
+  });
+
+  // Block nav delegation
+  const grid = document.getElementById('blockGrid');
+  if (grid) {
+    grid.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-block]');
+      if (btn) activateBlock(btn.dataset.block);
     });
+  }
+
+  // Mode toggle
+  const toggle = document.getElementById('modeToggle');
+  if (toggle) {
+    toggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-mode]');
+      if (!btn) return;
+      const mode = btn.dataset.mode;
+      if (mode === 'edit' && APP.ui.mode === 'preview') {
+        setMode('edit');
+      } else if (mode === 'preview' && APP.ui.mode === 'edit') {
+        const sheet = document.getElementById('bottomSheet');
+        if (sheet) {
+          const vh = (window.visualViewport?.height || window.innerHeight) / 100;
+          const cur = sheet.offsetHeight / vh;
+          APP.ui.lastExpandedSnap = cur < (SHEET_SNAP.half + SHEET_SNAP.full) / 2 ? SHEET_SNAP.half : SHEET_SNAP.full;
+        }
+        setMode('preview');
+      }
+    });
+  }
+
+  // Scroll focused input into view
+  panel.addEventListener('focusin', (e) => {
+    if (!e.target.matches('input,textarea,select')) return;
+    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 320);
+  }, true);
+
+  // Photos: drag-and-drop reorder (desktop)
+  let _photoDrag = null;
+
+  panel.addEventListener('dragstart', (e) => {
+    const item = e.target.closest('[data-photos-drag-key]');
+    if (!item) return;
+    _photoDrag = { key: item.dataset.photosDragKey, idx: parseInt(item.dataset.photosDragIdx, 10) };
+    e.dataTransfer.effectAllowed = 'move';
+    setTimeout(() => { if (item.isConnected) item.style.opacity = '0.4'; }, 0);
+  });
+
+  panel.addEventListener('dragend', () => {
+    panel.querySelectorAll('[data-photos-drag-key]').forEach(el => {
+      el.style.opacity = '';
+      el.style.outline = '';
+    });
+    _photoDrag = null;
+  });
+
+  panel.addEventListener('dragover', (e) => {
+    const item = e.target.closest('[data-photos-drag-key]');
+    if (!item || !_photoDrag) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    item.style.outline = '2px solid #3D6B45';
+  });
+
+  panel.addEventListener('dragleave', (e) => {
+    const item = e.target.closest('[data-photos-drag-key]');
+    if (item) item.style.outline = '';
+  });
+
+  panel.addEventListener('drop', (e) => {
+    const item = e.target.closest('[data-photos-drag-key]');
+    if (!item || !_photoDrag) return;
+    e.preventDefault();
+    item.style.outline = '';
+    const toKey = item.dataset.photosDragKey;
+    const toIdx = parseInt(item.dataset.photosDragIdx, 10);
+    if (toKey !== _photoDrag.key || toIdx === _photoDrag.idx) return;
+    const [bType, fKey] = toKey.split('.');
+    const arr = APP.blocks[bType]?.[fKey];
+    if (!Array.isArray(arr)) return;
+    const [moved] = arr.splice(_photoDrag.idx, 1);
+    arr.splice(toIdx, 0, moved);
+    _photoDrag = null;
+    renderPanel(APP.ui.activeBlock);
+    markDirty();
+    debouncedPreview();
   });
 }
 
-function setNestedState(path, value) {
-  const parts = path.split('.');
-  if (parts.length === 1) {
-    state[parts[0]] = value;
-    if (parts[0] === 'title') {
-      document.getElementById('editorTitle').value = value;
+async function handlePhotosAdd(blockType, fieldKey, files) {
+  if (APP.ui.photoUploading) return;
+  APP.ui.photoUploading = true;
+
+  const max = 10;
+  const current = APP.blocks[blockType]?.[fieldKey]?.length || 0;
+  const allowed = files.slice(0, Math.max(0, max - current));
+
+  if (!allowed.length) {
+    showToast(`Галерея заполнена (макс. ${max} фото)`, 'info');
+    APP.ui.photoUploading = false;
+    return;
+  }
+
+  showToast(`Загружаем ${allowed.length} фото…`);
+  let uploaded = 0, failed = 0;
+
+  for (const file of allowed) {
+    try {
+      const url = await uploadPhoto(file);
+      if (!APP.blocks[blockType][fieldKey]) APP.blocks[blockType][fieldKey] = [];
+      APP.blocks[blockType][fieldKey].push(url);
+      uploaded++;
+    } catch {
+      failed++;
     }
-  } else if (parts.length === 2) {
-    if (!state.blocks[parts[0]]) return;
-    state.blocks[parts[0]][parts[1]] = value;
+  }
+
+  renderPanel(APP.ui.activeBlock);
+  markDirty();
+  debouncedPreview();
+  APP.ui.photoUploading = false;
+
+  if (failed === 0) {
+    showToast(uploaded === 1 ? 'Фото добавлено' : `Добавлено ${uploaded} фото`, 'success');
+  } else {
+    showToast(`Загружено ${uploaded}, не удалось: ${failed}`, uploaded > 0 ? 'info' : 'error');
   }
 }
 
-// ─── Drag handle ──────────────────────────────────────────────────────────────
-function initDragHandle() {
-  const handle = document.getElementById('sheetHandle');
-  const sheet  = document.getElementById('bottomSheet');
-  if (!handle || !sheet) return;
-
-  let startY = 0, startH = 0, dragging = false;
-  const VH = () => window.innerHeight / 100;
-  const SNAP = [11, 46, 88]; // dvh: collapsed / half / full
-
-  function snapSheet(dvh) {
-    sheet.style.transition = 'height 0.28s cubic-bezier(0.4,0,0.2,1)';
-    sheet.style.height = dvh + 'dvh';
-    // Show/hide panel content based on collapsed state
-    const panel = document.getElementById('panelContent');
-    if (panel) panel.style.visibility = dvh <= SNAP[0] ? 'hidden' : '';
-  }
-
-  window._snapSheet = snapSheet;
-
-  handle.addEventListener('pointerdown', e => {
-    dragging = true;
-    startY = e.clientY;
-    startH = sheet.offsetHeight;
-    handle.setPointerCapture(e.pointerId);
-    sheet.style.transition = 'none';
-  });
-
-  handle.addEventListener('pointermove', e => {
-    if (!dragging) return;
-    const dy = startY - e.clientY;
-    const minH = SNAP[0] * VH();
-    const maxH = window.innerHeight * 0.92;
-    sheet.style.height = Math.min(Math.max(startH + dy, minH), maxH) + 'px';
-  });
-
-  const endDrag = () => {
-    if (!dragging) return;
-    dragging = false;
-    const cur = sheet.offsetHeight / VH();
-    let target;
-    if (cur < 28) target = SNAP[0];
-    else if (cur < 67) target = SNAP[1];
-    else target = SNAP[2];
-    snapSheet(target);
-  };
-
-  handle.addEventListener('pointerup', endDrag);
-  handle.addEventListener('pointercancel', endDrag);
-}
-
-window.toggleSheetPeek = function () {
-  const sheet = document.getElementById('bottomSheet');
-  if (!sheet || !window._snapSheet) return;
-  const VH = window.innerHeight / 100;
-  const isCollapsed = sheet.offsetHeight < 28 * VH;
-  window._snapSheet(isCollapsed ? 46 : 11);
-  // Update icon: eye-off when collapsed (preview visible), eye when expanded
-  const icon = document.querySelector('#sheetPeek svg');
-  if (icon) {
-    if (!isCollapsed) {
-      // Now collapsing → show eye-off (crossed out)
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/>
-        <path stroke-linecap="round" stroke-linejoin="round" d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/>
-        <line x1="1" y1="1" x2="23" y2="23" stroke-linecap="round"/>`;
-    } else {
-      // Now expanding → show eye
-      icon.innerHTML = `
-        <path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-        <circle cx="12" cy="12" r="3"/>`;
-    }
-  }
-};
-
-// ─── Visual Viewport — anchor overlay to visible area above keyboard ──────────
-// This is the canonical approach: when keyboard appears the overlay shrinks
-// to match the visual viewport, so no white space and bottom sheet stays visible.
-let _vvListeners = null;
-
-function initVisualViewport() {
-  if (!window.visualViewport) return;
-  const vv = window.visualViewport;
-  const overlay = document.getElementById('editorOverlay');
-  if (!overlay) return;
-
-  function update() {
-    // Pin the overlay to exactly the visual viewport (visible area above keyboard)
-    overlay.style.top    = vv.offsetTop  + 'px';
-    overlay.style.left   = vv.offsetLeft + 'px';
-    overlay.style.width  = vv.width      + 'px';
-    overlay.style.height = vv.height     + 'px';
-  }
-
-  // Clean up old listeners if any
-  if (_vvListeners) {
-    vv.removeEventListener('resize', _vvListeners);
-    vv.removeEventListener('scroll', _vvListeners);
-  }
-
-  _vvListeners = update;
-  vv.addEventListener('resize', update, { passive: true });
-  vv.addEventListener('scroll', update, { passive: true });
-  update();
-}
-
-function destroyVisualViewport() {
-  if (!window.visualViewport || !_vvListeners) return;
-  window.visualViewport.removeEventListener('resize', _vvListeners);
-  window.visualViewport.removeEventListener('scroll', _vvListeners);
-  _vvListeners = null;
-  // Reset overlay to CSS defaults
-  const overlay = document.getElementById('editorOverlay');
-  if (overlay) {
-    overlay.style.top = '';
-    overlay.style.left = '';
-    overlay.style.width = '';
-    overlay.style.height = '';
-  }
-}
-
-// ─── Scroll focused input into view inside panel ────────────────────────────
-// Ensures input is not hidden under the keyboard when panel is small
-document.getElementById('panelContent')?.addEventListener('focusin', (e) => {
-  const input = e.target;
-  if (!input.matches('input,textarea,select')) return;
-  // Small delay to let keyboard fully animate
-  setTimeout(() => {
-    input.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-  }, 320);
-}, true);
-
-// ─── Editor title sync ──────────────────────────────────────────────────────
+// ─── Editor title sync ──────────────────────────────────────────────────
 document.getElementById('editorTitle')?.addEventListener('input', function () {
-  state.title = this.value;
+  APP.form.title = this.value;
+  markDirty();
 });
 
-// ─── Save ──────────────────────────────────────────────────────────────────
+// ─── Save ─────────────────────────────────────────────────────────────────
 document.getElementById('editorSave')?.addEventListener('click', handleSave);
-document.getElementById('editorBack')?.addEventListener('click', () => {
-  document.getElementById('editorOverlay')?.classList.add('hidden');
-  previewReady = false;
-  window.removeEventListener('message', onPreviewMessage);
-  destroyVisualViewport();
-});
 
 async function handleSave() {
   const phone = localStorage.getItem('tl_phone');
   if (!phone) return;
 
-  const b = state.blocks;
-  const blocksConfig = {
-    hero:     { enabled: true, ...b.hero },
-    photo:    { enabled: b.photo.enabled,    url:       b.photo.url },
-    greeting: { enabled: b.greeting.enabled, title:     b.greeting.title, text: b.greeting.text },
-    schedule: {
-      enabled: b.schedule.enabled,
-      items:   b.schedule.rows.map(r => `${r.time} ${r.title}`.trim()).filter(Boolean).join('\n'),
-    },
-    location: { enabled: b.location.enabled, ...b.location },
-    dresscode: {
-      enabled: b.dresscode.enabled,
-      text:    b.dresscode.text,
-      palette: b.dresscode.palette.join(','),
-    },
-  };
+  const f = APP.form;
+  const b = APP.blocks;
+
+  // ─── Валидация ────────────────────────────────────────────────────────────
+  if (!f.person1?.trim() && !f.person2?.trim()) {
+    showToast('Укажите хотя бы одно имя в блоке «Обложка»', 'error');
+    activateBlock('hero');
+    return;
+  }
+  if (!f.eventDate) {
+    showToast('Укажите дату события в блоке «Обложка»', 'error');
+    activateBlock('hero');
+    return;
+  }
+
+  const blocksConfig = JSON.parse(JSON.stringify(b));
 
   const data = {
-    title:         state.title || `${state.person1} & ${state.person2}`,
-    person1:       state.person1  || null,
-    person2:       state.person2  || null,
-    eventDate:     state.eventDate     || null,
-    rsvpDeadline:  state.rsvpDeadline  || null,
-    language:      state.language      || 'ru',
-    coverImageUrl: state.blocks.photo.url || null,
+    title:         f.title || `${f.person1 || ''} & ${f.person2 || ''}`.trim().replace(/^& |& $/, ''),
+    person1:       f.person1       || null,
+    person2:       f.person2       || null,
+    eventDate:     f.eventDate     || null,
+    rsvpDeadline:  f.rsvpDeadline  || null,
+    language:      f.language      || 'ru',
+    coverImageUrl: b.hero?.coverPhoto || null,
     blocksConfig:  JSON.stringify(blocksConfig),
-    ...(selectedTemplate && !editEventId ? { templateId: selectedTemplate.id } : {}),
-    ...(editEventId ? { status: existingEvent?.status || 'DRAFT' } : {}),
+    ...(APP.ui.selectedTemplate && !APP.ui.editEventId ? { templateId: APP.ui.selectedTemplate.id } : {}),
+    ...(APP.ui.editEventId ? { status: APP.ui.existingEvent?.status || 'DRAFT' } : {}),
   };
 
   const btn = document.getElementById('editorSave');
-  btn.disabled = true; btn.textContent = 'Сохраняю...';
+  const lbl = btn?.querySelector('.save-label');
+  btn.disabled = true;
+  btn.querySelector('.save-spinner').style.display = 'inline-block';
+  if (lbl) lbl.textContent = 'Сохраняю…';
 
   try {
-    await saveEvent(phone, data, editEventId);
-    location.href = '/';
-  } catch (err) {
-    showToast(err.message);
-    btn.disabled = false; btn.textContent = 'Сохранить';
-  }
-}
+    const result = await saveEvent(phone, data, APP.ui.editEventId);
 
-// ═══════════════════════════════════════════════════════════════════════════
-// ICONS (inline SVG)
-// ═══════════════════════════════════════════════════════════════════════════
-function mainIcon()  { return svg('M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z'); }
-function heroIcon()  { return svg('M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z'); }
-function photoIcon() { return svg('M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z'); }
-function wordIcon()  { return svg('M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z'); }
-function schedIcon() { return svg('M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'); }
-function pinIcon()   { return svg('M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z'); }
-function styleIcon() { return svg('M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01'); }
-function svg(d) {
-  return `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+    // Для нового события — запоминаем id и обновляем URL без перезагрузки
+    if (!APP.ui.editEventId && result?.id) {
+      APP.ui.editEventId = result.id;
+      history.replaceState(null, '', `?id=${result.id}`);
+    }
+
+    markClean();
+    showToast('Сохранено', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('.save-spinner').style.display = 'none';
+    updateSaveButtonState();
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BOOT
 // ═══════════════════════════════════════════════════════════════════════════
 async function init() {
-  const params    = new URLSearchParams(location.search);
-  editEventId = params.get('id') ? parseInt(params.get('id')) : null;
+  initEditorDelegation();
+
+  const params = new URLSearchParams(location.search);
+  APP.ui.editEventId = params.get('id') ? parseInt(params.get('id')) : null;
 
   const phone = await window.initAuth?.();
   if (!phone) { location.href = '/'; return; }
@@ -813,23 +892,24 @@ async function init() {
     const templates = await fetchTemplates();
     window._templates = templates;
 
-    if (editEventId) {
-      existingEvent    = await fetchEvent(editEventId, phone);
-      selectedTemplate = templates.find(t => t.id === existingEvent.templateId) || null;
-      state.title      = existingEvent.title || '';
+    if (APP.ui.editEventId) {
+      APP.ui.existingEvent = await fetchEvent(APP.ui.editEventId, phone);
+      APP.ui.selectedTemplate = templates.find(t => t.id === APP.ui.existingEvent.templateId) || templates[0];
+      APP.form.title = APP.ui.existingEvent.title || '';
+      // Load schema before opening editor
+      const schemaUrl = `/templates/${APP.ui.selectedTemplate.templatePath}/schema.json`;
+      APP.schema = await fetch(schemaUrl).then(r => r.json());
+      initStateFromSchema(APP.schema);
+      APP.ui.activeBlock = APP.schema.blocks[0]?.type || null;
       openEditorOverlay();
+    } else if (templates.length === 1) {
+      APP.ui.selectedTemplate = templates[0];
+      goToEditor();
     } else {
-      // Show template picker only if there are templates
-      if (templates.length === 1) {
-        // Auto-select if only one template
-        selectTemplate(templates[0].id);
-        goToEditor();
-      } else {
-        renderTemplatePicker(templates);
-      }
+      renderTemplatePicker(templates);
     }
   } catch (err) {
-    showToast(err.message);
+    showToast(err.message, 'error');
   }
 }
 

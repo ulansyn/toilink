@@ -1,0 +1,20 @@
+{
+  "name": "video-invite",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite --port 9998",
+    "build": "vite build",
+    "preview": "vite preview --port 9998"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "mp4-muxer": "^5.2.2",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "vite": "^8.0.7"
+  }
+}

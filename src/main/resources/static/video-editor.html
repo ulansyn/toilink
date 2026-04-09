@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>ToiLink — Видео</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@300;400;500;600&family=Montserrat:wght@300;400&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { cormorant: ['Cormorant Garamond','serif'] } } }
+    }
+  </script>
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+    ::-webkit-scrollbar { display: none; }
+    html, body { height: 100%; overflow: hidden; }
+    body { font-family: 'Inter', sans-serif; background: #FAFAF8; color: #1E2820; overscroll-behavior: none; }
+
+    /* ── Top App Bar ─────────────────────────────── */
+    .top-app-bar {
+      position: sticky; top: 0; z-index: 30;
+      background: rgba(250,250,248,0.92); backdrop-filter: blur(20px);
+      border-bottom: 1px solid #E8E4DE;
+      padding-top: env(safe-area-inset-top, 0px);
+      flex-shrink: 0;
+    }
+    .app-bar-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 16px; height: 56px;
+    }
+    .icon-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: #EDE9E4; color: #5C5850; cursor: pointer;
+      transition: background 0.15s; text-decoration: none; border: none; flex-shrink: 0;
+    }
+    .icon-btn:active { transform: scale(0.92); background: #E0DBD4; }
+
+    /* ── Full-screen shell ───────────────────────── */
+    #shell {
+      display: flex; flex-direction: column;
+      height: 100dvh; overflow: hidden;
+    }
+
+    /* ── Preview area ────────────────────────────── */
+    #previewArea {
+      flex: 1; min-height: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: #EEECEA;
+      position: relative; overflow: hidden;
+    }
+    .phone-frame {
+      height: 100%; max-height: 100%;
+      aspect-ratio: 9/16;
+      background: #18181b;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 0 0 5px #27272a, 0 16px 48px rgba(0,0,0,0.35);
+      margin: 16px 0;
+    }
+    .phone-frame canvas {
+      width: 100%; height: 100%; display: block;
+    }
+
+    /* ── Bottom Sheet ────────────────────────────── */
+    #bottomSheet {
+      flex-shrink: 0;
+      background: #FFFFFF;
+      border-radius: 20px 20px 0 0;
+      box-shadow: 0 -2px 20px rgba(0,0,0,0.10);
+      display: flex; flex-direction: column;
+      height: 48dvh; min-height: 13dvh;
+      position: relative; z-index: 10;
+      transition: height 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #sheetHandle {
+      flex-shrink: 0;
+      padding: 10px 16px 0;
+      display: flex; justify-content: space-between; align-items: center;
+      cursor: grab; touch-action: none; user-select: none;
+    }
+    #sheetHandle:active { cursor: grabbing; }
+    .handle-pill {
+      width: 36px; height: 4px; border-radius: 2px; background: #DDD9D4;
+      pointer-events: none;
+    }
+    #sheetPeek {
+      width: 32px; height: 32px; border-radius: 50%;
+      background: #F5F3F0; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: #9A9491; flex-shrink: 0; pointer-events: all;
+      transition: background 0.15s;
+    }
+    #sheetPeek:active { background: #E8E5E1; }
+
+    /* ── Sheet tabs ──────────────────────────────── */
+    #sheetTabs {
+      flex-shrink: 0;
+      display: flex; gap: 8px;
+      padding: 8px 16px 10px;
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+    }
+    .stab {
+      flex-shrink: 0;
+      padding: 7px 14px; border-radius: 100px;
+      border: 1.5px solid #E8E5E1;
+      background: #FAFAF8; color: #6B6860;
+      font-size: 13px; font-weight: 500;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.15s; line-height: 1; font-family: 'Inter', sans-serif;
+    }
+    .stab:active { transform: scale(0.95); }
+    .stab.active { background: #1E2820; color: white; border-color: #1E2820; }
+
+    /* ── Panel content ───────────────────────────── */
+    #panelContent {
+      flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+      padding: 4px 16px 0;
+    }
+
+    /* ── Export footer ───────────────────────────── */
+    #exportFooter {
+      flex-shrink: 0;
+      padding: 12px 16px;
+      padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
+      background: #fff;
+      border-top: 1px solid #F0EDE9;
+    }
+    .btn-export {
+      width: 100%; padding: 15px;
+      background: #3D6B45; color: white;
+      font-size: 15px; font-weight: 600;
+      border: none; border-radius: 14px; cursor: pointer;
+      box-shadow: 0 2px 8px rgba(61,107,69,0.28);
+      transition: transform 0.15s, opacity 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      font-family: 'Inter', sans-serif;
+    }
+    .btn-export:active { transform: scale(0.97); }
+    .btn-export:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+    /* ── Panel field styles (= editor.html) ─────── */
+    .pfield { margin-bottom: 10px; }
+    .plabel {
+      display: block; font-size: 11px; font-weight: 600;
+      letter-spacing: 0.06em; color: #9A9491;
+      margin-bottom: 4px; text-transform: uppercase;
+    }
+    .pinput, .ptextarea {
+      width: 100%; padding: 11px 13px;
+      background: #F5F3F0; border: 1.5px solid transparent;
+      border-radius: 12px; font-family: 'Inter', sans-serif;
+      font-size: 15px; color: #1E2820; outline: none;
+      transition: border-color 0.15s, background 0.15s;
+      appearance: none; -webkit-appearance: none;
+    }
+    .pinput:focus, .ptextarea:focus { background: #EDEAE6; border-color: #3D6B45; }
+    .pinput::placeholder, .ptextarea::placeholder { color: #C0BBB5; }
+    .ptextarea { resize: none; min-height: 80px; line-height: 1.55; }
+
+    .psection { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #F0EDE9; }
+    .psection:last-child { border-bottom: none; margin-bottom: 0; }
+    .psection-title { font-size: 13px; font-weight: 600; color: #1E2820; margin-bottom: 10px; }
+
+    /* ── Template cards ──────────────────────────── */
+    .tpl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .tpl-card {
+      background: #F5F3F0; border-radius: 16px; overflow: hidden;
+      border: 2px solid transparent; cursor: pointer;
+      transition: border-color 0.2s, transform 0.15s;
+      padding: 14px 12px 12px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .tpl-card:active { transform: scale(0.97); }
+    .tpl-card.selected { border-color: #3D6B45; background: #EFF7F0; }
+    .tpl-card__icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; background: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .tpl-card.selected .tpl-card__icon { background: #C2E0C6; }
+    .tpl-card__name { font-size: 13px; font-weight: 600; color: #1E2820; }
+    .tpl-card__desc { font-size: 11px; color: #9A9491; line-height: 1.35; }
+
+    /* ── File upload ─────────────────────────────── */
+    .file-upload {
+      width: 100%; padding: 14px;
+      background: #F5F3F0; border: 1.5px dashed #DDD9D4;
+      border-radius: 12px; cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative; overflow: hidden;
+    }
+    .file-upload:active { background: #EDEAE6; border-color: #3D6B45; }
+    .file-upload.has-file { border-style: solid; border-color: #3D6B45; background: #EFF7F0; }
+    .file-upload input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; font-size: 0;
+    }
+    .file-upload__icon {
+      width: 36px; height: 36px; flex-shrink: 0; border-radius: 10px;
+      background: #E8E5E1; display: flex; align-items: center; justify-content: center;
+      color: #9A9491; pointer-events: none;
+    }
+    .file-upload.has-file .file-upload__icon { background: #C2E0C6; color: #3D6B45; }
+    .file-upload__text { pointer-events: none; }
+    .file-upload__label { font-size: 14px; font-weight: 500; color: #1E2820; }
+    .file-upload__hint { font-size: 12px; color: #9A9491; margin-top: 1px; }
+
+    /* ── Progress toast ──────────────────────────── */
+    #toast {
+      position: fixed; bottom: calc(48dvh + 16px); left: 50%;
+      transform: translateX(-50%) translateY(6px);
+      background: #1E2820; color: white;
+      padding: 10px 20px; border-radius: 100px;
+      font-size: 13px; font-weight: 500; white-space: nowrap; z-index: 200;
+      opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Progress bar inside toast ───────────────── */
+    #progressTrack {
+      height: 3px; background: rgba(255,255,255,0.25); border-radius: 2px;
+      margin-top: 6px; overflow: hidden; display: none;
+    }
+    #progressTrack.show { display: block; }
+    #progressFill {
+      height: 100%; background: #C2E0C6; border-radius: 2px;
+      transition: width 0.1s linear; width: 0%;
+    }
+
+    /* ══ DESKTOP ═══════════════════════════════════ */
+    @media (min-width: 768px) {
+      html, body { overflow: auto; }
+      #shell { height: auto; overflow: visible; flex-direction: row; }
+
+      .top-app-bar { display: none; }
+
+      #previewArea {
+        flex: none; width: 360px; min-height: 100dvh;
+        background: #EEECEA; position: sticky; top: 0;
+        align-items: center; justify-content: center;
+        padding: 24px 16px;
+      }
+      .phone-frame {
+        margin: 0; height: auto; width: 100%;
+      }
+      .phone-frame canvas { display: block; }
+
+      #bottomSheet {
+        flex: 1; height: auto; min-height: 100dvh; border-radius: 0;
+        box-shadow: none; border-left: 1px solid #E8E4DE;
+        overflow-y: auto;
+      }
+      #sheetHandle { display: none; }
+      #sheetTabs { padding: 28px 24px 0; }
+      .stab { font-size: 14px; padding: 8px 18px; }
+      #panelContent { padding: 16px 24px 0; }
+      #exportFooter {
+        padding: 16px 24px 32px;
+        border-top: 1px solid #F0EDE9;
+        background: #fff;
+      }
+
+      /* Desktop header inside sheet */
+      #desktopHeader {
+        display: flex; align-items: center; gap: 12px;
+        padding: 28px 24px 0;
+      }
+      #toast { bottom: 24px; }
+    }
+    @media (max-width: 767px) {
+      #desktopHeader { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="shell">
+
+  <!-- ── Top App Bar (mobile only) ─────────────── -->
+  <div class="top-app-bar">
+    <div class="app-bar-inner">
+      <a href="javascript:history.back()" class="icon-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <span class="font-cormorant text-[20px] italic font-semibold text-[#1E2820]">Видео-приглашение</span>
+      <div class="w-10"></div>
+    </div>
+  </div>
+
+  <!-- ── Preview ────────────────────────────────── -->
+  <div id="previewArea">
+    <div class="phone-frame">
+      <canvas id="previewCanvas" width="1080" height="1920"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Bottom Sheet / Right Panel ────────────── -->
+  <div id="bottomSheet">
+
+    <!-- Desktop header -->
+    <div id="desktopHeader">
+      <a href="javascript:history.back()" class="icon-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+        </svg>
+      </a>
+      <span class="font-cormorant text-2xl italic font-semibold text-[#1E2820]">Видео-приглашение</span>
+    </div>
+
+    <!-- Mobile drag handle -->
+    <div id="sheetHandle">
+      <div style="width:32px"></div>
+      <div class="handle-pill"></div>
+      <button id="sheetPeek" title="Скрыть / показать">
+        <svg id="peekIcon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Tabs -->
+    <div id="sheetTabs">
+      <button class="stab active" data-panel="template">Шаблон</button>
+      <button class="stab" data-panel="content">Содержание</button>
+      <button class="stab" data-panel="media">Медиа</button>
+    </div>
+
+    <!-- Panel content -->
+    <div id="panelContent">
+
+      <!-- ── ШАБЛОН ── -->
+      <div id="panel-template" class="psection">
+        <div class="tpl-grid" id="templateGrid">
+          <button class="tpl-card selected" data-tpl="wedding_luxury">
+            <div class="tpl-card__icon">💍</div>
+            <div class="tpl-card__name">Luxury Wedding</div>
+            <div class="tpl-card__desc">Золото, частицы, кино-стиль</div>
+          </button>
+          <button class="tpl-card" data-tpl="birthday">
+            <div class="tpl-card__icon">🎂</div>
+            <div class="tpl-card__name">День рождения</div>
+            <div class="tpl-card__desc">Конфетти, яркие цвета</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- ── СОДЕРЖАНИЕ ── -->
+      <div id="panel-content" hidden>
+        <div class="psection">
+          <div class="psection-title">Основное</div>
+          <div class="pfield">
+            <label class="plabel">Имена / Имя именинника</label>
+            <input class="pinput" id="p_names" type="text" value="Иван & Мария" placeholder="Иван & Мария"/>
+          </div>
+          <div class="pfield">
+            <label class="plabel">Текст приглашения</label>
+            <textarea class="ptextarea" id="p_inviteText" placeholder="Приглашаем вас разделить с нами этот особенный день">Приглашаем вас разделить с нами этот особенный день</textarea>
+          </div>
+        </div>
+        <div class="psection">
+          <div class="psection-title">Дата и место</div>
+          <div class="pfield">
+            <label class="plabel">Дата</label>
+            <input class="pinput" id="p_eventDate" type="date" value="2025-07-12"/>
+          </div>
+          <div class="pfield">
+            <label class="plabel">Время</label>
+            <input class="pinput" id="p_eventTime" type="time" value="18:00"/>
+          </div>
+          <div class="pfield">
+            <label class="plabel">Место проведения</label>
+            <input class="pinput" id="p_venue" type="text" value="Бишкек, ресторан «Белый сад»" placeholder="Адрес или название"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── МЕДИА ── -->
+      <div id="panel-media" hidden>
+        <div class="psection">
+          <div class="psection-title">Фото на фон</div>
+          <div class="file-upload" id="bgUploadArea">
+            <input type="file" id="p_bgImage" accept="image/*"/>
+            <div class="file-upload__icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 15l-5-5L5 21"/>
+              </svg>
+            </div>
+            <div class="file-upload__text">
+              <div class="file-upload__label" id="bgLabel">Выбрать фото</div>
+              <div class="file-upload__hint">Фон заменит стандартный градиент</div>
+            </div>
+          </div>
+        </div>
+        <div class="psection">
+          <div class="psection-title">Музыка</div>
+          <div class="file-upload" id="musicUploadArea">
+            <input type="file" id="p_music" accept="audio/*"/>
+            <div class="file-upload__icon">
+              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 18V5l12-2v13"/>
+                <circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
+              </svg>
+            </div>
+            <div class="file-upload__text">
+              <div class="file-upload__label" id="musicLabel">Добавить музыку</div>
+              <div class="file-upload__hint">MP3, AAC — войдёт в MP4</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /panelContent -->
+
+    <!-- Export footer -->
+    <div id="exportFooter">
+      <button class="btn-export" id="exportBtn">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/>
+        </svg>
+        Скачать видео
+      </button>
+    </div>
+
+  </div><!-- /bottomSheet -->
+</div><!-- /shell -->
+
+<!-- Toast -->
+<div id="toast">
+  <span id="toastText">Генерируется…</span>
+  <div id="progressTrack"><div id="progressFill"></div></div>
+</div>
+
+<audio id="audioElem" loop style="display:none"></audio>
+
+<script type="importmap">
+{ "imports": { "mp4-muxer": "https://cdn.jsdelivr.net/npm/mp4-muxer@6/build/mp4-muxer.mjs" } }
+</script>
+
+<script type="module">
+  import { premiumWedding } from '/js/video/templates/wedding.js';
+  import { birthday }       from '/js/video/templates/birthday.js';
+  import { exportVideo }    from '/js/video/engine/encoder.js';
+
+  const TEMPLATES = { wedding_luxury: premiumWedding, birthday };
+
+  // ── State ──────────────────────────────────────
+  let templateId = 'wedding_luxury';
+  let bgImage    = null;
+  let musicFile  = null;
+  let encoding   = false;
+  let rafId      = null;
+  let startTs    = null;
+
+  const canvas    = document.getElementById('previewCanvas');
+  const ctx       = canvas.getContext('2d');
+  const audioElem = document.getElementById('audioElem');
+
+  function getParams() {
+    return {
+      names:      document.getElementById('p_names').value,
+      inviteText: document.getElementById('p_inviteText').value,
+      eventDate:  document.getElementById('p_eventDate').value,
+      eventTime:  document.getElementById('p_eventTime').value,
+      venue:      document.getElementById('p_venue').value,
+    };
+  }
+
+  // ── Preview loop ───────────────────────────────
+  function startPreview() {
+    cancelAnimationFrame(rafId);
+    startTs = null;
+    if (audioElem.src && musicFile) {
+      audioElem.currentTime = 0;
+      audioElem.play().catch(() => {});
+    }
+    const tpl = TEMPLATES[templateId];
+    function loop(ts) {
+      if (!startTs) startTs = ts;
+      const t = ((ts - startTs) / 1000) % tpl.duration;
+      tpl.draw(ctx, t, getParams(), bgImage);
+      rafId = requestAnimationFrame(loop);
+    }
+    rafId = requestAnimationFrame(loop);
+  }
+
+  document.fonts.ready.then(() => startPreview());
+
+  // ── Template selector ──────────────────────────
+  document.getElementById('templateGrid').addEventListener('click', e => {
+    const card = e.target.closest('[data-tpl]');
+    if (!card) return;
+    templateId = card.dataset.tpl;
+    document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    startPreview();
+  });
+
+  // ── Live param updates ─────────────────────────
+  ['p_names','p_inviteText','p_eventDate','p_eventTime','p_venue'].forEach(id => {
+    document.getElementById(id).addEventListener('input', startPreview);
+  });
+
+  // ── Background image ───────────────────────────
+  document.getElementById('p_bgImage').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const img = new Image();
+    img.onload = () => { bgImage = img; startPreview(); };
+    img.src = URL.createObjectURL(file);
+    document.getElementById('bgLabel').textContent = file.name;
+    document.getElementById('bgUploadArea').classList.add('has-file');
+  });
+
+  // ── Music ──────────────────────────────────────
+  document.getElementById('p_music').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    musicFile = file;
+    audioElem.src = URL.createObjectURL(file);
+    audioElem.currentTime = 0;
+    audioElem.play().catch(() => {});
+    document.getElementById('musicLabel').textContent = file.name;
+    document.getElementById('musicUploadArea').classList.add('has-file');
+  });
+
+  // ── Tab switching ──────────────────────────────
+  document.getElementById('sheetTabs').addEventListener('click', e => {
+    const tab = e.target.closest('.stab');
+    if (!tab) return;
+    document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    ['template','content','media'].forEach(id => {
+      const el = document.getElementById('panel-' + id);
+      el.hidden = (id !== tab.dataset.panel);
+    });
+  });
+
+  // ── Bottom sheet drag (mobile) ─────────────────
+  (function() {
+    const sheet = document.getElementById('bottomSheet');
+    const handle = document.getElementById('sheetHandle');
+    const peek = document.getElementById('sheetPeek');
+    const FULL = 80, HALF = 48, PEEK = 13;
+    let collapsed = false;
+
+    peek.addEventListener('click', e => {
+      e.stopPropagation();
+      collapsed = !collapsed;
+      sheet.style.height = (collapsed ? PEEK : HALF) + 'dvh';
+    });
+
+    let startY = 0, startH = 0;
+    function onDown(e) {
+      startY = (e.touches ? e.touches[0].clientY : e.clientY);
+      startH = sheet.offsetHeight;
+      document.addEventListener('touchmove', onMove, { passive: false });
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('touchend', onUp);
+      document.addEventListener('mouseup', onUp);
+    }
+    function onMove(e) {
+      if (e.cancelable) e.preventDefault();
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const newH = Math.max(60, Math.min(window.innerHeight * 0.9, startH + (startY - y)));
+      sheet.style.transition = 'none';
+      sheet.style.height = newH + 'px';
+    }
+    function onUp() {
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('touchend', onUp);
+      document.removeEventListener('mouseup', onUp);
+      sheet.style.transition = 'height 0.28s cubic-bezier(0.4,0,0.2,1)';
+      const h = sheet.offsetHeight;
+      const vh = window.innerHeight;
+      if (h < vh * 0.25) { sheet.style.height = PEEK + 'dvh'; collapsed = true; }
+      else if (h < vh * 0.65) { sheet.style.height = HALF + 'dvh'; collapsed = false; }
+      else { sheet.style.height = FULL + 'dvh'; collapsed = false; }
+    }
+    handle.addEventListener('touchstart', onDown, { passive: true });
+    handle.addEventListener('mousedown', onDown);
+  })();
+
+  // ── Export ─────────────────────────────────────
+  const exportBtn   = document.getElementById('exportBtn');
+  const toast       = document.getElementById('toast');
+  const toastText   = document.getElementById('toastText');
+  const progressTrack = document.getElementById('progressTrack');
+  const progressFill  = document.getElementById('progressFill');
+
+  function showToast(text, showProgress = false) {
+    toastText.textContent = text;
+    progressTrack.classList.toggle('show', showProgress);
+    toast.classList.add('show');
+  }
+  function hideToast() {
+    toast.classList.remove('show');
+  }
+
+  exportBtn.addEventListener('click', async () => {
+    if (encoding) return;
+    cancelAnimationFrame(rafId);
+    encoding = true;
+    exportBtn.disabled = true;
+    exportBtn.innerHTML = `
+      <svg width="18" height="18" class="animate-spin" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 018-8V4"/>
+      </svg>
+      Создаём магию…`;
+    showToast('Генерируется…', true);
+    progressFill.style.width = '0%';
+
+    try {
+      const { blob, ext } = await exportVideo(
+        TEMPLATES[templateId],
+        getParams(),
+        bgImage,
+        (p) => {
+          const pct = Math.round(p * 100);
+          progressFill.style.width = pct + '%';
+          toastText.textContent = pct + '% — обрабатывается…';
+        },
+        musicFile,
+      );
+
+      progressFill.style.width = '100%';
+      showToast(`Готово · ${ext.toUpperCase()} · ${(blob.size/1024/1024).toFixed(1)} МБ`, false);
+      setTimeout(hideToast, 3000);
+
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `invite.${ext}`;
+      a.click();
+    } catch (err) {
+      showToast('Ошибка: ' + err.message, false);
+      setTimeout(hideToast, 4000);
+      console.error(err);
+    } finally {
+      encoding = false;
+      exportBtn.disabled = false;
+      exportBtn.innerHTML = `
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v12m0 0l-4-4m4 4l4-4M4 20h16"/>
+        </svg>
+        Скачать видео`;
+      startPreview();
+    }
+  });
+</script>
+</body>
+</html>

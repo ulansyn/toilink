@@ -5,6 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ToiLink</title>
 
+  <script>
+    // Если пользователь ещё не "вошёл" (нет номера) — показываем лендинг.
+    (function () {
+      try {
+        if (!localStorage.getItem('tl_phone')) location.replace('/landing.html');
+      } catch (_) {}
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
@@ -106,11 +115,11 @@
     <span class="font-cormorant text-2xl font-semibold italic text-[#1E2820]">ToiLink</span>
     <nav class="flex items-center gap-1">
       <a href="/" class="px-4 py-2 rounded-full bg-[#C2E0C6] text-[#1A3D20] text-sm font-semibold">Мои события</a>
-      <a href="/editor.html" class="px-4 py-2 rounded-full text-[#6B6860] text-sm font-medium hover:bg-[#EDE9E4] transition-colors">Создать</a>
+      <button onclick="showCreateSheet()" class="px-4 py-2 rounded-full text-[#6B6860] text-sm font-medium hover:bg-[#EDE9E4] transition-colors">Создать</button>
     </nav>
     <div class="flex items-center gap-3">
       <span class="text-xs text-[#1E2820]/40 user-phone"></span>
-      <a href="/editor.html" class="fab !py-2.5 !px-5 !rounded-full">
+      <button onclick="showCreateSheet()" class="fab !py-2.5 !px-5 !rounded-full">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
         Создать
       </a>
@@ -182,13 +191,13 @@
   </main>
 
   <!-- ── Extended FAB (mobile) ──────────────────────── -->
-  <a href="/editor.html" class="fab md:hidden fixed z-20 right-4"
+  <button onclick="showCreateSheet()" class="fab md:hidden fixed z-20 right-4"
      style="bottom: calc(72px + env(safe-area-inset-bottom, 0px) + 12px)">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
     </svg>
     Создать
-  </a>
+  </button>
 
   <!-- ── M3 Bottom Navigation Bar ───────────────────── -->
   <nav class="nav-bar md:hidden fixed bottom-0 left-0 right-0 z-30"
@@ -225,6 +234,50 @@
   </nav>
 
   <script>
+    window.showCreateSheet = function () {
+      const backdrop = document.createElement('div');
+      backdrop.className = 'fixed inset-0 bg-black/40 z-40 backdrop-blur-sm';
+      const sheet = document.createElement('div');
+      sheet.className = 'fixed bottom-0 left-0 right-0 z-50 bg-[#FAFAF8] rounded-t-[28px]';
+      sheet.style.paddingBottom = 'calc(env(safe-area-inset-bottom, 0px) + 24px)';
+      sheet.innerHTML = `
+        <div class="flex justify-center pt-3 pb-1"><div class="w-10 h-1 bg-[#1E2820]/10 rounded-full"></div></div>
+        <div class="px-6 pt-4 pb-2">
+          <h2 class="font-cormorant text-2xl font-semibold text-[#1E2820] mb-1">Что создаём?</h2>
+          <p class="text-[#6B6860] text-sm mb-5">Выберите формат приглашения</p>
+          <div class="flex flex-col gap-3">
+            <a href="/editor.html"
+               class="flex items-center gap-4 p-4 bg-[#EDE9E4] rounded-2xl active:scale-[0.98] transition-transform no-underline group">
+              <div class="w-12 h-12 rounded-2xl bg-[#C2E0C6] flex items-center justify-center text-2xl flex-shrink-0">🌐</div>
+              <div>
+                <p class="font-semibold text-[#1E2820] text-[15px]">Сайт-приглашение</p>
+                <p class="text-[#6B6860] text-sm mt-0.5">Красивая веб-страница с QR-кодом</p>
+              </div>
+              <svg class="ml-auto text-[#B0AB9E] w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+            </a>
+            <a href="/video-editor.html"
+               class="flex items-center gap-4 p-4 bg-[#EDE9E4] rounded-2xl active:scale-[0.98] transition-transform no-underline group">
+              <div class="w-12 h-12 rounded-2xl bg-[#E4C590]/30 flex items-center justify-center text-2xl flex-shrink-0">🎬</div>
+              <div>
+                <p class="font-semibold text-[#1E2820] text-[15px]">Видео-приглашение</p>
+                <p class="text-[#6B6860] text-sm mt-0.5">Анимированное видео для соцсетей</p>
+              </div>
+              <svg class="ml-auto text-[#B0AB9E] w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 18l6-6-6-6"/></svg>
+            </a>
+          </div>
+        </div>`;
+      const close = () => {
+        sheet.style.transform = 'translateY(100%)';
+        setTimeout(() => { backdrop.remove(); sheet.remove(); }, 320);
+      };
+      backdrop.onclick = close;
+      document.body.appendChild(backdrop);
+      document.body.appendChild(sheet);
+      sheet.style.transform = 'translateY(100%)';
+      sheet.style.transition = 'transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)';
+      requestAnimationFrame(() => { sheet.style.transform = 'translateY(0)'; });
+    };
+
     window.showProfile = function () {
       const phone = localStorage.getItem('tl_phone') || 'Не задан';
       const backdrop = document.createElement('div');

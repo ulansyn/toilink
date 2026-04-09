@@ -4,345 +4,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <!-- Title and Meta — dynamically set by JS -->
     <title>Свадебное приглашение</title>
-    <meta name="description" id="metaDescription" content="Свадебное приглашение">
+    <meta name="description" content="Приглашение на свадьбу">
+
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Italiana&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Montserrat:wght@300;400;500;600&family=Pinyon+Script&display=swap"
+
+
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;700&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="envelope.css">
+
+
+
+    <link rel="stylesheet" href="css/envelope.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/footer.css">
 </head>
 
 <body class="loading-active">
-    <!-- ═══ TEXTURE ═══ -->
-    <div class="bg-texture"></div>
 
-    <!-- ═══ DESKTOP BLOCKER ═══ -->
-    <div class="desktop-block">
-        <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="#2C3531" stroke-width="1"
-            stroke-linecap="round">
-            <rect x="5" y="2" width="14" height="20" rx="3" />
-            <line x1="12" y1="18" x2="12" y2="18.01" stroke-width="2" />
+
+    <div id="ivento-preloader" class="ivento-preloader">
+        <div class="preloader-content">
+            <div class="preloader-logo">
+                <span class="preloader-initials" data-content="couple.name1.charAt(0)">U</span>
+                <span class="preloader-amp">&</span>
+                <span class="preloader-initials" data-content="couple.name2.charAt(0)">E</span>
+            </div>
+            <div class="preloader-bar-wrap">
+                <div class="preloader-bar"></div>
+            </div>
+            <p class="preloader-text">Загрузка прекрасного...</p>
+        </div>
+    </div>
+
+    <main class="hero" data-section="hero">
+
+        <canvas id="hero-particles" class="hero-particles"></canvas>
+
+        <div class="hero-background">
+            <img src="" alt="Background" class="hero-img" data-img="heroBackground">
+            <div class="overlay"></div>
+            <div class="overlay-vignette"></div>
+            <div class="overlay-grain"></div>
+        </div>
+
+
+        <div class="hero-frame">
+            <span class="hero-frame-corner hero-frame-tl"></span>
+            <span class="hero-frame-corner hero-frame-tr"></span>
+            <span class="hero-frame-corner hero-frame-bl"></span>
+            <span class="hero-frame-corner hero-frame-br"></span>
+        </div>
+
+        <div class="hero-content">
+
+            <p class="hero-label">Мы женимся</p>
+
+            <div class="names-container fade-in">
+                <h1 class="name name--first" data-content="couple.name1"></h1>
+                <div class="hero-ampersand-wrap">
+                    <span class="hero-ampersand-line hero-ampersand-line--left"></span>
+                    <span class="hero-ampersand">&amp;</span>
+                    <span class="hero-ampersand-line hero-ampersand-line--right"></span>
+                </div>
+                <h1 class="name name--second" data-content="couple.name2"></h1>
+            </div>
+
+            <div class="date-container fade-in-delayed">
+                <div class="hero-date-ornament">
+                    <span class="hero-date-line"></span>
+                    <p class="date" data-content="couple.dateDisplay"></p>
+                    <span class="hero-date-line"></span>
+                </div>
+            </div>
+
+
+            <div class="hero-countdown" id="hero-countdown">
+                <div class="hero-countdown-item">
+                    <span class="hero-countdown-number" id="countdown-days">0</span>
+                    <span class="hero-countdown-label">дней</span>
+                </div>
+                <div class="hero-countdown-sep">:</div>
+                <div class="hero-countdown-item">
+                    <span class="hero-countdown-number" id="countdown-hours">0</span>
+                    <span class="hero-countdown-label">часов</span>
+                </div>
+                <div class="hero-countdown-sep">:</div>
+                <div class="hero-countdown-item">
+                    <span class="hero-countdown-number" id="countdown-minutes">0</span>
+                    <span class="hero-countdown-label">минут</span>
+                </div>
+                <div class="hero-countdown-sep">:</div>
+                <div class="hero-countdown-item">
+                    <span class="hero-countdown-number" id="countdown-seconds">00</span>
+                    <span class="hero-countdown-label">секунд</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="hero-scroll-down">
+            <span class="hero-scroll-text">Листать вниз</span>
+            <div class="hero-scroll-arrow">
+                <svg width="20" height="30" viewBox="0 0 20 30" fill="none">
+                    <rect x="8" y="0" width="4" height="18" rx="2" fill="rgba(255,255,255,0.5)" />
+                    <path d="M2 20 L10 28 L18 20" stroke="rgba(255,255,255,0.7)" stroke-width="2" fill="none"
+                        stroke-linecap="round" />
+                </svg>
+            </div>
+        </div>
+    </main>
+
+
+    <section class="invitation-text" data-section="invitation">
+        <div class="invitation-inner">
+            <h2 class="invitation-heading" data-content="invitation.heading"></h2>
+
+            <div data-render="invitation.paragraphs"></div>
+            <p class="invitation-signature" data-content="couple.signatureText"></p>
+        </div>
+    </section>
+
+
+    <div class="section-ornament">
+        <span class="ornament-line"></span>
+        <span class="ornament-diamond">◇</span>
+        <span class="ornament-line"></span>
+    </div>
+
+
+    <section class="calendar-section" data-section="calendar">
+        <div class="calendar-inner">
+            <h2 class="calendar-heading" data-content="calendar.heading">August</h2>
+            <div id="calendar-grid" class="calendar-grid"></div>
+        </div>
+    </section>
+
+
+    <section class="photo-stack" data-section="photoStack">
+
+    </section>
+
+
+    <div class="section-ornament">
+        <span class="ornament-line"></span>
+        <span class="ornament-diamond">◇</span>
+        <span class="ornament-line"></span>
+    </div>
+
+
+    <section class="location-section" data-section="location">
+        <div class="location-inner">
+            <h2 class="location-heading" data-content="location.heading"></h2>
+            <div class="location-photo">
+                <img src="" alt="Location" data-img="locationPhoto">
+            </div>
+            <p class="location-address" data-content="location.address"></p>
+            <a href="#" class="location-button" target="_blank" data-link="location.mapLink"
+                data-content="location.buttonText"></a>
+        </div>
+    </section>
+
+
+    <section class="timeline-section" data-section="timeline">
+        <div class="timeline-inner">
+            <h2 class="timeline-heading" data-content="timeline.heading"></h2>
+
+            <div class="timeline-track" data-render="timeline.events"></div>
+        </div>
+    </section>
+
+
+    <div class="section-wave section-wave--to-dark">
+        <svg viewBox="0 0 1440 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M0,40 C360,80 720,0 1080,40 C1260,60 1380,50 1440,40 L1440,80 L0,80 Z"
+                fill="var(--primary-green)" />
         </svg>
-        <h2 style="margin-top: 20px;">Откройте на телефоне</h2>
-        <p>Это приглашение создано для просмотра на мобильном устройстве в вертикальной ориентации</p>
     </div>
 
-    <!-- ═══ PARTICLES ═══ -->
-    <canvas id="particles"></canvas>
 
-    <!-- ═══ MOBILE CONTENT ═══ -->
-    <header class="header" id="header">
-        <button class="header__music" id="musicBtn" aria-label="Музыка">
-            <span>♪</span>
-        </button>
-        <span class="header__title">Приглашение</span>
-        <div class="header__menu" id="menuBtn" role="button" aria-label="Меню">
-            <span></span><span></span><span></span>
+    <section class="dresscode-section" data-section="dresscode">
+        <div class="dresscode-inner">
+            <h2 class="dresscode-heading" data-content="dresscode.heading"></h2>
+            <p class="dresscode-text" data-content="dresscode.text"></p>
+
+            <div class="dresscode-palette" data-render="dresscode.colors"></div>
         </div>
-    </header>
+    </section>
 
-    <!-- NAVIGATION MENU OVERLAY -->
-    <div class="nav-overlay" id="navOverlay">
-        <div class="nav-overlay__close" id="navClose">✕</div>
-        <nav class="nav-overlay__content">
-            <ul class="nav-overlay__list">
-                <li><a href="#hero" class="nav-link">Главная</a></li>
-                <li><a href="#greeting" class="nav-link">Пожелание</a></li>
-                <li><a href="#countdown" class="nav-link">Таймер</a></li>
-                <li><a href="#calendar" class="nav-link">Календарь</a></li>
-                <li><a href="#carousel" class="nav-link">Фото</a></li>
-                <li><a href="#schedule" class="nav-link">Программа</a></li>
-                <li><a href="#location" class="nav-link">Место</a></li>
-                <li><a href="#dresscode" class="nav-link">Дресс-код</a></li>
-                <li><a href="#rsvp" class="nav-link">RSVP</a></li>
-            </ul>
-        </nav>
-    </div>
 
-    <div class="mobile-content">
+    <section class="rsvp-section" data-section="rsvp">
+        <div class="rsvp-inner">
 
-        <!-- HERO -->
-        <section class="hero" id="hero">
-            <!-- Floral top arch -->
-            <div class="floral-hero">
-                <img src="assets/decor/floral_top.png" alt="" loading="eager">
-            </div>
-
-            <!-- Eucalyptus branch accents -->
-            <div class="branch branch--hero-left">
-                <img src="assets/decor/eucalyptus_dark.png" alt="">
-            </div>
-            <div class="branch branch--hero-right">
-                <img src="assets/decor/eucalyptus_light.png" alt="">
-            </div>
-
-            <h1 class="hero__name hero__name--first" id="heroGroom"></h1>
-            <div class="hero__ampersand">&amp;</div>
-            <h1 class="hero__name hero__name--second" id="heroBride"></h1>
-
-            <p class="hero__subtitle" id="heroSubtitle"></p>
-            <p class="hero__date" id="heroDate"></p>
-
-            <a href="#greeting" class="hero__scroll">
-                <div class="hero__scroll-pill"></div>
-                <div class="hero__scroll-text">Листайте</div>
-                <svg class="hero__scroll-chevron" width="22" height="14" viewBox="0 0 22 14" fill="none"
-                    xmlns="http://www.w3.org/2000/svg">
-                    <path d="M1 1L11 11L21 1" stroke="var(--c-sage-accent)" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </svg>
-            </a>
-        </section>
-
-        <!-- ═══ PHOTO 1: Full-width hero photo ═══ -->
-        <div class="photo-block photo-block--full reveal">
-            <img class="photo-block__img" id="photo1" src="" alt="" loading="lazy">
+            <div class="rsvp-card-container" data-render="rsvp"></div>
         </div>
+    </section>
 
-        <!-- ═══ SPECIAL OVERLAPPING DIVIDER ═══ -->
-        <div class="hero-divider reveal"></div>
 
-        <!-- ═══ GREETING ═══ -->
-        <section class="greeting section--light" id="greeting">
-            <!-- Eucalyptus branch -->
-            <div class="branch branch--greeting-tr">
-                <img src="assets/decor/eucalyptus_dark.png" alt="">
-            </div>
-            <div class="reveal">
-                <svg class="section__icon" viewBox="0 0 50 49" xmlns="http://www.w3.org/2000/svg">
-                    <path fill="#232a50" fill-rule="evenodd"
-                        d="M48.2 26.5c3.3-10.3.2-21.8-10-25.2 1.5-1.6 3.2-2.1 4.8-2 .4 0 .5-.4.3-.7-.1-.1-.2-.2-.3-.2-2-.1-3.9.8-5.7 2.6-2.3-.6-4.6-.9-6.9-.8C22.8.2 16.8 2.8 11.4 7.8 8.4 10.7 5.4 16 4.8 20.1c-.9 5.8 1 10.5 6.5 11.1 7.1.6 12.5-6.2 15-12.5 2-5.3 1.4-9.4-1.7-10.4-.5-.2-1.1-.3-1.7-.2-2.8 0-5.8 2-7.5 6.3-2 5.2-2.4 9.6-.6 11.2.7.4.7-.8.3-1.1-1.3-1.1-1.1-4.5.3-7.7 1.3-5 3.8-8.5 7.5-8.5.5 0 1 .1 1.5.3 2.9 1.5 1.4 9 -.5 15.5-3.4 8.4-10 21.5-21.7 19.9-8-1.1-9.2-8.8-7.6-16.3 1.5-6.6 5.8-13.9 8.4-17.4C14.7 3.7 25.8-2.8 34.6-2.8c1.2 0 2.3.1 3.5.4-4.3 4.7-8.2 14.2-10.1 20.1-1.2 3.5-5.1 12.8-8.4 17.7-3-1-6.1-1.8-9.3-1.8-3.2-.1-8.7.7-8.6 4.9.1 3.4 4.1 4.2 6.4 4.1 5.9-.3 9.3-2.1 13.4-6 3-1 5.4-1.4 8.2-1.3C39.5 35.6 46.3 29 48.2 26.5zm-10.5-5.5C40.3 11.5 44.1 1 48.9 1c1.3 0 2.3.5 2.5 1.8.5 4-4.1 14.1-8.7 19.3zM18.4 40.1c-2.6 3.5-7 6.2-11.5 6.2-2.6 0-5.1-1.1-4.7-3.8.4-3.3 4.3-4 7.1-4 3.1-.1 6.2.6 9 1.6z"
-                        opacity=".6" />
+    <div style="background: var(--bg-light, #F9F6F0); color: var(--text-main, #2C352D);">
+        <footer class="ivento-footer">
+            <div class="ivento-footer-divider"></div>
+            <div class="ivento-footer-brand">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linejoin="round" />
                 </svg>
+                <span>Ivento</span>
             </div>
-            <h2 class="greeting__label reveal reveal-delay-1" id="greetingTitle"></h2>
-            <p class="greeting__text reveal reveal-delay-2" id="greetingText"></p>
-        </section>
-
-        <!-- ═══ COUNTDOWN ═══ -->
-        <section class="countdown section--accent" id="countdown">
-            <h2 class="section__title reveal">До свадьбы</h2>
-            <div class="countdown__grid reveal reveal-delay-1" id="countdownGrid">
-                <div class="countdown__item">
-                    <div class="countdown__number" id="cd-days">---</div>
-                    <div class="countdown__label">дней</div>
-                </div>
-                <div class="countdown__item">
-                    <div class="countdown__number" id="cd-hours">--</div>
-                    <div class="countdown__label">часов</div>
-                </div>
-                <div class="countdown__item">
-                    <div class="countdown__number" id="cd-mins">--</div>
-                    <div class="countdown__label">минут</div>
-                </div>
-                <div class="countdown__item">
-                    <div class="countdown__number" id="cd-secs">--</div>
-                    <div class="countdown__label">секунд</div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══ CALENDAR ═══ -->
-        <section class="calendar section--light reveal" id="calendar">
-            <!-- Eucalyptus branch -->
-            <div class="branch branch--calendar-bl">
-                <img src="assets/decor/eucalyptus_light.png" alt="">
-            </div>
-            <h2 class="section__title" id="calendarTitle"></h2>
-            <div class="calendar__grid" id="calendarGrid">
-                <!-- JS fills this -->
-            </div>
-        </section>
-
-        <!-- ═══ PHOTO CAROUSEL ═══ -->
-        <section class="carousel reveal" id="carousel">
-            <div class="carousel__track" id="carouselTrack">
-                <div class="carousel__slide">
-                    <div class="carousel__frame">
-                        <img class="carousel__img" id="carouselImg1" src="" alt="" loading="lazy">
-                    </div>
-                </div>
-                <div class="carousel__slide">
-                    <div class="carousel__frame">
-                        <img class="carousel__img" id="carouselImg2" src="" alt="" loading="lazy">
-                    </div>
-                </div>
-                <div class="carousel__slide">
-                    <div class="carousel__frame">
-                        <img class="carousel__img" id="carouselImg3" src="" alt="" loading="lazy">
-                    </div>
-                </div>
-            </div>
-            <div class="carousel__dots" id="carouselDots">
-                <button class="carousel__dot carousel__dot--active" data-index="0"></button>
-                <button class="carousel__dot" data-index="1"></button>
-                <button class="carousel__dot" data-index="2"></button>
-            </div>
-            <div class="carousel__counter">
-                <span id="carouselCurrent">1</span> / <span id="carouselTotal">3</span>
-            </div>
-        </section>
-
-        <!-- ═══ DIVIDER ═══ -->
-        <div class="divider reveal"></div>
-
-        <!-- ═══ SCHEDULE ═══ -->
-        <section class="schedule section" id="schedule">
-            <!-- Eucalyptus branch -->
-            <div class="branch branch--schedule-tr">
-                <img src="assets/decor/eucalyptus_light.png" alt="">
-            </div>
-            <h2 class="section__title reveal">Программа дня</h2>
-            <div class="schedule__timeline" id="scheduleTimeline" style="margin-top: 28px;">
-                <!-- JS fills this from config -->
-            </div>
-        </section>
-
-        <!-- ═══ LOCATION ═══ -->
-        <section class="location section--accent reveal" id="location">
-            <!-- Eucalyptus branch -->
-            <div class="branch branch--location-br">
-                <img src="assets/decor/eucalyptus_dark.png" alt="">
-            </div>
-            <h2 class="section__title" id="locationTitle"></h2>
-            <div class="location__card">
-                <div class="location__photo">
-                    <img class="location__photo-img" id="locationPhoto" src="assets/venue/restaurant.jpg"
-                        alt="Банкетный зал" loading="lazy">
-                </div>
-                <div class="location__name" id="locationName"></div>
-                <div class="location__address" id="locationAddress"></div>
-                <a id="locationMapBtn" href="#" class="location__btn">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                        <circle cx="12" cy="10" r="3" />
+            <div class="ivento-footer-social">
+                <a href="https://instagram.com/ivento_kg" target="_blank" class="ivento-social-link"
+                    aria-label="Instagram">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path
+                            d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.266.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.947.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
                     </svg>
-                    <span id="locationMapText"></span>
+                </a>
+                <a href="https://wa.me/77000000000" target="_blank" class="ivento-social-link" aria-label="WhatsApp">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+                        <path
+                            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    </svg>
                 </a>
             </div>
-        </section>
-
-        <!-- ═══ DRESSCODE ═══ -->
-        <section class="dresscode section reveal" id="dresscode">
-            <h2 class="section__title" id="dresscodeTitle"></h2>
-            <p class="dresscode__hint" id="dresscodeHint" style="margin-top:12px;"></p>
-            <div class="dresscode__palette" id="dresscodePalette">
-                <!-- JS fills colors from config -->
+            <div class="ivento-footer-legal">
+                <p>Сделано с любовью командой Ivento</p>
+                <p>© 2026. Все права защищены.</p>
             </div>
-        </section>
-
-        <!-- ═══ QUOTE ═══ -->
-        <section class="quote section--light reveal" id="quote">
-            <p class="quote__text" id="quoteText"></p>
-            <span class="quote__author" id="quoteAuthor"></span>
-        </section>
-
-        <!-- ═══ PHOTO 3: Rounded elegant photo ═══ -->
-        <div class="photo-block photo-block--round reveal">
-            <img class="photo-block__img" id="photo3" src="" alt="" loading="lazy">
-        </div>
-
-        <!-- ═══ DIVIDER ═══ -->
-        <div class="divider reveal"></div>
-
-        <!-- ═══ RSVP ═══ -->
-        <section class="rsvp section--accent" id="rsvp">
-            <!-- Eucalyptus branches -->
-            <div class="branch branch--rsvp-tl">
-                <img src="assets/decor/eucalyptus_light.png" alt="">
-            </div>
-            <div class="branch branch--rsvp-br">
-                <img src="assets/decor/eucalyptus_dark.png" alt="">
-            </div>
-
-            <div class="rsvp-form-wrap" id="rsvpFormWrap">
-                <h2 class="section__title reveal" id="rsvpTitle"></h2>
-                <p class="reveal reveal-delay-1" id="rsvpSubtitle"
-                    style="font-size: 14px; color: #686974; margin-top: 8px;"></p>
-                <form class="rsvp__form reveal reveal-delay-2" id="rsvpForm">
-                    <input class="rsvp__input" type="text" id="rsvpName" required>
-                    <select class="rsvp__select" id="rsvpAttend">
-                        <!-- JS fills options -->
-                    </select>
-                    <select class="rsvp__select" id="rsvpGuests">
-                        <!-- JS fills options -->
-                    </select>
-                    <textarea class="rsvp__textarea" id="rsvpWish"></textarea>
-                    <button type="submit" class="rsvp__btn" id="rsvpBtn"></button>
-                </form>
-            </div>
-
-            <div class="rsvp-success" id="rsvpSuccess">
-                <div class="rsvp-success-icon-wrap">
-                    <div class="rsvp-success-circle">
-                        <svg viewBox="0 0 24 24" fill="none" class="check-icon" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                    </div>
-                </div>
-                <div class="rsvp-success-title">Ответ принят!</div>
-                <p class="rsvp-success-text">До нашей встречи осталось:</p>
-
-                <div class="rsvp-success-timer" id="rsvp-timer">
-                    <div class="timer-unit">
-                        <span class="timer-val" id="rsvp-d">0</span>
-                        <span class="timer-lab">дней</span>
-                    </div>
-                    <div class="timer-unit">
-                        <span class="timer-val" id="rsvp-h">0</span>
-                        <span class="timer-lab">часов</span>
-                    </div>
-                    <div class="timer-unit">
-                        <span class="timer-val" id="rsvp-m">0</span>
-                        <span class="timer-lab">минут</span>
-                    </div>
-                    <div class="timer-unit">
-                        <span class="timer-val" id="rsvp-s">00</span>
-                        <span class="timer-lab">секунд</span>
-                    </div>
-                </div>
-
-                <div class="rsvp-promo">
-                    <p class="rsvp-promo-text">Понравилось пригласительное? ✨<br>Закажите такое же:</p>
-                    <a href="https://instagram.com/ivento_kg" target="_blank" class="rsvp-promo-link">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                            stroke-linecap="round" stroke-linejoin="round"
-                            style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;">
-                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-                        </svg>
-                        @ivento_kg
-                    </a>
-                </div>
-            </div>
-        </section>
-
-        <!-- ═══ FOOTER ═══ -->
-        <footer class="footer reveal">
-            <div class="branch branch--footer">
-                <img src="assets/decor/eucalyptus_light.png" alt="">
-            </div>
-            <div class="footer__names" id="footerNames"></div>
-            <div class="footer__heart">♥</div>
-            <div style="font-size: 13px; color: #686974;" id="footerDate"></div>
-            <div class="footer__copy" id="footerCopy"></div>
         </footer>
-
     </div>
 
-    <!-- ═══════════════════════════════════════════
-     JAVASCRIPT — Config first, then Engine
-     ═══════════════════════════════════════════ -->
+
+
+    <!-- ========== JAVASCRIPT ========== -->
+    <!-- Порядок важен! Сначала конфиг, потом envelope, потом рендерер и анимации -->
     <script src="js/config.js"></script>
-    <script src="envelope.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/bridge.js"></script>
+    <script src="js/security.js"></script>
+    <script src="js/hero.js"></script>
+    <script src="js/envelope.js"></script>
+    <script src="js/music.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/guest-loader.js"></script>
+    <script src="js/animations.js"></script>
 </body>
 
 </html>

@@ -1,0 +1,217 @@
+{
+  "templateId": "template-1",
+  "version": 1,
+  "sectionMap": {
+    "hero":      "hero",
+    "greeting":  "invitation",
+    "calendar":  "calendar",
+    "gallery":   "photoStack",
+    "timeline":  "timeline",
+    "location":  "location",
+    "dresscode": "dresscode",
+    "rsvp":      "rsvp"
+  },
+  "blocks": [
+    {
+      "type": "hero",
+      "num": 1,
+      "label": "Обложка",
+      "icon": "M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z",
+      "required": true,
+      "sections": [
+        {
+          "label": "Имена",
+          "fields": [
+            { "key": "person1", "type": "text", "label": "Имя 1 (Жених / Организатор)", "hint": "Например: Азамат", "scope": "form" },
+            { "key": "person2", "type": "text", "label": "Имя 2 (Невеста / и др.)", "hint": "Например: Бегимай", "scope": "form" },
+            { "key": "title", "type": "text", "label": "Название события (для вас)", "maxLength": 80, "hint": "Гости его не видят — только в вашем списке.", "scope": "form" }
+          ]
+        },
+        {
+          "label": "Дата и время",
+          "fields": [
+            { "key": "eventDate", "type": "datetime-local", "label": "Дата события", "hint": "На сайте отобразится красивая дата.", "scope": "form" },
+            { "key": "rsvpDeadline", "type": "datetime-local", "label": "Принимать RSVP до", "hint": "После этой даты форма RSVP закроется.", "scope": "form" }
+          ]
+        },
+        {
+          "label": "Оформление",
+          "fields": [
+            { "key": "badge", "type": "text", "label": "Бейдж", "default": "Мы женимся", "hint": "Текст над именами, например: Мы женимся" },
+            { "key": "subtitle", "type": "text", "label": "Подзаголовок", "default": "приглашают на торжество", "hint": "Текст после имён" }
+          ]
+        },
+        {
+          "label": "Фото на обложку",
+          "fields": [
+            { "key": "coverPhoto", "type": "photo", "label": "Фото обложки", "hint": "Лучше всего фото 4:3.", "aspectRatio": "4/3" }
+          ]
+        },
+        {
+          "label": "Дополнительно",
+          "fields": [
+            { "key": "timer", "type": "toggle", "label": "Таймер обратного отсчёта", "hint": "Отсчёт до начала события", "default": false, "premium": true },
+            { "key": "music", "type": "toggle", "label": "Фоновая музыка", "hint": "Авто-воспроизведение при открытии", "default": false, "premium": true }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "greeting",
+      "num": 2,
+      "label": "Приветствие",
+      "icon": "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+      "toggleable": true,
+      "defaultEnabled": true,
+      "toggleHint": "Тёплые слова для гостей перед деталями события.",
+      "sections": [
+        {
+          "fields": [
+            { "key": "title", "type": "text", "label": "Заголовок", "default": "Дорогие гости!", "hint": "Например: Дорогие гости!" },
+            { "key": "text", "type": "textarea", "label": "Текст обращения", "rows": 4, "hint": "Переносы строк сохраняются." }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "calendar",
+      "num": 3,
+      "label": "Календарь",
+      "icon": "M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z",
+      "toggleable": true,
+      "affectsPrice": true,
+      "defaultEnabled": false,
+      "toggleHint": "Календарь месяца с выделенной датой вашего события.",
+      "sections": [
+        {
+          "fields": [
+            { "key": "_info_how", "type": "info", "title": "Как работает", "text": "На сайте гостя отображается красивый календарь месяца, в котором дата вашего события выделена особым стилем." }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "gallery",
+      "num": 4,
+      "label": "Галерея",
+      "icon": "M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10",
+      "required": true,
+      "sections": [
+        {
+          "label": "Стиль галереи",
+          "fields": [
+            {
+              "key": "style", "type": "select", "label": "Стиль", "default": "carousel",
+              "display": "grid",
+              "options": [
+                { "value": "carousel", "label": "Карусель", "desc": "Свайп по фото" },
+                { "value": "collage", "label": "Коллаж", "desc": "Сетка фото" }
+              ]
+            }
+          ]
+        },
+        {
+          "label": "Фотографии",
+          "fields": [
+            { "key": "photos", "type": "photos", "label": "Фото галереи", "maxCount": 10, "hint": "До 10 фотографий. Загрузка доступна после первого сохранения." }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "timeline",
+      "num": 5,
+      "label": "Тайминг",
+      "icon": "M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z",
+      "toggleable": true,
+      "defaultEnabled": true,
+      "toggleHint": "Программа дня — по шагам с временем.",
+      "sections": [
+        {
+          "fields": [
+            {
+              "key": "events", "type": "rows", "label": "Программа дня",
+              "hint": "Порядок меняется стрелками. Время — необязательно.",
+              "rowFields": [
+                { "key": "time", "type": "text", "label": "Время", "placeholder": "15:00", "inputMode": "numeric", "width": "68px" },
+                { "key": "title", "type": "text", "label": "Название", "placeholder": "Название пункта" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "location",
+      "num": 6,
+      "label": "Место",
+      "icon": "M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z",
+      "toggleable": true,
+      "defaultEnabled": true,
+      "toggleHint": "Адрес и ссылка на карту.",
+      "sections": [
+        {
+          "fields": [
+            { "key": "placeName", "type": "text", "label": "Название заведения", "hint": "Например: Royal Hall" },
+            { "key": "address", "type": "text", "label": "Адрес", "hint": "Например: г. Бишкек, ул. Мадиева 18/1" },
+            { "key": "mapLink", "type": "text", "label": "Ссылка на карту", "hint": "2GIS, Google Maps или Яндекс.Карты.", "inputType": "url" },
+            { "key": "photo", "type": "photo", "label": "Фото места", "hint": "Фото заведения или зала.", "aspectRatio": "16/9" }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "dresscode",
+      "num": 7,
+      "label": "Дресс-код",
+      "icon": "M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01",
+      "toggleable": true,
+      "defaultEnabled": true,
+      "toggleHint": "Цветовая гамма и описание стиля.",
+      "sections": [
+        {
+          "fields": [
+            { "key": "text", "type": "textarea", "label": "Описание", "rows": 3, "hint": "Коротко объясните желаемую гамму и стиль." },
+            {
+              "key": "colors", "type": "color-palette", "label": "Палитра", "slotCount": 5,
+              "default": ["#E8EBE6", "#2C3531", "#B9C4BC", "#F2F4F1", "#7C9082"],
+              "presets": [
+                "#1E2820", "#2C3531", "#3D6B45", "#6B8F71", "#7C9082", "#A8CEB0", "#C2E0C6", "#E8EBE6",
+                "#F2F4F1", "#FAFAF8", "#F5F3F0", "#EDE9E4", "#E8E4DE", "#DCD8D2", "#B9C4BC", "#B8A98A",
+                "#C9A96E", "#E8834A", "#D4562A", "#C4396B", "#F1C5CF", "#D3BCE3", "#6D5F7A", "#2B2D42"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "rsvp",
+      "num": 8,
+      "label": "RSVP",
+      "icon": "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4",
+      "toggleable": true,
+      "defaultEnabled": true,
+      "toggleHint": "Форма подтверждения участия для гостей.",
+      "sections": [
+        {
+          "label": "Тексты",
+          "fields": [
+            { "key": "heading", "type": "text", "label": "Заголовок раздела", "default": "Анкета гостя" },
+            { "key": "subtitle", "type": "text", "label": "Подзаголовок", "default": "Пожалуйста, подтвердите ваше присутствие" },
+            { "key": "submitButton", "type": "text", "label": "Текст кнопки", "default": "Подтвердить" }
+          ]
+        },
+        {
+          "fields": [
+            {
+              "key": "_info_fields", "type": "info", "title": "Что спрашивает форма",
+              "items": ["Имя гостя", "Количество человек", "Предпочтения по еде", "Комментарий"]
+            },
+            { "key": "_info_hint", "type": "info", "text": "Ответы гостей будут доступны в панели управления." }
+          ]
+        }
+      ]
+    }
+  ]
+}
