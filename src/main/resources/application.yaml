@@ -3,9 +3,9 @@ spring:
     name: toilink
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/toilink
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:toilink}
+    username: ${PGUSER:postgres}
+    password: ${PGPASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
 
   jackson:
@@ -37,4 +37,4 @@ logging:
   level:
     liquibase: INFO
 server:
-  port: 9999
+  port: ${PORT:9999}

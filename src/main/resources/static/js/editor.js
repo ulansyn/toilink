@@ -22,7 +22,7 @@ const APP = {
     dirty: false,
     savedSnapshot: '',
     photoUploading: false,
-    lastExpandedSnap: 52,
+    lastExpandedSnap: 40,
     // Per-block palette state: { 'dresscode.colors': 0 }
     paletteSlots: {},
   },
@@ -80,6 +80,7 @@ function markClean() {
 function markDirty() {
   APP.ui.dirty = takeSnapshot() !== APP.ui.savedSnapshot;
   updateSaveButtonState();
+  updateProgress();
 }
 function updateSaveButtonState() {
   const btn = document.getElementById('editorSave');
@@ -87,6 +88,35 @@ function updateSaveButtonState() {
   const lbl = btn.querySelector('.save-label');
   btn.style.background = APP.ui.dirty ? '#3D6B45' : '#1E2820';
   if (lbl) lbl.textContent = APP.ui.dirty ? '● Сохранить' : 'Сохранить';
+}
+
+// ─── Progress bar ────────────────────────────────────────────────────────
+function calcProgress() {
+  const defs = getBlockDefs();
+  if (!defs.length) return 0;
+  let total = 0, filled = 0;
+  for (const def of defs) {
+    const enabled = def.required || (APP.blocks[def.type]?.enabled ?? true);
+    if (!enabled) continue;
+    for (const section of def.sections || []) {
+      for (const field of section.fields || []) {
+        if (field.type === 'info') continue;
+        total++;
+        const val = field.scope === 'form' ? APP.form[field.key] : APP.blocks[def.type]?.[field.key];
+        if (Array.isArray(val) && val.length > 0) filled++;
+        else if (val && String(val).trim()) filled++;
+      }
+    }
+  }
+  return total === 0 ? 0 : Math.round((filled / total) * 100);
+}
+
+function updateProgress() {
+  const pct = calcProgress();
+  const fill = document.getElementById('progressFill');
+  const label = document.getElementById('progressPct');
+  if (fill) fill.style.width = pct + '%';
+  if (label) label.textContent = pct + '%';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -102,10 +132,13 @@ function openEditorOverlay() {
 
   document.getElementById('editorTitle').value = APP.form.title;
   renderBlockNav();
-  activateBlock(APP.ui.activeBlock || getBlockDefs()[0]?.type);
+  activateBlock(APP.ui.activeBlock || getBlockDefs()[0]?.type, true);
   initDragHandle();
   initVisualViewport();
-  setMode('edit');
+  initPreviewResize();
+
+  // Start with sheet collapsed — show preview + tiles
+  snapSheet(SHEET_SNAP.collapsed);
 
   document.getElementById('previewSkeleton').style.display = '';
   const frame = document.getElementById('previewFrame');
@@ -115,6 +148,7 @@ function openEditorOverlay() {
   frame.src = `/templates/${tplPath}/index.html?mode=preview`;
 
   markClean();
+  updateProgress();
 }
 
 function populateFromEvent(ev) {
@@ -228,9 +262,8 @@ function onPreviewMessage(e) {
 // ─── Mode toggle ──────────────────────────────────────────────────────────
 function setMode(mode) {
   APP.ui.mode = mode;
-  const sheet = document.getElementById('bottomSheet');
   const toggle = document.getElementById('modeToggle');
-  if (!sheet || !toggle) return;
+  if (!toggle) return;
 
   toggle.querySelectorAll('button').forEach(btn => {
     const m = btn.dataset.mode;
@@ -246,13 +279,13 @@ function setMode(mode) {
   if (mode === 'preview') {
     snapSheet(SHEET_SNAP.collapsed);
   } else {
-    snapSheet(APP.ui.lastExpandedSnap);
+    snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
   }
 }
 
-// ─── Block navigation — numbered horizontal strip ────────────────────────
-function blockIcon(d) {
-  return `<svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="${d}"/></svg>`;
+// ─── Block navigation — small square tiles ──────────────────────────────
+function blockIcon(d, size = 16) {
+  return `<svg width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="${d}"/></svg>`;
 }
 
 function blockIsEnabled(def) {
@@ -273,59 +306,56 @@ function blockIsFilled(def) {
 }
 
 function renderBlockNav() {
-  const el = document.getElementById('blockGrid');
-  if (!el) return;
+  const leftEl = document.getElementById('tilesLeft');
+  const rightEl = document.getElementById('tilesRight');
+  if (!leftEl || !rightEl) return;
   const defs = getBlockDefs();
+  const half = Math.ceil(defs.length / 2);
 
-  el.innerHTML = `
-    <div class="relative -mx-0">
-      <div class="absolute left-0 top-0 bottom-0 w-3 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none rounded-tl-[20px]"></div>
-      <div class="absolute right-0 top-0 bottom-0 w-3 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
-      <div data-block-scroller class="flex gap-2 px-4 pb-3 overflow-x-auto" style="scrollbar-width:none; -webkit-overflow-scrolling:touch">
-        ${defs.map(def => {
-          const active  = def.type === APP.ui.activeBlock;
-          const enabled = blockIsEnabled(def);
-          const numStr  = String(def.num).padStart(2, '0');
-          const filled  = blockIsFilled(def);
-          const badge   = def.affectsPrice
-            ? `<span class="absolute top-1 right-1 text-[8px] font-bold text-[#C9A96E] leading-none">₸</span>`
-            : (!enabled
-                ? `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-white/40' : 'bg-[#DDD9D4]'}"></span>`
-                : (filled
-                    ? `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-[#A8CEB0]' : 'bg-[#3D6B45]'}"></span>`
-                    : `<span class="absolute top-1.5 right-1.5 w-[5px] h-[5px] rounded-full ${active ? 'bg-[#F5C87A]/80' : 'bg-[#C9A96E]'}"></span>`
-                  ));
-          return `<button data-block="${def.type}"
-            class="relative flex-shrink-0 flex flex-col items-center gap-1 pt-4 pb-2.5 px-3 rounded-2xl w-[68px] text-[11px] font-semibold transition-all active:scale-95
-              ${active ? 'bg-[#1E2820] text-white' : 'bg-[#F5F3F0] text-[#6B6860]'}"
-            aria-label="${def.label} (блок ${def.num})">
-            <span class="absolute top-1.5 left-2 text-[9px] font-bold tracking-wide ${active ? 'text-white/50' : 'text-[#1E2820]/25'}">${numStr}</span>
-            ${badge}
-            ${blockIcon(def.icon)}
-            <span class="leading-tight text-center">${def.label}</span>
-          </button>`;
-        }).join('')}
-      </div>
-    </div>`;
+  function tileHtml(def) {
+    const active  = def.type === APP.ui.activeBlock;
+    const enabled = blockIsEnabled(def);
+    const filled  = blockIsFilled(def);
+    const num = String(def.num).padStart(2, '0');
 
-  requestAnimationFrame(() => {
-    const scroller = el.querySelector('[data-block-scroller]');
-    const activeBtn = el.querySelector(`[data-block="${APP.ui.activeBlock}"]`);
-    if (!scroller || !activeBtn) return;
-    const target = activeBtn.offsetLeft - scroller.offsetWidth / 2 + activeBtn.offsetWidth / 2;
-    scroller.scrollLeft = Math.max(0, target);
-  });
+    // Bottom strip color: green=filled, amber=empty, gray=disabled
+    const stripColor = !enabled ? (active ? 'rgba(255,255,255,0.15)' : '#E8E5E1')
+      : filled ? (active ? '#A8CEB0' : '#3D6B45')
+      : (active ? 'rgba(245,200,122,0.6)' : '#C9A96E');
+
+    // Status icon (top-right corner)
+    const statusIcon = !enabled
+      ? `<span class="absolute top-[2px] right-1 text-[8px] ${active ? 'text-white/30' : 'text-[#C5BFB8]'}">—</span>`
+      : filled
+        ? `<svg class="absolute top-[3px] right-[3px]" width="10" height="10" fill="none" stroke="${active ? '#A8CEB0' : '#3D6B45'}" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`
+        : `<span class="absolute top-[3px] right-[4px] w-[6px] h-[6px] rounded-full border-[1.5px] ${active ? 'border-white/40' : 'border-[#C9A96E]'}"></span>`;
+
+    return `<button data-block="${def.type}"
+      class="relative flex flex-col items-center justify-center gap-0.5 rounded-xl w-[58px] h-[54px] transition-all active:scale-93 overflow-hidden
+        ${active ? 'bg-[#1E2820] text-white shadow-md' : 'bg-white/80 text-[#6B6860] border border-[#E8E5E1]'}"
+      aria-label="${def.label}">
+      <span class="absolute top-[3px] left-1.5 text-[8px] font-bold ${active ? 'text-white/45' : 'text-[#1E2820]/22'}">${num}</span>
+      ${statusIcon}
+      ${blockIcon(def.icon, 16)}
+      <span class="text-[9px] font-semibold leading-tight text-center px-0.5 truncate w-full">${def.label}</span>
+      <span class="absolute bottom-0 left-0 right-0 h-[3px] rounded-b-xl" style="background:${stripColor}"></span>
+    </button>`;
+  }
+
+  leftEl.innerHTML = defs.slice(0, half).map(tileHtml).join('');
+  rightEl.innerHTML = defs.slice(half).map(tileHtml).join('');
 }
 
-function activateBlock(type) {
+function activateBlock(type, silent) {
   APP.ui.activeBlock = type;
-  const sheet = document.getElementById('bottomSheet');
-  if (sheet) {
-    const VH = window.innerHeight / 100;
-    if (sheet.offsetHeight < 28 * VH) setMode('edit');
-  }
   renderBlockNav();
   renderPanel(type);
+
+  // Open sheet when tapping a block (unless silent — initial load)
+  if (!silent) {
+    snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
+  }
+
   scrollPreviewTo(type);
 }
 
@@ -375,13 +405,13 @@ function renderPanel(type) {
       hint: blockDef.toggleHint || '',
     });
   } else if (blockDef.required) {
-    html += `<div class="flex items-center justify-between mb-3 pb-3 border-b border-[#F0EDE9]">
+    html += `<div class="flex items-center justify-between mb-2 pb-2 border-b border-[#F0EDE9]">
       <div>
-        <span class="text-[15px] font-semibold text-[#1E2820]">${blockDef.label}</span>
-        <div class="text-[12px] text-[#B0AB9E] mt-0.5">Обязательный блок — всегда отображается.</div>
+        <span class="text-[13px] font-semibold text-[#1E2820]">${blockDef.label}</span>
+        <div class="text-[11px] text-[#B0AB9E] mt-0.5">Обязательный блок</div>
       </div>
-      <div class="w-5 h-5 rounded-full bg-[#C2E0C6] flex items-center justify-center">
-        <svg width="12" height="12" fill="none" stroke="#1A3D20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      <div class="w-4 h-4 rounded-full bg-[#C2E0C6] flex items-center justify-center">
+        <svg width="10" height="10" fill="none" stroke="#1A3D20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
       </div>
     </div>`;
   }
@@ -450,6 +480,23 @@ function initEditorDelegation() {
   const panel = document.getElementById('panelContent');
   if (!panel) return;
 
+  // Date/time picker triggers
+  panel.addEventListener('click', (e) => {
+    const dtBtn = e.target.closest('[data-dt-picker]');
+    if (dtBtn) {
+      const fieldPath = dtBtn.dataset.dtPicker;
+      const parts = fieldPath.split('.');
+      const currentVal = parts.length === 1 ? APP.form[parts[0]] : APP.blocks[parts[0]]?.[parts[1]] || '';
+      openDateTimePicker(fieldPath, currentVal);
+      return;
+    }
+    const tpInput = e.target.closest('[data-time-picker]');
+    if (tpInput) {
+      openTimePicker(tpInput);
+      return;
+    }
+  }, true); // capture phase — fires before other click handlers
+
   panel.addEventListener('input', (e) => {
     // Regular data-field inputs
     const field = e.target.closest('[data-field]');
@@ -510,6 +557,15 @@ function initEditorDelegation() {
         markDirty();
         debouncedPreview();
         renderBlockNav();
+        if (APP.blocks[type].enabled) {
+          const row = tog.closest('.flex.items-center.justify-between');
+          if (row) {
+            row.classList.remove('toggle-flash');
+            void row.offsetWidth;
+            row.classList.add('toggle-flash');
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
       }
       return;
     }
@@ -524,6 +580,15 @@ function initEditorDelegation() {
         fieldTog.classList.toggle('on', APP.blocks[bType][fKey]);
         markDirty();
         debouncedPreview();
+        if (APP.blocks[bType][fKey]) {
+          const row = fieldTog.closest('.flex.items-center.justify-between');
+          if (row) {
+            row.classList.remove('toggle-flash');
+            void row.offsetWidth;
+            row.classList.add('toggle-flash');
+            row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
       }
       return;
     }
@@ -679,13 +744,15 @@ function initEditorDelegation() {
     }
   });
 
-  // Block nav delegation
-  const grid = document.getElementById('blockGrid');
-  if (grid) {
-    grid.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-block]');
-      if (btn) activateBlock(btn.dataset.block);
-    });
+  // Block nav delegation (both tile columns)
+  for (const id of ['tilesLeft', 'tilesRight']) {
+    const col = document.getElementById(id);
+    if (col) {
+      col.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-block]');
+        if (btn) activateBlock(btn.dataset.block);
+      });
+    }
   }
 
   // Mode toggle
@@ -702,7 +769,9 @@ function initEditorDelegation() {
         if (sheet) {
           const vh = (window.visualViewport?.height || window.innerHeight) / 100;
           const cur = sheet.offsetHeight / vh;
-          APP.ui.lastExpandedSnap = cur < (SHEET_SNAP.half + SHEET_SNAP.full) / 2 ? SHEET_SNAP.half : SHEET_SNAP.full;
+          if (cur > SHEET_SNAP.collapsed) {
+            APP.ui.lastExpandedSnap = cur < (SHEET_SNAP.half + SHEET_SNAP.full) / 2 ? SHEET_SNAP.half : SHEET_SNAP.full;
+          }
         }
         setMode('preview');
       }
@@ -881,6 +950,7 @@ async function handleSave() {
 // ═══════════════════════════════════════════════════════════════════════════
 async function init() {
   initEditorDelegation();
+  initDatePickerEvents();
 
   const params = new URLSearchParams(location.search);
   APP.ui.editEventId = params.get('id') ? parseInt(params.get('id')) : null;

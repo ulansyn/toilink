@@ -2,7 +2,7 @@
 // Editor Utils — shared constants, debounce, escape, toast
 // ═══════════════════════════════════════════════════════════════════════════
 
-const SHEET_SNAP = { collapsed: 14, half: 52, full: 90 };
+const SHEET_SNAP = { collapsed: 2, half: 40, full: 88 };
 
 const CAT_LABEL = { WEDDING: 'Свадьба', BIRTHDAY: 'День рождения', TOY: 'Той', OTHER: 'Другое' };
 
