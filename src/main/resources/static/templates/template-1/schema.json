@@ -44,7 +44,7 @@
         {
           "label": "Фото на обложку",
           "fields": [
-            { "key": "coverPhoto", "type": "photo", "label": "Фото обложки", "hint": "Лучше всего фото 4:3.", "aspectRatio": "4/3" }
+            { "key": "coverPhoto", "type": "photo", "label": "Фото обложки", "hint": "Лучше всего вертикальное фото 9:16.", "aspectRatio": "9/16", "thumbnail": true }
           ]
         },
         {

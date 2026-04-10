@@ -9,17 +9,17 @@ function floatInput(field, label, value, opts = {}) {
   const type = opts.type || 'text';
   const isUrl = opts.urlValidate;
   const urlStatus = isUrl && value ? _urlStatus(value) : null;
-  const urlIndicator = isUrl ? `<span data-url-status="${field}" class="absolute right-3 top-1/2 -translate-y-1/2 text-[18px] leading-none">${urlStatus ?? ''}</span>` : '';
-  const hint = opts.hint ? `<p class="mt-1.5 text-[12px] text-[#B0AB9E] leading-relaxed">${esc(opts.hint)}</p>` : '';
-  return `<div class="mb-2.5">
+  const urlIndicator = isUrl ? `<span data-url-status="${field}" class="absolute right-3 top-1/2 -translate-y-1/2 text-[16px] leading-none">${urlStatus ?? ''}</span>` : '';
+  const hint = opts.hint ? `<p class="mt-1 text-[11px] text-[#B0AB9E] leading-snug">${esc(opts.hint)}</p>` : '';
+  return `<div class="mb-1.5">
     <div class="relative">
       <input id="${id}" data-field="${field}" type="${type}" placeholder=" " value="${esc(value)}"
         ${opts.inputMode ? `inputmode="${opts.inputMode}"` : ''} ${opts.maxLength ? `maxlength="${opts.maxLength}"` : ''}
         ${isUrl ? `data-url-validate="1"` : ''}
-        class="peer w-full rounded-2xl bg-[#F5F3F0] border border-transparent px-4 pt-6 pb-2 text-[15px] font-medium text-[#1E2820] outline-none transition-colors focus:bg-[#EDEAE6] focus:border-[#3D6B45] ${isUrl ? 'pr-10' : ''}"
+        class="peer w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-1.5 text-[13px] font-medium text-[#1E2820] outline-none transition-colors focus:bg-[#EDEAE6] focus:border-[#3D6B45] ${isUrl ? 'pr-9' : ''}"
         style="-webkit-appearance:none; appearance:none">
-      <label for="${id}" class="absolute left-4 top-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#9A9491]
-        transition-all duration-150 peer-placeholder-shown:top-4 peer-placeholder-shown:text-[15px]
+      <label for="${id}" class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]
+        transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-[13px]
         peer-placeholder-shown:font-medium peer-placeholder-shown:tracking-normal peer-placeholder-shown:normal-case
         peer-placeholder-shown:text-[#6B6860] peer-focus:text-[#3D6B45]">${esc(label)}</label>
       ${urlIndicator}
@@ -31,26 +31,43 @@ function _urlStatus(val) {
   try { new URL(val); return '✓'; } catch { return '⚠'; }
 }
 
+function renderDateTimeField(fieldPath, label, value, hint) {
+  const id = 'f_' + fieldPath.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const display = typeof formatDTDisplay === 'function' ? formatDTDisplay(value) : '';
+  const hintHtml = hint ? `<p class="mt-1 text-[11px] text-[#B0AB9E] leading-snug">${esc(hint)}</p>` : '';
+  return `<div class="mb-1.5">
+    <button type="button" id="${id}" data-dt-picker="${fieldPath}"
+      class="w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-2 text-left relative active:bg-[#EDEAE6] active:border-[#3D6B45] transition-colors"
+      style="-webkit-appearance:none;appearance:none">
+      <span class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]">${esc(label)}</span>
+      <span data-dt-display class="text-[13px] font-medium" style="color:${display ? '#1E2820' : '#B0AB9E'}">
+        ${display || 'Выбрать дату и время'}
+      </span>
+    </button>
+    ${hintHtml}
+  </div>`;
+}
+
 function floatTextarea(field, label, value, opts = {}) {
   const id = 'f_' + field.replace(/[^a-zA-Z0-9_-]/g, '_');
-  const hint = opts.hint ? `<p class="mt-1.5 text-[12px] text-[#B0AB9E] leading-relaxed">${esc(opts.hint)}</p>` : '';
+  const hint = opts.hint ? `<p class="mt-1 text-[11px] text-[#B0AB9E] leading-snug">${esc(opts.hint)}</p>` : '';
   const len = String(value || '').length;
   const max = opts.maxLength || null;
   const counterText = max ? `${len}/${max}` : `${len} симв.`;
   const counterColor = (max && len > max * 0.85) ? 'text-[#C9A96E]' : 'text-[#C5BFB8]';
-  return `<div class="mb-2.5">
+  return `<div class="mb-1.5">
     <div class="relative">
-      <textarea id="${id}" data-field="${field}" rows="${opts.rows || 3}" placeholder=" "
+      <textarea id="${id}" data-field="${field}" rows="${opts.rows || 2}" placeholder=" "
         ${max ? `maxlength="${max}"` : ''}
-        class="peer w-full rounded-2xl bg-[#F5F3F0] border border-transparent px-4 pt-6 pb-3 text-[15px] font-medium text-[#1E2820] outline-none transition-colors resize-none leading-relaxed focus:bg-[#EDEAE6] focus:border-[#3D6B45]">${esc(value)}</textarea>
-      <label for="${id}" class="absolute left-4 top-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#9A9491]
-        transition-all duration-150 peer-placeholder-shown:top-4 peer-placeholder-shown:text-[15px]
+        class="peer w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-2 text-[13px] font-medium text-[#1E2820] outline-none transition-colors resize-none leading-snug focus:bg-[#EDEAE6] focus:border-[#3D6B45]">${esc(value)}</textarea>
+      <label for="${id}" class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]
+        transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-[13px]
         peer-placeholder-shown:font-medium peer-placeholder-shown:tracking-normal peer-placeholder-shown:normal-case
         peer-placeholder-shown:text-[#6B6860] peer-focus:text-[#3D6B45]">${esc(label)}</label>
     </div>
-    <div class="flex justify-between items-start mt-1 gap-2">
-      ${hint ? `<p class="text-[12px] text-[#B0AB9E] leading-relaxed">${esc(opts.hint)}</p>` : '<span></span>'}
-      <span data-char-counter="${field}" class="text-[11px] flex-shrink-0 ${counterColor}">${counterText}</span>
+    <div class="flex justify-between items-start mt-0.5 gap-2">
+      ${hint ? `<p class="text-[11px] text-[#B0AB9E] leading-snug">${esc(opts.hint)}</p>` : '<span></span>'}
+      <span data-char-counter="${field}" class="text-[10px] flex-shrink-0 ${counterColor}">${counterText}</span>
     </div>
   </div>`;
 }
@@ -58,39 +75,39 @@ function floatTextarea(field, label, value, opts = {}) {
 function blockToggleRow(blockType, label, opts = {}) {
   const on = APP.blocks[blockType]?.enabled ?? true;
   const badges = [];
-  if (opts.premium)      badges.push(`<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Premium</span>`);
-  if (opts.affectsPrice) badges.push(`<span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Влияет на цену</span>`);
-  return `<div class="flex items-center justify-between mb-3 pb-3 border-b border-[#F0EDE9]">
+  if (opts.premium)      badges.push(`<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Premium</span>`);
+  if (opts.affectsPrice) badges.push(`<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">₸</span>`);
+  return `<div class="flex items-center justify-between mb-2 pb-2 border-b border-[#F0EDE9]">
     <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[15px] font-semibold text-[#1E2820]">${label}</span>
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-[13px] font-semibold text-[#1E2820]">${label}</span>
         ${badges.join('')}
       </div>
-      ${opts.hint ? `<div class="text-[12px] text-[#B0AB9E] mt-0.5 leading-relaxed">${opts.hint}</div>` : ''}
+      ${opts.hint ? `<div class="text-[11px] text-[#B0AB9E] mt-0.5 leading-snug">${opts.hint}</div>` : ''}
     </div>
-    <div class="pswitch ${on ? 'on' : ''} ml-3" data-toggle="${blockType}"></div>
+    <div class="pswitch ${on ? 'on' : ''} ml-2" data-toggle="${blockType}"></div>
   </div>`;
 }
 
 function premiumFeatureRow(blockType, field, label, hint, enabled) {
-  return `<div class="flex items-center justify-between py-3 border-b border-[#F0EDE9] last:border-b-0">
+  return `<div class="flex items-center justify-between py-2 border-b border-[#F0EDE9] last:border-b-0">
     <div>
-      <div class="flex items-center gap-2">
-        <span class="text-[14px] font-medium text-[#1E2820]">${label}</span>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Premium</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[12px] font-medium text-[#1E2820]">${label}</span>
+        <span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Premium</span>
       </div>
-      <div class="text-[12px] text-[#B0AB9E] mt-0.5">${hint}</div>
+      ${hint ? `<div class="text-[11px] text-[#B0AB9E] mt-0.5">${hint}</div>` : ''}
     </div>
-    <div class="pswitch ${enabled ? 'on' : ''} ml-3" data-toggle-field="${blockType}.${field}"></div>
+    <div class="pswitch ${enabled ? 'on' : ''} ml-2" data-toggle-field="${blockType}.${field}"></div>
   </div>`;
 }
 
 function sectionCard(inner) {
-  return `<div class="mb-3 pb-3 border-b border-[#F0EDE9] last:border-b-0 last:mb-0 last:pb-0">${inner}</div>`;
+  return `<div class="mb-2 pb-2 border-b border-[#F0EDE9] last:border-b-0 last:mb-0 last:pb-0">${inner}</div>`;
 }
 
 function sectionLabel(text) {
-  return `<div class="text-[11px] font-semibold tracking-[0.12em] uppercase text-[#9A9491] mb-2.5">${text}</div>`;
+  return `<div class="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491] mb-1.5">${text}</div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -118,10 +135,7 @@ function renderField(blockType, field) {
       });
 
     case 'datetime-local':
-      return floatInput(fieldPath, field.label, value, {
-        type: 'datetime-local',
-        hint: field.hint,
-      });
+      return renderDateTimeField(fieldPath, field.label, value, field.hint);
 
     case 'photo':
       return renderPhotoField(blockType, field, value);
@@ -153,6 +167,34 @@ function renderField(blockType, field) {
 function renderPhotoField(blockType, field, url) {
   const uid = `photo_${blockType}_${field.key}`;
   const aspect = field.aspectRatio || '4/3';
+
+  if (field.thumbnail) {
+    // Compact thumbnail row (for tall aspect ratios like 9/16)
+    return `
+    <div class="flex items-center gap-3 py-1">
+      <div class="photo-upload ${url ? 'has-image' : ''} flex-shrink-0" id="${uid}"
+           data-photo-block="${blockType}" data-photo-key="${field.key}"
+           style="width:64px; height:114px; aspect-ratio:${aspect}; border-radius:10px">
+        <img id="${uid}_preview" src="${esc(url)}" alt="">
+        <div class="photo-upload-placeholder flex flex-col items-center gap-1">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
+        <button type="button" class="photo-edit-btn" id="${uid}_editBtn" style="width:28px;height:28px;top:6px;right:6px">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 20h9"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        </button>
+        <div class="photo-upload-loading" id="${uid}_loading">
+          <div class="w-4 h-4 rounded-full border-2 border-white/28 border-t-white/92" style="animation:spin .85s linear infinite"></div>
+        </div>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-[13px] font-semibold text-[#1E2820]">${esc(field.label)}</p>
+        ${field.hint ? `<p class="text-[11px] text-[#B0AB9E] mt-1 leading-snug">${esc(field.hint)}</p>` : ''}
+        ${!url ? `<p class="text-[11px] text-[#3D6B45] mt-2 font-medium">Нажмите на превью →</p>` : `<p class="text-[11px] text-[#3D6B45] mt-2 font-medium">Фото загружено ✓</p>`}
+      </div>
+    </div>
+    <input type="file" id="${uid}_file" accept="image/*" class="hidden">`;
+  }
+
   return `
     <div class="photo-upload ${url ? 'has-image' : ''}" id="${uid}" data-photo-block="${blockType}" data-photo-key="${field.key}" style="aspect-ratio:${aspect}">
       <img id="${uid}_preview" src="${esc(url)}" alt="">
@@ -287,7 +329,10 @@ function renderRowsField(blockType, field, rows) {
       const fieldInputs = (field.rowFields || []).map(rf => {
         const w = rf.width ? `width:${rf.width}; flex-shrink:0;` : 'flex:1;';
         const val = r[rf.key] || '';
-        return `<input data-rows-field="${rowsKey}" data-rows-subkey="${rf.key}" data-rows-idx="${i}" style="${w}" class="py-2.5 px-2.5 bg-[#F5F3F0] border-[1.5px] border-transparent rounded-xl text-sm font-medium text-[#1E2820] outline-none ${rf.width ? 'text-center' : ''} focus:bg-[#EDEAE6] focus:border-[#3D6B45]" type="text" placeholder="${esc(rf.placeholder || rf.label)}" value="${esc(val)}" ${rf.inputMode ? `inputmode="${rf.inputMode}"` : ''}>`;
+        const isTimePicker = rf.key === 'time' && rf.inputMode === 'numeric';
+        const extraAttrs = isTimePicker ? 'readonly data-time-picker' : (rf.inputMode ? `inputmode="${rf.inputMode}"` : '');
+        const extraClass = isTimePicker ? 'cursor-pointer caret-transparent' : '';
+        return `<input data-rows-field="${rowsKey}" data-rows-subkey="${rf.key}" data-rows-idx="${i}" style="${w}" class="py-2.5 px-2.5 bg-[#F5F3F0] border-[1.5px] border-transparent rounded-xl text-sm font-medium text-[#1E2820] outline-none ${rf.width ? 'text-center' : ''} focus:bg-[#EDEAE6] focus:border-[#3D6B45] ${extraClass}" type="text" placeholder="${esc(rf.placeholder || rf.label)}" value="${esc(val)}" ${extraAttrs}>`;
       }).join('');
 
       return `<div class="flex items-center gap-2.5 p-2.5 border border-[#F0EDE9] rounded-2xl bg-white/90 mb-2" data-rows-row="${rowsKey}" data-rows-idx="${i}">

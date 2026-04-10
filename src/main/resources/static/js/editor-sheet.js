@@ -3,6 +3,16 @@
 // Depends on: editor-utils.js (SHEET_SNAP), APP global, setMode (editor.js)
 // ═══════════════════════════════════════════════════════════════════════════
 
+// ─── Compute preview scale ─────────────────────────────────────────────────
+function computePreviewScale() {
+  const col = document.getElementById('previewCol');
+  const frame = document.getElementById('phoneFrame');
+  if (!col || !frame) return;
+  const avail = col.clientWidth - 12; // 6px padding each side
+  const scale = Math.min(avail / 375, 0.75);
+  document.getElementById('editorBody').style.setProperty('--mob-scale', scale.toFixed(4));
+}
+
 // ─── Drag handle ────────────────────────────────────────────────────────
 function initDragHandle() {
   const handle = document.getElementById('sheetHandle');
@@ -24,8 +34,8 @@ function initDragHandle() {
   handle.addEventListener('pointermove', e => {
     if (!dragging) return;
     const dy = startY - e.clientY;
-    const minH = SNAP[0] * VH();
-    const maxH = window.innerHeight * 0.92;
+    const minH = 0;
+    const maxH = window.innerHeight * 0.90;
     sheet.style.height = Math.min(Math.max(startH + dy, minH), maxH) + 'px';
   });
 
@@ -33,25 +43,30 @@ function initDragHandle() {
     if (!dragging) return;
     dragging = false;
     const cur = sheet.offsetHeight / VH();
-    const mid1 = (SNAP[0] + SNAP[1]) / 2;
-    const mid2 = (SNAP[1] + SNAP[2]) / 2;
-    const target = cur < mid1 ? SNAP[0] : (cur < mid2 ? SNAP[1] : SNAP[2]);
-    snapSheet(target);
-    setMode(target <= SNAP[0] ? 'preview' : 'edit');
+    // Find nearest snap point
+    let best = SNAP[0], bestDist = Infinity;
+    for (const s of SNAP) {
+      const d = Math.abs(cur - s);
+      if (d < bestDist) { bestDist = d; best = s; }
+    }
+    snapSheet(best);
   };
 
   handle.addEventListener('pointerup', endDrag);
   handle.addEventListener('pointercancel', endDrag);
 }
 
+const COLLAPSED_PX = 26; // drag handle height only
+
 function snapSheet(dvh) {
   const sheet = document.getElementById('bottomSheet');
   if (!sheet) return;
   sheet.style.transition = 'height 0.34s cubic-bezier(0.32,0.72,0,1)';
-  sheet.style.height = dvh + 'dvh';
+
+  const collapsed = dvh <= SHEET_SNAP.collapsed;
+  sheet.style.height = collapsed ? COLLAPSED_PX + 'px' : dvh + 'dvh';
 
   const panel = document.getElementById('panelContent');
-  const collapsed = dvh <= SHEET_SNAP.collapsed;
   if (panel) {
     panel.style.visibility = collapsed ? 'hidden' : '';
     panel.style.pointerEvents = collapsed ? 'none' : '';
@@ -137,3 +152,14 @@ document.getElementById('exitSheet')?.addEventListener('click', async (e) => {
   if (action === 'save') { hideExitSheet(); await handleSave(); return; }
   if (action === 'discard') { hideExitSheet(); closeEditor(); }
 });
+
+// ─── Resize observer for preview scale ──────────────────────────────────
+let _resizeObs = null;
+function initPreviewResize() {
+  const col = document.getElementById('previewCol');
+  if (!col) return;
+  computePreviewScale();
+  if (_resizeObs) _resizeObs.disconnect();
+  _resizeObs = new ResizeObserver(() => computePreviewScale());
+  _resizeObs.observe(col);
+}
