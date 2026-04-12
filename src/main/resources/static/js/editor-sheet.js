@@ -43,45 +43,80 @@ function snapSheet(pct) {
 window._snapSheet = snapSheet;
 
 // ─── Drag handle ────────────────────────────────────────────────────────
+// Behavior:
+//   - Tap (no drag) on collapsed handle → expand to half
+//   - Drag up → expand (snap to half or full)
+//   - Drag down from expanded → collapse (close sheet)
+//   - Quick swipe-down gesture on expanded sheet → close
 function initDragHandle() {
   const handle = document.getElementById('sheetHandle');
   const sheet  = document.getElementById('bottomSheet');
   if (!handle || !sheet) return;
 
   let startY = 0, startH = 0, dragging = false;
-  const VH   = () => (window.visualViewport?.height || window.innerHeight) / 100;
-  const SNAP = [SHEET_SNAP.collapsed, SHEET_SNAP.half, SHEET_SNAP.full];
+  const VH    = () => (window.visualViewport?.height || window.innerHeight) / 100;
+  const SNAP  = [SHEET_SNAP.collapsed, SHEET_SNAP.half, SHEET_SNAP.full];
+  const TAP_THRESHOLD = 8;
 
   handle.addEventListener('pointerdown', e => {
-    dragging = true;
-    startY   = e.clientY;
-    startH   = sheet.offsetHeight;
+    dragging  = false;
+    startY    = e.clientY;
+    startH    = sheet.offsetHeight;
     handle.setPointerCapture(e.pointerId);
     sheet.style.transition = 'none';
     navigator.vibrate?.(8);
   });
 
   handle.addEventListener('pointermove', e => {
-    if (!dragging) return;
-    const dy   = startY - e.clientY;
+    if (!handle.hasPointerCapture(e.pointerId)) return;
+    const dy = startY - e.clientY;
+    if (Math.abs(dy) > TAP_THRESHOLD) dragging = true;
     const maxH = (window.visualViewport?.height || window.innerHeight) * 0.92;
     sheet.style.height = Math.min(Math.max(startH + dy, 0), maxH) + 'px';
-  });
+  }, { passive: true });
 
-  const endDrag = () => {
-    if (!dragging) return;
+  handle.addEventListener('pointerup', e => {
+    if (!handle.hasPointerCapture(e.pointerId)) return;
+    handle.releasePointerCapture(e.pointerId);
+
+    // Tap → expand if collapsed
+    if (!dragging) {
+      if (_currentSnap <= SHEET_SNAP.collapsed) {
+        snapSheet(SHEET_SNAP.half);
+      }
+      dragging = false;
+      return;
+    }
+
     dragging = false;
     const cur = sheet.offsetHeight / VH();
+    const dy  = startY - e.clientY;
+
+    // Quick swipe-down on expanded → close
+    if (cur > SHEET_SNAP.half && dy > 40) {
+      snapSheet(SHEET_SNAP.collapsed);
+      return;
+    }
+
+    // Quick swipe-up on expanded → full
+    if (cur > SHEET_SNAP.half && dy < -40) {
+      snapSheet(SHEET_SNAP.full);
+      return;
+    }
+
+    // Otherwise snap to nearest
     let best = SNAP[0], bestDist = Infinity;
     for (const s of SNAP) {
       const d = Math.abs(cur - s);
       if (d < bestDist) { bestDist = d; best = s; }
     }
     snapSheet(best);
-  };
+  });
 
-  handle.addEventListener('pointerup',     endDrag);
-  handle.addEventListener('pointercancel', endDrag);
+  handle.addEventListener('pointercancel', () => {
+    dragging = false;
+    snapSheet(_currentSnap);
+  });
 }
 
 // ─── Visual Viewport ──────────────────────────────────────────────────────
@@ -89,6 +124,8 @@ function initDragHandle() {
 // On every resize (keyboard open/close) we re-apply the current snap so the
 // sheet height stays correct in px relative to the new available space.
 let _vvListeners = null;
+let _isKeyboardOpen = false;
+let _lastNonKeyboardHeight = null;
 
 function initVisualViewport() {
   if (!window.visualViewport) return;
@@ -101,6 +138,19 @@ function initVisualViewport() {
     overlay.style.left   = vv.offsetLeft + 'px';
     overlay.style.width  = vv.width      + 'px';
     overlay.style.height = vv.height     + 'px';
+
+    const sheet = document.getElementById('bottomSheet');
+    const kbHeight = window.innerHeight - vv.height - vv.offsetTop;
+    const isKbOpen = kbHeight > 120;
+
+    // Toggle compact mode when keyboard opens/closes
+    if (isKbOpen !== _isKeyboardOpen) {
+      _isKeyboardOpen = isKbOpen;
+      if (sheet) {
+        sheet.classList.toggle('sheet-compact', isKbOpen);
+      }
+    }
+
     // Re-apply current snap so sheet px matches the new viewport height
     snapSheet(_currentSnap);
   }

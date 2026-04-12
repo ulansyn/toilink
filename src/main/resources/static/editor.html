@@ -174,11 +174,22 @@
     @keyframes toggle-flash { 0%,100% { background: transparent; } 40% { background: rgba(61,107,69,0.10); } }
     .toggle-flash { animation: toggle-flash 0.55s ease; border-radius: 12px; }
 
+    /* Sheet compact mode (keyboard open) */
+    .sheet-compact #sheetHandle { min-height: 8px; padding-bottom: 4px; }
+    .sheet-compact #sheetBlockHeader { padding-top: 0; padding-bottom: 6px; }
+    .sheet-compact #sheetBlockHeader .text-\[13px\] { font-size: 12px; }
+    .sheet-compact #sheetBlockHeader .text-\[10px\] { display: none; }
+    .sheet-compact #sheetBlockHeader #sheetBlockIcon { width: 24px; height: 24px; }
+
     /* Visible scrollbar for panel content */
     #panelContent { scrollbar-width: thin; scrollbar-color: #DDD9D4 transparent; }
     #panelContent::-webkit-scrollbar { display: block; width: 3px; }
     #panelContent::-webkit-scrollbar-thumb { background: #DDD9D4; border-radius: 3px; }
     #panelContent::-webkit-scrollbar-track { background: transparent; }
+
+    /* Block picker — controlled via data-open attribute */
+    #blockPicker { transition: opacity .18s ease, transform .18s ease, visibility 0s .18s; }
+    #blockPicker[data-open] { visibility: visible; opacity: 1; transform: translateY(0); transition: opacity .18s ease, transform .18s ease; }
 
     /* Toast */
     .toast {
@@ -249,6 +260,15 @@
         <button data-mode="edit" class="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-[#1E2820] shadow-sm">Редактор</button>
         <button data-mode="preview" class="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all text-[#6B6860]">Превью</button>
       </div>
+      <!-- Undo/Redo -->
+      <div class="flex items-center gap-0.5">
+        <button id="undoBtn" disabled class="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6860] active:scale-90 transition-all disabled:opacity-30 disabled:pointer-events-none" title="Отменить (Ctrl+Z)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h10a5 5 0 015 5v2M3 10l4-4M3 10l4 4"/></svg>
+        </button>
+        <button id="redoBtn" disabled class="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6860] active:scale-90 transition-all disabled:opacity-30 disabled:pointer-events-none" title="Вернуть (Ctrl+Shift+Z)">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 10H11a5 5 0 00-5 5v2M21 10l-4-4M21 10l-4 4"/></svg>
+        </button>
+      </div>
       <!-- Autosave dot (compact, no text) -->
       <span id="saveStatusDot" class="w-[7px] h-[7px] rounded-full flex-shrink-0 opacity-0 transition-all duration-300" style="background:#C9A96E"></span>
       <!-- Publish button — always visible -->
@@ -303,32 +323,35 @@
       <!-- Bottom sheet — full width -->
       <div id="bottomSheet" class="bg-white rounded-t-[24px] shadow-[0_-1px_0_rgba(0,0,0,0.06),0_-8px_32px_rgba(0,0,0,0.10)] flex flex-col"
            style="height:44px; padding-bottom:env(safe-area-inset-bottom,0px)">
-        <!-- Drag handle (44px touch target per Apple HIG) -->
-        <div id="sheetHandle" class="flex-shrink-0 flex justify-center items-center cursor-grab active:cursor-grabbing" style="touch-action:none; user-select:none; min-height:44px">
+        <!-- Drag handle (44px touch target, 6px visual indicator) -->
+        <div id="sheetHandle" class="flex-shrink-0 flex justify-center items-end cursor-grab active:cursor-grabbing" style="touch-action:none; user-select:none; min-height:44px; padding-bottom:8px">
           <div class="w-10 h-[3px] rounded-full bg-[#D1D1D6] pointer-events-none"></div>
         </div>
-        <!-- Block header: prev + icon/title + next + collapse -->
-        <div id="sheetBlockHeader" class="hidden flex-shrink-0 flex items-center gap-1 px-2 pt-1 pb-2">
-          <button id="sheetPrevBtn" type="button"
-            class="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:bg-[#F2F2F7] transition-colors disabled:opacity-25">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
-          </button>
+
+        <!-- Block header: sticky inside sheet -->
+        <div id="sheetBlockHeader" class="hidden flex-shrink-0 flex items-center gap-2 px-3 pb-2"
+             style="position:sticky; top:0; z-index:10; background:white;">
           <div class="flex items-center gap-2 flex-1 min-w-0">
-            <div id="sheetBlockIcon" class="w-8 h-8 rounded-[10px] bg-[#F2F2F7] flex items-center justify-center text-[#3D6B45] flex-shrink-0"></div>
+            <div id="sheetBlockIcon" class="w-7 h-7 rounded-lg bg-[#F2F2F7] flex items-center justify-center text-[#3D6B45] flex-shrink-0"></div>
             <div class="flex-1 min-w-0">
               <span id="sheetBlockTitle" class="text-[13px] font-semibold text-[#1E2820] truncate block"></span>
-              <span id="sheetBlockCounter" class="text-[10px] text-[#B0AB9E]"></span>
             </div>
           </div>
-          <button id="sheetNextBtn" type="button"
-            class="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:bg-[#F2F2F7] transition-colors disabled:opacity-25">
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </button>
-          <button id="sheetCollapseBtn" type="button"
-            class="w-8 h-8 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:scale-93 transition-transform">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 15l-7-7-7-7"/></svg>
+          <!-- Stepper: shows position, tap opens block picker -->
+          <button id="sheetBlockStepper" type="button"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#F2F2F7] text-[12px] font-semibold text-[#1E2820] flex-shrink-0 active:scale-95 transition-transform"
+            title="Выбрать раздел">
+            <span id="sheetBlockCounter"></span>
+            <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
           </button>
         </div>
+
+        <!-- Block picker dropdown: slides down from stepper -->
+        <div id="blockPicker" class="absolute left-2 right-2 bg-white rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.16),0_0_0_1px_rgba(0,0,0,0.06)] overflow-hidden z-30"
+             style="top:56px; max-height:calc(100dvh * 0.5); overflow-y:auto; visibility:hidden; opacity:0; transition:opacity .18s ease,transform .18s ease; transform:translateY(-6px)">
+          <div id="blockPickerList"></div>
+        </div>
+
         <!-- Panel content -->
         <div id="panelContent" class="flex-1 overflow-y-auto px-3 pt-1 pb-10" style="-webkit-overflow-scrolling:touch"></div>
       </div>

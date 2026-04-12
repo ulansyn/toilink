@@ -110,6 +110,25 @@ function sectionLabel(text) {
   return `<div class="text-[11px] font-semibold text-[#8E8E93] mb-2">${text}</div>`;
 }
 
+// Wrap field HTML for 2-column layout (remove bottom margin, adjust padding)
+function wrapForCol2(fieldHtml) {
+  return `<div class="col-span-1">${fieldHtml.replace('class="mb-1.5"', 'class="mb-0"')}</div>`;
+}
+
+// Inline block toggle — shown as footer inside first sectionCard instead of separate card
+function blockToggleInline(blockType, blockDef) {
+  const on = APP.blocks[blockType]?.enabled ?? true;
+  const badges = [];
+  if (blockDef.affectsPrice) badges.push(`<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">₸</span>`);
+  return `<div class="flex items-center justify-between pt-2 mt-2 border-t border-[#F0EDE9]">
+    <div class="flex items-center gap-2">
+      <div class="text-[12px] font-medium text-[#6B6860]">Показывать блок</div>
+      ${badges.join('')}
+    </div>
+    <div class="pswitch ${on ? 'on' : ''}" data-toggle="${blockType}"></div>
+  </div>`;
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // FIELD RENDERERS — one function per field type
 // ═══════════════════════════════════════════════════════════════════════════
@@ -305,12 +324,6 @@ function renderPaletteField(blockType, field, palette) {
         <span class="pal-check"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
       </button>`).join('')}
     </div>` : ''}
-    <div class="mt-3 relative">
-      <input data-pal-input="${paletteKey}" class="peer w-full rounded-2xl bg-[#F5F3F0] border border-transparent px-4 pt-6 pb-2 text-[15px] font-medium text-[#1E2820] outline-none transition-colors pr-14 focus:bg-[#EDEAE6] focus:border-[#3D6B45]" type="text" placeholder=" " value="${esc(activeColor)}">
-      <label class="absolute left-4 top-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-[#9A9491] transition-all duration-150 peer-placeholder-shown:top-4 peer-placeholder-shown:text-[15px] peer-placeholder-shown:font-medium peer-placeholder-shown:tracking-normal peer-placeholder-shown:normal-case peer-placeholder-shown:text-[#6B6860] peer-focus:text-[#3D6B45]">HEX цвет</label>
-      <div data-pal-preview="${paletteKey}" class="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-xl border border-[#E8E5E1]" style="background:${esc(activeColor)}"></div>
-    </div>
-    <p class="mt-1.5 text-[12px] text-[#B0AB9E]">Например: #FF5733</p>
   </div>`;
 }
 
@@ -474,6 +487,7 @@ function syncPaletteUI(paletteKey) {
 }
 
 function applyPaletteColor(paletteKey, color, autoAdvance = false) {
+  pushHistory(); // Save state before mutation
   const [bType, fKey] = paletteKey.split('.');
   const blockState = APP.blocks[bType];
   if (!blockState) return;

@@ -27,6 +27,11 @@ const APP = {
     onboarded: false,
     // Per-block palette state: { 'dresscode.colors': 0 }
     paletteSlots: {},
+    // Undo/Redo history
+    history: [],       // stack of snapshots
+    historyIndex: -1,  // current position in history (-1 = no history)
+    historyMax: 50,    // max snapshots to keep
+    isUndoRedo: false, // flag: don't push to history during undo/redo
   },
 };
 
@@ -68,7 +73,23 @@ function initStateFromSchema(schema) {
 }
 
 // ─── Debounce ─────────────────────────────────────────────────────────────
-const debouncedPreview = debounce(() => sendToPreview(), 200);
+let _previewDirty = false;
+let _previewRafId = null;
+
+function schedulePreviewSend() {
+  _previewDirty = true;
+  if (_previewRafId) return;
+  _previewRafId = requestAnimationFrame(() => {
+    _previewRafId = null;
+    if (_previewDirty) {
+      _previewDirty = false;
+      sendToPreview();
+    }
+  });
+}
+
+// Backward-compatible alias
+const debouncedPreview = () => schedulePreviewSend();
 
 // ─── Autosave ─────────────────────────────────────────────────────────────
 const debouncedAutosave = debounce(() => {
@@ -100,6 +121,82 @@ function markDirty() {
     debouncedAutosave();
   }
   updateProgress();
+}
+
+// ─── Undo / Redo ─────────────────────────────────────────────────────────
+function pushHistory() {
+  if (APP.ui.isUndoRedo) return;
+  const snapshot = takeSnapshot();
+  // Discard any future states if we're not at the end
+  APP.ui.history = APP.ui.history.slice(0, APP.ui.historyIndex + 1);
+  // Push new snapshot
+  APP.ui.history.push(snapshot);
+  // Trim if over limit
+  if (APP.ui.history.length > APP.ui.historyMax) {
+    APP.ui.history.shift();
+  }
+  APP.ui.historyIndex = APP.ui.history.length - 1;
+  updateUndoRedoButtons();
+}
+
+function undo() {
+  if (!canUndo()) return;
+  APP.ui.isUndoRedo = true;
+  APP.ui.historyIndex--;
+  restoreSnapshot(APP.ui.history[APP.ui.historyIndex]);
+  APP.ui.isUndoRedo = false;
+  updateUndoRedoButtons();
+  markDirty();
+  debouncedPreview();
+  showToast('Отменено', 'info');
+}
+
+function redo() {
+  if (!canRedo()) return;
+  APP.ui.isUndoRedo = true;
+  APP.ui.historyIndex++;
+  restoreSnapshot(APP.ui.history[APP.ui.historyIndex]);
+  APP.ui.isUndoRedo = false;
+  updateUndoRedoButtons();
+  markDirty();
+  debouncedPreview();
+  showToast('Возврат', 'info');
+}
+
+function canUndo() {
+  return APP.ui.historyIndex > 0;
+}
+
+function canRedo() {
+  return APP.ui.historyIndex < APP.ui.history.length - 1;
+}
+
+function restoreSnapshot(snapshot) {
+  try {
+    const data = JSON.parse(snapshot);
+    // Deep merge form
+    Object.keys(APP.form).forEach(k => { APP.form[k] = data.form?.[k] ?? ''; });
+    // Deep merge blocks
+    Object.keys(APP.blocks).forEach(k => {
+      if (data.blocks && data.blocks[k] !== undefined) {
+        APP.blocks[k] = JSON.parse(JSON.stringify(data.blocks[k]));
+      }
+    });
+    // Re-render UI
+    if (APP.ui.activeBlock) {
+      renderPanel(APP.ui.activeBlock);
+      updateSheetHeader(APP.ui.activeBlock);
+    }
+    renderBlockNav();
+    updateProgress();
+  } catch (_) {}
+}
+
+function updateUndoRedoButtons() {
+  const undoBtn = document.getElementById('undoBtn');
+  const redoBtn = document.getElementById('redoBtn');
+  if (undoBtn) undoBtn.disabled = !canUndo();
+  if (redoBtn) redoBtn.disabled = !canRedo();
 }
 
 // ─── Save status indicator ────────────────────────────────────────────────
@@ -188,6 +285,11 @@ function openEditorOverlay() {
   markClean();
   updateProgress();
   updatePublishBtn();
+  // Initialize undo/redo history
+  APP.ui.history = [];
+  APP.ui.historyIndex = -1;
+  pushHistory(); // Push initial state to history
+  updateUndoRedoButtons();
 }
 
 function populateFromEvent(ev) {
@@ -520,15 +622,64 @@ function updateSheetHeader(type) {
   const defs = getBlockDefs();
   const idx  = defs.findIndex(d => d.type === type);
   if (counterEl) counterEl.textContent = `${idx + 1} из ${defs.length}`;
-
-  _updateSheetNavBtns(idx, defs.length);
 }
 
-function _updateSheetNavBtns(idx, total) {
-  const prev = document.getElementById('sheetPrevBtn');
-  const next = document.getElementById('sheetNextBtn');
-  if (prev) prev.disabled = idx <= 0;
-  if (next) next.disabled = idx >= total - 1;
+function toggleBlockPicker() {
+  const picker = document.getElementById('blockPicker');
+  if (!picker) return;
+  if (picker.dataset.open) {
+    closeBlockPicker();
+  } else {
+    openBlockPicker();
+  }
+}
+
+function openBlockPicker() {
+  const picker = document.getElementById('blockPicker');
+  const list   = document.getElementById('blockPickerList');
+  if (!picker || !list) return;
+
+  const defs   = getBlockDefs();
+  const active = APP.ui.activeBlock;
+
+  list.innerHTML = defs.map((d) => {
+    const isActive   = d.type === active;
+    const isFilled   = blockIsFilled(d);
+    const isEnabled  = blockIsEnabled(d);
+    const bgColor    = isActive ? 'bg-[#1E2820] text-white' : isFilled ? 'bg-[#F2F2F7] text-[#1E2820]' : 'bg-[#F2F2F7] text-[#8E8E93]';
+    const checkmark  = isActive
+      ? `<svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`
+      : '';
+    return `
+      <button class="block-picker-item w-full flex items-center gap-3 px-4 py-3 ${bgColor} active:opacity-70 transition-opacity ${!isEnabled ? 'opacity-40' : ''}"
+              data-block="${d.type}" data-enabled="${isEnabled}">
+        <div class="w-7 h-7 rounded-lg bg-[rgba(0,0,0,0.06)] flex items-center justify-center flex-shrink-0">
+          ${blockIcon(d.icon, 14)}
+        </div>
+        <div class="flex-1 text-left">
+          <span class="text-[14px] font-semibold">${d.label}</span>
+          <span class="text-[11px] block ${isFilled ? 'text-[#6B6860]' : 'text-[#B0AB9E]'}">${isFilled ? 'Заполнено' : 'Пусто'}</span>
+        </div>
+        ${checkmark}
+      </button>`;
+  }).join('');
+
+  list.querySelectorAll('.block-picker-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.dataset.enabled !== 'false') {
+        activateBlock(btn.dataset.block);
+      }
+      closeBlockPicker();
+    });
+  });
+
+  picker.dataset.open = '1';
+}
+
+function closeBlockPicker() {
+  const picker = document.getElementById('blockPicker');
+  if (!picker) return;
+  delete picker.dataset.open;
 }
 
 function _navigateBlock(dir) {
@@ -592,25 +743,51 @@ function renderPanel(type) {
 
   let html = '';
 
-  // Toggle or required header
-  if (blockDef.toggleable) {
-    html += blockToggleRow(type, blockDef.label, {
-      affectsPrice: blockDef.affectsPrice,
-      hint: blockDef.toggleHint || '',
-    });
-  } else if (blockDef.required) {
-    html += `<div class="flex items-center gap-2 bg-[#F0F7F1] rounded-2xl px-3 py-2.5 mb-3">
-      <svg width="14" height="14" fill="none" stroke="#3D6B45" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-      <span class="text-[12px] font-semibold text-[#3D6B45]">Обязательный блок</span>
-    </div>`;
-  }
-
   // All sections — always visible
+  let isFirstSection = true;
   for (const section of blockDef.sections || []) {
     let inner = '';
     if (section.label) inner += sectionLabel(section.label);
-    for (const field of section.fields) inner += renderField(type, field);
+
+    // Group fields: pair consecutive short text fields into 2-column layout
+    const fields = section.fields || [];
+    let i = 0;
+    while (i < fields.length) {
+      const field = fields[i];
+      const nextField = fields[i + 1];
+
+      // Pair consecutive text fields that are not form-scoped
+      const canPair = nextField &&
+        field.type === 'text' &&
+        nextField.type === 'text' &&
+        field.scope !== 'form' &&
+        nextField.scope !== 'form';
+
+      if (canPair) {
+        // Render as 2-column pair
+        inner += `<div class="grid grid-cols-2 gap-2 mb-1.5">`;
+        inner += wrapForCol2(renderField(type, field));
+        inner += wrapForCol2(renderField(type, nextField));
+        inner += `</div>`;
+        i += 2;
+      } else {
+        inner += renderField(type, field);
+        i++;
+      }
+    }
+
+    // If block has toggle, add it as inline footer of first sectionCard
+    if (blockDef.toggleable && isFirstSection) {
+      inner += blockToggleInline(type, blockDef);
+    }
+
     html += sectionCard(inner);
+    isFirstSection = false;
+  }
+
+  // If no sections, render toggle as its own card
+  if (blockDef.toggleable && (blockDef.sections || []).length === 0) {
+    html += sectionCard(blockToggleInline(type, blockDef));
   }
 
   el.innerHTML = html;
@@ -622,6 +799,8 @@ function renderPanel(type) {
 }
 
 // ─── State helpers ────────────────────────────────────────────────────────
+// setFieldState — updates state WITHOUT pushing to history (for keystroke-level text input)
+// setFieldStateWithHistory — updates state AND pushes to history (for discrete changes: toggle, rows, blur)
 function setFieldState(path, value) {
   const parts = path.split('.');
   if (parts.length === 1) {
@@ -640,6 +819,11 @@ function setFieldState(path, value) {
       APP.form[path] = value;
     }
   }
+}
+
+function setFieldStateWithHistory(path, value) {
+  pushHistory();
+  setFieldState(path, value);
 }
 
 // Helper to get rows array for a given path
@@ -704,11 +888,26 @@ function initEditorDelegation() {
       // Обновляем URL-статус для url-полей
       if (field.dataset.urlValidate) {
         const statusEl = panel.querySelector(`[data-url-status="${field.dataset.field}"]`);
+        const v = field.value.trim();
+        if (!v) {
+          if (statusEl) statusEl.textContent = '';
+          field.classList.remove('border-[#FF3B30]', 'focus:border-[#FF3B30]', 'focus:shadow-[0_0_0_3px_rgba(255,59,48,0.15)]');
+          return;
+        }
+        const isValid = /^https?:\/\//.test(v) || (() => { try { new URL(v); return true; } catch { return false; } })();
         if (statusEl) {
-          const v = field.value.trim();
-          if (!v) { statusEl.textContent = ''; return; }
-          try { new URL(v); statusEl.textContent = '✓'; statusEl.style.color = '#3D6B45'; }
-          catch { statusEl.textContent = '⚠'; statusEl.style.color = '#C9A96E'; }
+          if (isValid) {
+            statusEl.textContent = '✓';
+            statusEl.style.color = '#3D6B45';
+          } else {
+            statusEl.textContent = '⚠';
+            statusEl.style.color = '#C9A96E';
+          }
+        }
+        if (isValid) {
+          field.classList.remove('border-[#FF3B30]', 'focus:border-[#FF3B30]', 'focus:shadow-[0_0_0_3px_rgba(255,59,48,0.15)]');
+        } else {
+          field.classList.add('border-[#FF3B30]', 'focus:border-[#FF3B30]', 'focus:shadow-[0_0_0_3px_rgba(255,59,48,0.15)]');
         }
       }
       return;
@@ -739,6 +938,7 @@ function initEditorDelegation() {
     if (tog) {
       const type = tog.dataset.toggle;
       if (APP.blocks[type] !== undefined) {
+        pushHistory();
         APP.blocks[type].enabled = !APP.blocks[type].enabled;
         tog.classList.toggle('on', APP.blocks[type].enabled);
         markDirty();
@@ -763,6 +963,7 @@ function initEditorDelegation() {
       const path = fieldTog.dataset.toggleField;
       const [bType, fKey] = path.split('.');
       if (APP.blocks[bType] !== undefined) {
+        pushHistory();
         APP.blocks[bType][fKey] = !APP.blocks[bType][fKey];
         fieldTog.classList.toggle('on', APP.blocks[bType][fKey]);
         markDirty();
@@ -785,7 +986,7 @@ function initEditorDelegation() {
     if (selBtn) {
       const path = selBtn.dataset.select;
       const val = selBtn.dataset.selectVal;
-      setFieldState(path, val);
+      setFieldStateWithHistory(path, val);
       renderPanel(APP.ui.activeBlock);
       markDirty();
       debouncedPreview();
@@ -799,6 +1000,7 @@ function initEditorDelegation() {
       const arr = getRowsArray(rowsKey);
       const fieldDef = getRowsFieldDef(rowsKey);
       if (arr && fieldDef) {
+        pushHistory();
         const newRow = {};
         for (const rf of fieldDef.rowFields || []) newRow[rf.key] = '';
         arr.push(newRow);
@@ -817,6 +1019,7 @@ function initEditorDelegation() {
       const dir = moveBtn.dataset.rowsDir === 'up' ? -1 : 1;
       const next = idx + dir;
       if (arr && next >= 0 && next < arr.length) {
+        pushHistory();
         [arr[idx], arr[next]] = [arr[next], arr[idx]];
         renderPanel(APP.ui.activeBlock);
         markDirty();
@@ -833,6 +1036,7 @@ function initEditorDelegation() {
         const arr = getRowsArray(delBtn.dataset.rowsDel);
         const idx = parseInt(delBtn.dataset.rowsIdx, 10);
         if (arr) {
+          pushHistory();
           arr.splice(idx, 1);
           renderPanel(APP.ui.activeBlock);
           markDirty();
@@ -864,6 +1068,7 @@ function initEditorDelegation() {
         const [bType, fKey] = photoDel.dataset.photosDel.split('.');
         const idx = parseInt(photoDel.dataset.photosIdx, 10);
         if (APP.blocks[bType]?.[fKey]) {
+          pushHistory();
           APP.blocks[bType][fKey].splice(idx, 1);
           renderPanel(APP.ui.activeBlock);
           markDirty();
@@ -894,6 +1099,7 @@ function initEditorDelegation() {
       const idx = parseInt(photoMove.dataset.photosIdx, 10);
       const next = photoMove.dataset.photosDir === 'prev' ? idx - 1 : idx + 1;
       if (next >= 0 && next < arr.length) {
+        pushHistory();
         [arr[idx], arr[next]] = [arr[next], arr[idx]];
         renderPanel(APP.ui.activeBlock);
         markDirty();
@@ -931,7 +1137,7 @@ function initEditorDelegation() {
     }
   });
 
-  // Block nav delegation (both tile columns)
+  // Block nav delegation (both tile columns + sheet dots)
   for (const id of ['tilesLeft', 'tilesRight']) {
     const col = document.getElementById(id);
     if (col) {
@@ -965,14 +1171,38 @@ function initEditorDelegation() {
     });
   }
 
-  // Collapse button in sheet header
-  document.getElementById('sheetCollapseBtn')?.addEventListener('click', () => {
-    snapSheet(SHEET_SNAP.collapsed);
+  // Block picker stepper button — opens dropdown
+  document.getElementById('sheetBlockStepper')?.addEventListener('click', () => {
+    toggleBlockPicker();
   });
+
+  // Close block picker on outside click
+  document.addEventListener('click', (e) => {
+    const picker = document.getElementById('blockPicker');
+    const stepper = document.getElementById('sheetBlockStepper');
+    if (picker && picker.dataset.open &&
+        !picker.contains(e.target) && !stepper?.contains(e.target)) {
+      closeBlockPicker();
+    }
+  });
+
+  // Undo / Redo buttons
+  document.getElementById('undoBtn')?.addEventListener('click', undo);
+  document.getElementById('redoBtn')?.addEventListener('click', redo);
 
   // Block navigation in sheet header
   document.getElementById('sheetPrevBtn')?.addEventListener('click', () => _navigateBlock(-1));
   document.getElementById('sheetNextBtn')?.addEventListener('click', () => _navigateBlock(1));
+
+  // Push history when text fields lose focus — batches keystrokes into single undo step
+  panel.addEventListener('focusout', (e) => {
+    const field = e.target.closest('[data-field]');
+    if (!field) return;
+    // Push a history snapshot on blur for text inputs (not on every keystroke)
+    if (field.matches('input:not([type=hidden]), textarea')) {
+      pushHistory();
+    }
+  }, true);
 
 
   // Auto-expand sheet + scroll input into view on focus
@@ -1037,6 +1267,7 @@ function initEditorDelegation() {
 async function handlePhotosAdd(blockType, fieldKey, files) {
   if (APP.ui.photoUploading) return;
   APP.ui.photoUploading = true;
+  pushHistory(); // Save state before mutation
 
   const max = 10;
   const current = APP.blocks[blockType]?.[fieldKey]?.length || 0;
@@ -1107,8 +1338,13 @@ async function handleSave(opts = {}) {
 
   const blocksConfig = JSON.parse(JSON.stringify(b));
 
+  // Build default title from names
+  const name1 = f.person1?.trim() || '';
+  const name2 = f.person2?.trim() || '';
+  const defaultTitle = name1 && name2 ? `${name1} & ${name2}` : (name1 || name2 || '');
+
   const data = {
-    title:         f.title || `${f.person1 || ''} & ${f.person2 || ''}`.trim().replace(/^& |& $/, ''),
+    title:         f.title || defaultTitle,
     person1:       f.person1       || null,
     person2:       f.person2       || null,
     eventDate:     f.eventDate     || null,
@@ -1443,5 +1679,15 @@ async function init() {
     showToast(err.message, 'error');
   }
 }
+
+// ─── Keyboard shortcuts ──────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  const ctrlKey = isMac ? e.metaKey : e.ctrlKey;
+  if (!ctrlKey) return;
+  if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+  if (e.key === 'z' && e.shiftKey)   { e.preventDefault(); redo(); }
+  if (e.key === 'y')                  { e.preventDefault(); redo(); }
+});
 
 init();

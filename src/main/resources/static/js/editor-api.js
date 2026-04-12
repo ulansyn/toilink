@@ -34,9 +34,39 @@ async function saveEvent(phone, data, id = null) {
 }
 
 async function uploadPhoto(file) {
+  const resizedFile = await resizeImage(file);
   const fd = new FormData();
-  fd.append('file', file);
+  fd.append('file', resizedFile);
   const res = await fetch(`${BASE_URL}/api/organizer/upload`, { method: 'POST', body: fd });
   if (!res.ok) throw new Error('Ошибка загрузки');
   return (await res.json()).url;
+}
+
+// Resize image to max 1920px width, JPEG quality 0.85
+async function resizeImage(file, maxWidth = 1920, quality = 0.85) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      // Only resize if wider than maxWidth
+      if (width <= maxWidth) { resolve(file); return; }
+      const ratio = maxWidth / width;
+      width = maxWidth;
+      height = Math.round(height * ratio);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) { resolve(file); return; }
+        const resizedFile = new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' });
+        resolve(resizedFile);
+      }, 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  });
 }
