@@ -20,7 +20,7 @@
     * { -ms-overflow-style: none; scrollbar-width: none; }
     ::-webkit-scrollbar { display: none; }
     html, body { height: 100%; overflow: hidden; }
-    body { font-family: 'Inter', sans-serif; background: #FAFAF8; overscroll-behavior: none; }
+    body { font-family: 'Inter', sans-serif; background: #F2F2F7; overscroll-behavior: none; }
 
     #step1-wrap { height: 100dvh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
@@ -28,17 +28,18 @@
       position: fixed; inset: 0; z-index: 60;
       display: grid;
       grid-template-rows: auto auto 1fr;
-      background: #EEECEA; overscroll-behavior: none;
+      background: #F2F2F7; overscroll-behavior: none;
     }
     #editorOverlay.hidden { display: none; }
 
     /* Progress bar */
     #progressWrap {
       height: 20px; display: flex; align-items: center; gap: 6px;
-      padding: 0 10px; background: #FAFAF8;
+      padding: 0 10px; background: #FFFFFF;
+      border-bottom: 1px solid #E5E5EA;
     }
     #progressBar {
-      flex: 1; height: 3px; border-radius: 2px; background: #E8E5E1; overflow: hidden;
+      flex: 1; height: 3px; border-radius: 2px; background: #E5E5EA; overflow: hidden;
     }
     #progressFill {
       height: 100%; border-radius: 2px; background: #3D6B45;
@@ -106,7 +107,7 @@
     .skeleton-pulse { animation: skeleton-pulse 1.6s ease-in-out infinite; }
 
     /* Switch toggle */
-    .pswitch { width: 40px; height: 22px; border-radius: 11px; position: relative; background: #DDD9D4; cursor: pointer; flex-shrink: 0; transition: background 0.18s; }
+    .pswitch { width: 40px; height: 22px; border-radius: 11px; position: relative; background: #D1D1D6; cursor: pointer; flex-shrink: 0; transition: background 0.18s; }
     .pswitch.on { background: #3D6B45; }
     .pswitch::after {
       content: ''; position: absolute; top: 2px; left: 2px;
@@ -119,7 +120,7 @@
     /* Photo upload area */
     .photo-upload {
       width: 100%; aspect-ratio: 16/10; border-radius: 12px;
-      border: 2px dashed #DDD9D4; background: #F5F3F0;
+      border: 2px dashed #D1D1D6; background: #F2F2F7;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       cursor: pointer; overflow: hidden; position: relative;
       transition: border-color 0.15s, background 0.15s;
@@ -146,6 +147,28 @@
     .pal-slot.active .pal-check, .pal-preset.active .pal-check { opacity: 1; transform: translate(-50%,-50%) scale(1); }
 
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Onboarding */
+    @keyframes tile-ping {
+      0%        { transform: scale(1);    opacity: 0.9; }
+      70%, 100% { transform: scale(1.6);  opacity: 0; }
+    }
+    .tile-pulse-ring {
+      position: absolute; inset: -3px; border-radius: 19px;
+      border: 2.5px solid rgba(61,107,69,0.6);
+      animation: tile-ping 1.8s cubic-bezier(0,0,0.2,1) infinite;
+      pointer-events: none;
+    }
+    .tile-pulse-ring:nth-child(2) { animation-delay: 0.55s; opacity: 0.5; }
+
+    @keyframes tooltip-in {
+      from { opacity: 0; transform: translateY(-50%) translateX(-8px) scale(0.92); }
+      to   { opacity: 1; transform: translateY(-50%) translateX(0)    scale(1); }
+    }
+
+    /* Input field highlight pulse for step-2 hint */
+    @keyframes field-glow-in  { to   { box-shadow: 0 0 0 4px rgba(61,107,69,0.30), 0 0 0 1px rgba(61,107,69,0.8); } }
+    @keyframes field-glow-out { from { box-shadow: 0 0 0 4px rgba(61,107,69,0.30), 0 0 0 1px rgba(61,107,69,0.8); } to { box-shadow: none; } }
 
     /* Toggle enable flash */
     @keyframes toggle-flash { 0%,100% { background: transparent; } 40% { background: rgba(61,107,69,0.10); } }
@@ -212,24 +235,26 @@
   <div id="editorOverlay" class="hidden">
 
     <!-- Top bar -->
-    <div class="flex items-center gap-1.5 px-2 bg-[#FAFAF8] border-b border-[#E8E5E1] relative z-10"
+    <div class="flex items-center gap-1.5 px-2 bg-white border-b border-[#E5E5EA] relative z-10"
          style="padding-top:env(safe-area-inset-top,0px); height:calc(48px + env(safe-area-inset-top,0px))">
       <!-- Back -->
-      <button id="editorBack" class="w-9 h-9 rounded-full flex items-center justify-center bg-[#EDE9E4] text-[#5C5850] flex-shrink-0 active:scale-93 transition-transform">
+      <button id="editorBack" class="w-9 h-9 rounded-full flex items-center justify-center bg-[#F2F2F7] text-[#5C5850] flex-shrink-0 active:scale-93 transition-transform">
         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
       </button>
       <!-- Title (hidden input, still syncs) -->
       <input id="editorTitle" class="sr-only" type="text" placeholder="Название события" maxlength="80">
       <div class="flex-1"></div>
       <!-- Segmented control: Edit / Preview -->
-      <div id="modeToggle" class="flex-shrink-0 flex bg-[#EDE9E4] rounded-full p-0.5 gap-0.5">
+      <div id="modeToggle" class="flex-shrink-0 flex bg-[#EBEBF0] rounded-full p-0.5 gap-0.5">
         <button data-mode="edit" class="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all bg-white text-[#1E2820] shadow-sm">Редактор</button>
         <button data-mode="preview" class="px-2.5 py-1 rounded-full text-[11px] font-semibold transition-all text-[#6B6860]">Превью</button>
       </div>
-      <!-- Save -->
-      <button id="editorSave" class="flex-shrink-0 h-9 px-3 rounded-full font-semibold text-[12px] text-white flex items-center gap-1.5 active:opacity-75 transition-opacity disabled:opacity-40 disabled:cursor-not-allowed bg-[#1E2820]" type="button">
-        <span class="save-label">Сохранить</span>
-        <span class="save-spinner w-4 h-4 rounded-full border-2 border-white/35 border-t-white/95 hidden" style="animation:spin .9s linear infinite" aria-hidden="true"></span>
+      <!-- Autosave dot (compact, no text) -->
+      <span id="saveStatusDot" class="w-[7px] h-[7px] rounded-full flex-shrink-0 opacity-0 transition-all duration-300" style="background:#C9A96E"></span>
+      <!-- Publish button — always visible -->
+      <button id="publishBtn" class="flex-shrink-0 h-8 px-3.5 rounded-full text-[11px] font-semibold transition-all active:scale-95 whitespace-nowrap bg-[#3D6B45] text-white flex items-center gap-1.5">
+        <span id="saveSpinner" class="w-3 h-3 rounded-full border-2 border-white/30 border-t-white hidden flex-shrink-0" style="animation:spin .9s linear infinite" aria-hidden="true"></span>
+        <span id="publishBtnLabel">Опубликовать</span>
       </button>
     </div>
 
@@ -262,15 +287,50 @@
       <!-- Right tiles (5-8) -->
       <div id="tilesRight" class="tile-col"></div>
 
+      <!-- Onboarding overlay: covers ONLY the preview (between tile columns) -->
+      <div id="onboardingOverlay" class="absolute top-0 bottom-0 hidden" style="z-index:22; left:66px; right:66px; background:rgba(12,20,14,0.58); backdrop-filter:blur(2px); transition:opacity 0.3s ease; pointer-events:none"></div>
+
+      <!-- Onboarding tooltip: positioned by JS next to first tile -->
+      <div id="onboardingTooltip" class="absolute hidden" style="z-index:28; pointer-events:none">
+        <div class="relative bg-white rounded-2xl" style="padding:10px 13px; box-shadow:0 8px 36px rgba(0,0,0,0.24),0 0 0 1px rgba(0,0,0,0.06)">
+          <!-- Arrow pointing left (toward tile) -->
+          <div class="absolute" style="left:-6px; top:50%; transform:translateY(-50%); width:0; height:0; border-top:6px solid transparent; border-bottom:6px solid transparent; border-right:6px solid white"></div>
+          <p class="text-[12px] font-bold text-[#1E2820] whitespace-nowrap">Выберите раздел</p>
+          <p class="text-[10px] text-[#8E8E93] mt-0.5 whitespace-nowrap">нажмите на карточку</p>
+        </div>
+      </div>
+
       <!-- Bottom sheet — full width -->
-      <div id="bottomSheet" class="bg-white rounded-t-[20px] shadow-[0_-2px_20px_rgba(0,0,0,0.10)] flex flex-col"
-           style="height:26px; padding-bottom:env(safe-area-inset-bottom,0px)">
-        <!-- Drag handle -->
-        <div id="sheetHandle" class="flex-shrink-0 flex justify-center items-center pt-2.5 pb-1 cursor-grab active:cursor-grabbing" style="touch-action:none; user-select:none">
-          <div class="w-9 h-1 rounded-full bg-[#DDD9D4] pointer-events-none"></div>
+      <div id="bottomSheet" class="bg-white rounded-t-[24px] shadow-[0_-1px_0_rgba(0,0,0,0.06),0_-8px_32px_rgba(0,0,0,0.10)] flex flex-col"
+           style="height:44px; padding-bottom:env(safe-area-inset-bottom,0px)">
+        <!-- Drag handle (44px touch target per Apple HIG) -->
+        <div id="sheetHandle" class="flex-shrink-0 flex justify-center items-center cursor-grab active:cursor-grabbing" style="touch-action:none; user-select:none; min-height:44px">
+          <div class="w-10 h-[3px] rounded-full bg-[#D1D1D6] pointer-events-none"></div>
+        </div>
+        <!-- Block header: prev + icon/title + next + collapse -->
+        <div id="sheetBlockHeader" class="hidden flex-shrink-0 flex items-center gap-1 px-2 pt-1 pb-2">
+          <button id="sheetPrevBtn" type="button"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:bg-[#F2F2F7] transition-colors disabled:opacity-25">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <div class="flex items-center gap-2 flex-1 min-w-0">
+            <div id="sheetBlockIcon" class="w-8 h-8 rounded-[10px] bg-[#F2F2F7] flex items-center justify-center text-[#3D6B45] flex-shrink-0"></div>
+            <div class="flex-1 min-w-0">
+              <span id="sheetBlockTitle" class="text-[13px] font-semibold text-[#1E2820] truncate block"></span>
+              <span id="sheetBlockCounter" class="text-[10px] text-[#B0AB9E]"></span>
+            </div>
+          </div>
+          <button id="sheetNextBtn" type="button"
+            class="w-8 h-8 rounded-full flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:bg-[#F2F2F7] transition-colors disabled:opacity-25">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+          <button id="sheetCollapseBtn" type="button"
+            class="w-8 h-8 rounded-full bg-[#F2F2F7] flex items-center justify-center text-[#8E8E93] flex-shrink-0 active:scale-93 transition-transform">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 15l-7-7-7-7"/></svg>
+          </button>
         </div>
         <!-- Panel content -->
-        <div id="panelContent" class="flex-1 overflow-y-auto px-3 pb-6" style="-webkit-overflow-scrolling:touch"></div>
+        <div id="panelContent" class="flex-1 overflow-y-auto px-3 pt-1 pb-10" style="-webkit-overflow-scrolling:touch"></div>
       </div>
     </div>
   </div>
@@ -296,12 +356,86 @@
   <!-- Toast -->
   <div class="toast toast--info" id="toast" role="status" aria-live="polite"></div>
 
+  <!-- Publish Sheet -->
+  <div id="publishSheet" class="fixed inset-0 z-[100] hidden">
+    <div id="pubBackdrop" class="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-200"></div>
+    <div id="pubPanel" class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[24px] translate-y-full transition-transform duration-300 ease-out"
+         style="padding-bottom:env(safe-area-inset-bottom,0px)">
+      <div class="flex justify-center pt-3 pb-2"><div class="w-9 h-1 rounded-full bg-[#DDD9D4]"></div></div>
+      <!-- Success state -->
+      <div id="pubStateSuccess" class="hidden px-5 pb-6">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-10 h-10 rounded-2xl flex items-center justify-center flex-shrink-0" style="background:rgba(194,224,198,0.8)">
+            <svg width="20" height="20" fill="none" stroke="#1A3D20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+          </div>
+          <div>
+            <p class="text-[15px] font-semibold text-[#1E2820]">Сайт опубликован</p>
+            <p class="text-[12px] text-[#6B6860] mt-0.5">Ссылка доступна всем гостям</p>
+          </div>
+        </div>
+        <!-- Link row -->
+        <div class="flex items-center gap-2 bg-[#F5F3F0] rounded-2xl px-3 py-2.5 mb-3">
+          <svg class="w-4 h-4 text-[#6B6860] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span id="pubLinkText" class="text-[12px] font-medium text-[#1E2820] flex-1 truncate"></span>
+        </div>
+        <div class="flex gap-2 mb-3">
+          <button id="pubCopyBtn" class="flex-1 h-11 rounded-2xl bg-[#F2F2F7] text-[#1E2820] text-[13px] font-semibold flex items-center justify-center gap-1.5 active:opacity-70 transition-opacity">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+            Скопировать
+          </button>
+          <a id="pubOpenBtn" href="#" target="_blank" rel="noopener"
+             class="flex-1 h-11 rounded-2xl bg-[#1E2820] text-white text-[13px] font-semibold flex items-center justify-center gap-1.5 active:opacity-70 transition-opacity no-underline">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Открыть
+          </a>
+        </div>
+        <button id="pubShareBtn" class="w-full h-11 rounded-2xl border border-[#E5E5EA] text-[#1E2820] text-[13px] font-semibold flex items-center justify-center gap-1.5 active:opacity-70 transition-opacity">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          Поделиться
+        </button>
+      </div>
+      <!-- Confirm publish state -->
+      <div id="pubStateConfirm" class="px-5 pb-6">
+        <p class="text-[17px] font-semibold text-[#1E2820] mb-1">Опубликовать сайт?</p>
+        <p class="text-[13px] text-[#6B6860] mb-5">Гости смогут открыть ваш сайт-приглашение по ссылке</p>
+        <button id="pubConfirmBtn" class="w-full h-12 rounded-2xl bg-[#1E2820] text-white font-semibold text-[15px] active:opacity-75 transition-opacity mb-2">
+          Опубликовать
+        </button>
+        <button id="pubCancelBtn" class="w-full h-12 rounded-2xl text-[#6B6860] font-semibold text-[15px] active:opacity-75 transition-opacity">
+          Отмена
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Date / Time Picker Sheet -->
   <div id="datePickerSheet" class="fixed inset-0 z-[110] hidden">
     <div id="dpBackdrop" class="absolute inset-0 bg-black/40 opacity-0 transition-opacity duration-200"></div>
     <div id="dpPanel"
          class="absolute bottom-0 left-0 right-0 bg-white rounded-t-[20px] translate-y-full transition-transform duration-280 ease-out overflow-hidden"
          style="padding-bottom:env(safe-area-inset-bottom,0px); max-height:92dvh; overflow-y:auto">
+    </div>
+  </div>
+
+  <!-- Keyboard input toolbar -->
+  <div id="kbToolbar" class="fixed hidden left-0 right-0" style="z-index:160; transform:translateY(-100%); background:#F6F5F3; border-top:1px solid #D1D1D6;">
+    <div class="flex items-center justify-between px-2 py-1.5">
+      <div class="flex">
+        <button id="kbPrev" type="button"
+          class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#1E2820] active:bg-[#E5E5EA] transition-colors disabled:opacity-30">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          Назад
+        </button>
+        <button id="kbNext" type="button"
+          class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[13px] font-medium text-[#1E2820] active:bg-[#E5E5EA] transition-colors disabled:opacity-30">
+          Вперёд
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+      <button id="kbDone" type="button"
+        class="px-4 py-1.5 rounded-lg text-[13px] font-semibold text-[#3D6B45] active:bg-[#E5E5EA] transition-colors">
+        Готово
+      </button>
     </div>
   </div>
 

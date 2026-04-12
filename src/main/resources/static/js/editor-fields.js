@@ -16,7 +16,7 @@ function floatInput(field, label, value, opts = {}) {
       <input id="${id}" data-field="${field}" type="${type}" placeholder=" " value="${esc(value)}"
         ${opts.inputMode ? `inputmode="${opts.inputMode}"` : ''} ${opts.maxLength ? `maxlength="${opts.maxLength}"` : ''}
         ${isUrl ? `data-url-validate="1"` : ''}
-        class="peer w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-1.5 text-[13px] font-medium text-[#1E2820] outline-none transition-colors focus:bg-[#EDEAE6] focus:border-[#3D6B45] ${isUrl ? 'pr-9' : ''}"
+        class="peer w-full rounded-xl bg-[#F2F2F7] border border-transparent px-3 pt-5 pb-1.5 text-[14px] font-medium text-[#1E2820] outline-none transition-all focus:bg-white focus:border-[#3D6B45] focus:shadow-[0_0_0_3px_rgba(61,107,69,0.12)] ${isUrl ? 'pr-9' : ''}"
         style="-webkit-appearance:none; appearance:none">
       <label for="${id}" class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]
         transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-[13px]
@@ -37,7 +37,7 @@ function renderDateTimeField(fieldPath, label, value, hint) {
   const hintHtml = hint ? `<p class="mt-1 text-[11px] text-[#B0AB9E] leading-snug">${esc(hint)}</p>` : '';
   return `<div class="mb-1.5">
     <button type="button" id="${id}" data-dt-picker="${fieldPath}"
-      class="w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-2 text-left relative active:bg-[#EDEAE6] active:border-[#3D6B45] transition-colors"
+      class="w-full rounded-xl bg-[#F2F2F7] border border-transparent px-3 pt-5 pb-2 text-left relative active:bg-white active:border-[#3D6B45] transition-colors"
       style="-webkit-appearance:none;appearance:none">
       <span class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]">${esc(label)}</span>
       <span data-dt-display class="text-[13px] font-medium" style="color:${display ? '#1E2820' : '#B0AB9E'}">
@@ -59,7 +59,7 @@ function floatTextarea(field, label, value, opts = {}) {
     <div class="relative">
       <textarea id="${id}" data-field="${field}" rows="${opts.rows || 2}" placeholder=" "
         ${max ? `maxlength="${max}"` : ''}
-        class="peer w-full rounded-xl bg-[#F5F3F0] border border-transparent px-3 pt-5 pb-2 text-[13px] font-medium text-[#1E2820] outline-none transition-colors resize-none leading-snug focus:bg-[#EDEAE6] focus:border-[#3D6B45]">${esc(value)}</textarea>
+        class="peer w-full rounded-xl bg-[#F2F2F7] border border-transparent px-3 pt-5 pb-2 text-[14px] font-medium text-[#1E2820] outline-none transition-all resize-none leading-snug focus:bg-white focus:border-[#3D6B45] focus:shadow-[0_0_0_3px_rgba(61,107,69,0.12)]">${esc(value)}</textarea>
       <label for="${id}" class="absolute left-3 top-1.5 text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491]
         transition-all duration-150 peer-placeholder-shown:top-3 peer-placeholder-shown:text-[13px]
         peer-placeholder-shown:font-medium peer-placeholder-shown:tracking-normal peer-placeholder-shown:normal-case
@@ -75,22 +75,22 @@ function floatTextarea(field, label, value, opts = {}) {
 function blockToggleRow(blockType, label, opts = {}) {
   const on = APP.blocks[blockType]?.enabled ?? true;
   const badges = [];
-  if (opts.premium)      badges.push(`<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">Premium</span>`);
   if (opts.affectsPrice) badges.push(`<span class="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-[#F5EDD8] text-[#C9A96E] border border-[#E8D9B0]">₸</span>`);
-  return `<div class="flex items-center justify-between mb-2 pb-2 border-b border-[#F0EDE9]">
+  const statusText = on ? 'Включён' : 'Выключен';
+  return `<div class="bg-white rounded-2xl px-3 py-3 mb-3 flex items-center justify-between" style="box-shadow:0 1px 3px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.05)">
     <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-1.5 flex-wrap">
-        <span class="text-[13px] font-semibold text-[#1E2820]">${label}</span>
+      <div class="flex items-center gap-1.5">
+        <span class="text-[13px] font-semibold text-[#1E2820]">Показывать блок</span>
         ${badges.join('')}
       </div>
-      ${opts.hint ? `<div class="text-[11px] text-[#B0AB9E] mt-0.5 leading-snug">${opts.hint}</div>` : ''}
+      <div class="text-[11px] mt-0.5 ${on ? 'text-[#3D6B45]' : 'text-[#8E8E93]'}">${opts.hint || statusText}</div>
     </div>
-    <div class="pswitch ${on ? 'on' : ''} ml-2" data-toggle="${blockType}"></div>
+    <div class="pswitch ${on ? 'on' : ''} ml-3 flex-shrink-0" data-toggle="${blockType}"></div>
   </div>`;
 }
 
 function premiumFeatureRow(blockType, field, label, hint, enabled) {
-  return `<div class="flex items-center justify-between py-2 border-b border-[#F0EDE9] last:border-b-0">
+  return `<div class="flex items-center justify-between py-2 border-b border-[#E5E5EA] last:border-b-0">
     <div>
       <div class="flex items-center gap-1.5">
         <span class="text-[12px] font-medium text-[#1E2820]">${label}</span>
@@ -103,11 +103,11 @@ function premiumFeatureRow(blockType, field, label, hint, enabled) {
 }
 
 function sectionCard(inner) {
-  return `<div class="mb-2 pb-2 border-b border-[#F0EDE9] last:border-b-0 last:mb-0 last:pb-0">${inner}</div>`;
+  return `<div class="bg-white rounded-2xl px-3 py-3 mb-3 last:mb-1" style="box-shadow:0 1px 3px rgba(0,0,0,0.07),0 0 0 1px rgba(0,0,0,0.05)">${inner}</div>`;
 }
 
 function sectionLabel(text) {
-  return `<div class="text-[10px] font-semibold tracking-[0.1em] uppercase text-[#9A9491] mb-1.5">${text}</div>`;
+  return `<div class="text-[11px] font-semibold text-[#8E8E93] mb-2">${text}</div>`;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

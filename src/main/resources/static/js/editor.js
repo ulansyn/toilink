@@ -23,6 +23,8 @@ const APP = {
     savedSnapshot: '',
     photoUploading: false,
     lastExpandedSnap: 40,
+    slug: null,
+    onboarded: false,
     // Per-block palette state: { 'dresscode.colors': 0 }
     paletteSlots: {},
   },
@@ -68,6 +70,20 @@ function initStateFromSchema(schema) {
 // ─── Debounce ─────────────────────────────────────────────────────────────
 const debouncedPreview = debounce(() => sendToPreview(), 200);
 
+// ─── Autosave ─────────────────────────────────────────────────────────────
+const debouncedAutosave = debounce(() => {
+  if (!APP.ui.dirty) return;
+  const ae = document.activeElement;
+  if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA')) {
+    // Delay until user leaves the field
+    ae.addEventListener('blur', () => {
+      if (APP.ui.dirty) handleSave({ silent: true });
+    }, { once: true });
+    return;
+  }
+  handleSave({ silent: true });
+}, 3000);
+
 // ─── Dirty tracking ──────────────────────────────────────────────────────
 function takeSnapshot() {
   return JSON.stringify({ form: APP.form, blocks: APP.blocks });
@@ -75,19 +91,41 @@ function takeSnapshot() {
 function markClean() {
   APP.ui.savedSnapshot = takeSnapshot();
   APP.ui.dirty = false;
-  updateSaveButtonState();
+  setSaveStatus('saved');
 }
 function markDirty() {
   APP.ui.dirty = takeSnapshot() !== APP.ui.savedSnapshot;
-  updateSaveButtonState();
+  if (APP.ui.dirty) {
+    setSaveStatus('dirty');
+    debouncedAutosave();
+  }
   updateProgress();
 }
-function updateSaveButtonState() {
-  const btn = document.getElementById('editorSave');
-  if (!btn) return;
-  const lbl = btn.querySelector('.save-label');
-  btn.style.background = APP.ui.dirty ? '#3D6B45' : '#1E2820';
-  if (lbl) lbl.textContent = APP.ui.dirty ? '● Сохранить' : 'Сохранить';
+
+// ─── Save status indicator ────────────────────────────────────────────────
+function setSaveStatus(state) {
+  const dot  = document.getElementById('saveStatusDot');
+  const spin = document.getElementById('saveSpinner');
+  if (!dot || !spin) return;
+
+  if (state === 'dirty') {
+    dot.style.opacity    = '1';
+    dot.style.background = '#C9A96E';
+    spin.classList.add('hidden');
+  } else if (state === 'saving') {
+    dot.style.opacity = '0';
+    spin.classList.remove('hidden');
+  } else if (state === 'saved') {
+    dot.style.opacity = '0';
+    spin.classList.add('hidden');
+  } else if (state === 'error') {
+    dot.style.opacity    = '1';
+    dot.style.background = '#FF3B30';
+    spin.classList.add('hidden');
+  } else {
+    dot.style.opacity = '0';
+    spin.classList.add('hidden');
+  }
 }
 
 // ─── Progress bar ────────────────────────────────────────────────────────
@@ -149,6 +187,7 @@ function openEditorOverlay() {
 
   markClean();
   updateProgress();
+  updatePublishBtn();
 }
 
 function populateFromEvent(ev) {
@@ -246,14 +285,123 @@ function populateFromEvent(ev) {
   }
 }
 
+// ─── Onboarding ──────────────────────────────────────────────────────────
+
+function _addPulseRings(colId) {
+  const tile = document.getElementById(colId)?.querySelector('[data-block]');
+  if (!tile || tile.querySelector('.tile-pulse-ring')) return;
+  const r1 = document.createElement('span'); r1.className = 'tile-pulse-ring';
+  const r2 = document.createElement('span'); r2.className = 'tile-pulse-ring';
+  tile.appendChild(r1); tile.appendChild(r2);
+}
+
+function _removePulseRings() {
+  document.querySelectorAll('.tile-pulse-ring').forEach(el => el.remove());
+}
+
+function _positionTooltip() {
+  const tip       = document.getElementById('onboardingTooltip');
+  const firstTile = document.getElementById('tilesLeft')?.querySelector('[data-block]');
+  const body      = document.getElementById('editorBody');
+  if (!tip || !firstTile || !body) return;
+
+  const tRect = firstTile.getBoundingClientRect();
+  const bRect = body.getBoundingClientRect();
+
+  // Place tooltip to the right of the first tile, vertically centered on it
+  tip.style.left      = (tRect.right - bRect.left + 10) + 'px';
+  tip.style.top       = (tRect.top   - bRect.top  + tRect.height / 2) + 'px';
+  tip.style.transform = 'translateY(-50%)';
+}
+
+function showOnboardingHint() {
+  if (APP.ui.onboarded || localStorage.getItem('tl_onboarded')) return;
+
+  // Dark overlay covers only the phone preview area (not tile columns)
+  const overlay = document.getElementById('onboardingOverlay');
+  if (overlay) {
+    const tL = document.getElementById('tilesLeft');
+    const tR = document.getElementById('tilesRight');
+    if (tL) overlay.style.left  = tL.offsetWidth + 'px';
+    if (tR) overlay.style.right = tR.offsetWidth + 'px';
+    overlay.style.opacity = '0';
+    overlay.classList.remove('hidden');
+    requestAnimationFrame(() => { overlay.style.opacity = '1'; });
+  }
+
+  // Pulse rings on first tile of each column
+  requestAnimationFrame(() => {
+    _addPulseRings('tilesLeft');
+    _addPulseRings('tilesRight');
+  });
+
+  // Tooltip: position next to first tile, animate in after short delay
+  const tip = document.getElementById('onboardingTooltip');
+  if (tip) {
+    _positionTooltip();
+    tip.style.opacity  = '0';
+    tip.style.animation = 'none';
+    tip.classList.remove('hidden');
+    setTimeout(() => {
+      tip.style.animation = 'tooltip-in 0.38s cubic-bezier(0.34,1.56,0.64,1) forwards';
+    }, 280);
+  }
+}
+
+function hideOnboardingHint() {
+  if (APP.ui.onboarded) return;
+  APP.ui.onboarded = true;
+  localStorage.setItem('tl_onboarded', '1');
+
+  const overlay = document.getElementById('onboardingOverlay');
+  const tip     = document.getElementById('onboardingTooltip');
+
+  if (overlay) {
+    overlay.style.opacity = '0';
+    setTimeout(() => overlay.classList.add('hidden'), 300);
+  }
+  if (tip) {
+    tip.style.transition = 'opacity 0.2s';
+    tip.style.opacity    = '0';
+    setTimeout(() => { tip.classList.add('hidden'); tip.style.transition = ''; }, 220);
+  }
+
+  _removePulseRings();
+
+  // Step 2: glow on first form field after sheet opens
+  setTimeout(_glowFirstField, 520);
+}
+
+function _glowFirstField() {
+  const panel = document.getElementById('panelContent');
+  if (!panel) return;
+  const field = panel.querySelector('input:not([type=hidden]):not(.sr-only), textarea');
+  if (!field) return;
+
+  field.style.transition  = 'box-shadow 0.3s ease, border-color 0.3s ease';
+  field.style.borderColor = '#3D6B45';
+  field.style.boxShadow   = '0 0 0 4px rgba(61,107,69,0.25)';
+
+  // Scroll field into view
+  field.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  setTimeout(() => {
+    field.style.borderColor = '';
+    field.style.boxShadow   = '';
+    setTimeout(() => { field.style.transition = ''; }, 320);
+  }, 1800);
+}
+
 function onPreviewMessage(e) {
   if (e.data?.type === 'TEMPLATE_READY') {
     APP.ui.previewReady = true;
     sendToPreview();
     const skel = document.getElementById('previewSkeleton');
     if (skel) skel.style.display = 'none';
+    showOnboardingHint();
   }
   if (e.data?.type === 'TEMPLATE_CLICK' && e.data.block) {
+    hideOnboardingHint();
     setMode('edit');
     activateBlock(e.data.block);
   }
@@ -276,10 +424,17 @@ function setMode(mode) {
     }
   });
 
+  const tilesLeft  = document.getElementById('tilesLeft');
+  const tilesRight = document.getElementById('tilesRight');
+
   if (mode === 'preview') {
     snapSheet(SHEET_SNAP.collapsed);
+    if (tilesLeft)  { tilesLeft.style.transition  = 'opacity 0.2s, width 0.25s'; tilesLeft.style.opacity  = '0'; tilesLeft.style.width  = '0'; tilesLeft.style.padding  = '0'; tilesLeft.style.overflow = 'hidden'; }
+    if (tilesRight) { tilesRight.style.transition = 'opacity 0.2s, width 0.25s'; tilesRight.style.opacity = '0'; tilesRight.style.width = '0'; tilesRight.style.padding = '0'; tilesRight.style.overflow = 'hidden'; }
   } else {
     snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
+    if (tilesLeft)  { tilesLeft.style.transition  = 'opacity 0.2s, width 0.25s'; tilesLeft.style.opacity  = ''; tilesLeft.style.width  = ''; tilesLeft.style.padding  = ''; tilesLeft.style.overflow = ''; }
+    if (tilesRight) { tilesRight.style.transition = 'opacity 0.2s, width 0.25s'; tilesRight.style.opacity = ''; tilesRight.style.width = ''; tilesRight.style.padding = ''; tilesRight.style.overflow = ''; }
   }
 }
 
@@ -316,29 +471,36 @@ function renderBlockNav() {
     const active  = def.type === APP.ui.activeBlock;
     const enabled = blockIsEnabled(def);
     const filled  = blockIsFilled(def);
-    const num = String(def.num).padStart(2, '0');
 
-    // Bottom strip color: green=filled, amber=empty, gray=disabled
-    const stripColor = !enabled ? (active ? 'rgba(255,255,255,0.15)' : '#E8E5E1')
-      : filled ? (active ? '#A8CEB0' : '#3D6B45')
-      : (active ? 'rgba(245,200,122,0.6)' : '#C9A96E');
-
-    // Status icon (top-right corner)
-    const statusIcon = !enabled
-      ? `<span class="absolute top-[2px] right-1 text-[8px] ${active ? 'text-white/30' : 'text-[#C5BFB8]'}">—</span>`
+    // Status dot (top-right) — absent when disabled
+    const dotBg = !enabled ? null
       : filled
-        ? `<svg class="absolute top-[3px] right-[3px]" width="10" height="10" fill="none" stroke="${active ? '#A8CEB0' : '#3D6B45'}" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>`
-        : `<span class="absolute top-[3px] right-[4px] w-[6px] h-[6px] rounded-full border-[1.5px] ${active ? 'border-white/40' : 'border-[#C9A96E]'}"></span>`;
+        ? (active ? '#A8CEB0' : '#3D6B45')
+        : (active ? 'rgba(245,200,122,0.7)' : '#C9A96E');
+    const dot = dotBg
+      ? `<span class="absolute top-2 right-2 w-[6px] h-[6px] rounded-full pointer-events-none" style="background:${dotBg}"></span>`
+      : '';
+
+    // Eye-slash overlay for disabled blocks
+    const eyeSlash = !enabled && !active
+      ? `<span class="absolute bottom-1.5 right-1.5 pointer-events-none opacity-60">
+           <svg width="10" height="10" fill="none" stroke="#C5BFB8" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+         </span>`
+      : '';
+
+    const tileClass = active
+      ? 'bg-[#1E2820] text-white shadow-[0_2px_12px_rgba(30,40,32,0.20)]'
+      : enabled
+        ? 'bg-white/75 text-[#5C5850] border border-[#E5E5EA]'
+        : 'bg-white/30 text-[#C5BFB8] border border-dashed border-[#DDDAD6]';
 
     return `<button data-block="${def.type}"
-      class="relative flex flex-col items-center justify-center gap-0.5 rounded-xl w-[58px] h-[54px] transition-all active:scale-93 overflow-hidden
-        ${active ? 'bg-[#1E2820] text-white shadow-md' : 'bg-white/80 text-[#6B6860] border border-[#E8E5E1]'}"
+      class="relative flex flex-col items-center justify-center gap-1 rounded-2xl w-[58px] h-[62px] transition-all active:scale-93 overflow-hidden ${tileClass}"
       aria-label="${def.label}">
-      <span class="absolute top-[3px] left-1.5 text-[8px] font-bold ${active ? 'text-white/45' : 'text-[#1E2820]/22'}">${num}</span>
-      ${statusIcon}
-      ${blockIcon(def.icon, 16)}
-      <span class="text-[9px] font-semibold leading-tight text-center px-0.5 truncate w-full">${def.label}</span>
-      <span class="absolute bottom-0 left-0 right-0 h-[3px] rounded-b-xl" style="background:${stripColor}"></span>
+      ${dot}
+      ${eyeSlash}
+      <span style="opacity:${enabled || active ? '1' : '0.45'}">${blockIcon(def.icon, 18)}</span>
+      <span class="text-[9px] font-semibold leading-tight text-center px-1 truncate w-full" style="opacity:${enabled || active ? '1' : '0.5'}">${def.label}</span>
     </button>`;
   }
 
@@ -346,13 +508,45 @@ function renderBlockNav() {
   rightEl.innerHTML = defs.slice(half).map(tileHtml).join('');
 }
 
+function updateSheetHeader(type) {
+  const def = getBlockDef(type);
+  if (!def) return;
+  const iconEl    = document.getElementById('sheetBlockIcon');
+  const titleEl   = document.getElementById('sheetBlockTitle');
+  const counterEl = document.getElementById('sheetBlockCounter');
+  if (iconEl)  iconEl.innerHTML    = blockIcon(def.icon, 16);
+  if (titleEl) titleEl.textContent = def.label;
+
+  const defs = getBlockDefs();
+  const idx  = defs.findIndex(d => d.type === type);
+  if (counterEl) counterEl.textContent = `${idx + 1} из ${defs.length}`;
+
+  _updateSheetNavBtns(idx, defs.length);
+}
+
+function _updateSheetNavBtns(idx, total) {
+  const prev = document.getElementById('sheetPrevBtn');
+  const next = document.getElementById('sheetNextBtn');
+  if (prev) prev.disabled = idx <= 0;
+  if (next) next.disabled = idx >= total - 1;
+}
+
+function _navigateBlock(dir) {
+  const defs = getBlockDefs();
+  const idx  = defs.findIndex(d => d.type === APP.ui.activeBlock);
+  const target = defs[idx + dir];
+  if (target) activateBlock(target.type);
+}
+
 function activateBlock(type, silent) {
   APP.ui.activeBlock = type;
   renderBlockNav();
   renderPanel(type);
+  updateSheetHeader(type);
 
   // Open sheet when tapping a block (unless silent — initial load)
   if (!silent) {
+    hideOnboardingHint();
     snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
   }
 
@@ -405,24 +599,17 @@ function renderPanel(type) {
       hint: blockDef.toggleHint || '',
     });
   } else if (blockDef.required) {
-    html += `<div class="flex items-center justify-between mb-2 pb-2 border-b border-[#F0EDE9]">
-      <div>
-        <span class="text-[13px] font-semibold text-[#1E2820]">${blockDef.label}</span>
-        <div class="text-[11px] text-[#B0AB9E] mt-0.5">Обязательный блок</div>
-      </div>
-      <div class="w-4 h-4 rounded-full bg-[#C2E0C6] flex items-center justify-center">
-        <svg width="10" height="10" fill="none" stroke="#1A3D20" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
-      </div>
+    html += `<div class="flex items-center gap-2 bg-[#F0F7F1] rounded-2xl px-3 py-2.5 mb-3">
+      <svg width="14" height="14" fill="none" stroke="#3D6B45" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+      <span class="text-[12px] font-semibold text-[#3D6B45]">Обязательный блок</span>
     </div>`;
   }
 
-  // Sections with fields
+  // All sections — always visible
   for (const section of blockDef.sections || []) {
     let inner = '';
     if (section.label) inner += sectionLabel(section.label);
-    for (const field of section.fields) {
-      inner += renderField(type, field);
-    }
+    for (const field of section.fields) inner += renderField(type, field);
     html += sectionCard(inner);
   }
 
@@ -778,10 +965,21 @@ function initEditorDelegation() {
     });
   }
 
-  // Scroll focused input into view
+  // Collapse button in sheet header
+  document.getElementById('sheetCollapseBtn')?.addEventListener('click', () => {
+    snapSheet(SHEET_SNAP.collapsed);
+  });
+
+  // Block navigation in sheet header
+  document.getElementById('sheetPrevBtn')?.addEventListener('click', () => _navigateBlock(-1));
+  document.getElementById('sheetNextBtn')?.addEventListener('click', () => _navigateBlock(1));
+
+
+  // Auto-expand sheet + scroll input into view on focus
   panel.addEventListener('focusin', (e) => {
     if (!e.target.matches('input,textarea,select')) return;
-    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 320);
+    snapSheet(SHEET_SNAP.full);
+    setTimeout(() => e.target.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 340);
   }, true);
 
   // Photos: drag-and-drop reorder (desktop)
@@ -883,9 +1081,8 @@ document.getElementById('editorTitle')?.addEventListener('input', function () {
 });
 
 // ─── Save ─────────────────────────────────────────────────────────────────
-document.getElementById('editorSave')?.addEventListener('click', handleSave);
-
-async function handleSave() {
+async function handleSave(opts = {}) {
+  const silent = opts.silent ?? false;
   const phone = localStorage.getItem('tl_phone');
   if (!phone) return;
 
@@ -894,13 +1091,17 @@ async function handleSave() {
 
   // ─── Валидация ────────────────────────────────────────────────────────────
   if (!f.person1?.trim() && !f.person2?.trim()) {
-    showToast('Укажите хотя бы одно имя в блоке «Обложка»', 'error');
-    activateBlock('hero');
+    if (!silent) {
+      showToast('Укажите хотя бы одно имя в блоке «Обложка»', 'error');
+      activateBlock('hero');
+    }
     return;
   }
   if (!f.eventDate) {
-    showToast('Укажите дату события в блоке «Обложка»', 'error');
-    activateBlock('hero');
+    if (!silent) {
+      showToast('Укажите дату события в блоке «Обложка»', 'error');
+      activateBlock('hero');
+    }
     return;
   }
 
@@ -919,11 +1120,7 @@ async function handleSave() {
     ...(APP.ui.editEventId ? { status: APP.ui.existingEvent?.status || 'DRAFT' } : {}),
   };
 
-  const btn = document.getElementById('editorSave');
-  const lbl = btn?.querySelector('.save-label');
-  btn.disabled = true;
-  btn.querySelector('.save-spinner').style.display = 'inline-block';
-  if (lbl) lbl.textContent = 'Сохраняю…';
+  setSaveStatus('saving');
 
   try {
     const result = await saveEvent(phone, data, APP.ui.editEventId);
@@ -933,17 +1130,279 @@ async function handleSave() {
       APP.ui.editEventId = result.id;
       history.replaceState(null, '', `?id=${result.id}`);
     }
+    if (result?.slug) APP.ui.slug = result.slug;
+    if (result?.status) { if (APP.ui.existingEvent) APP.ui.existingEvent.status = result.status; }
+    updatePublishBtn();
 
     markClean();
-    showToast('Сохранено', 'success');
   } catch (err) {
-    showToast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.querySelector('.save-spinner').style.display = 'none';
-    updateSaveButtonState();
+    setSaveStatus('error');
+    if (!silent) showToast(err.message, 'error');
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// KEYBOARD TOOLBAR
+// ═══════════════════════════════════════════════════════════════════════════
+
+let _kbToolbarActive = false;
+
+function _kbFocusableFields() {
+  const panel = document.getElementById('panelContent');
+  if (!panel) return [];
+  return Array.from(panel.querySelectorAll(
+    'input:not([type=hidden]):not(.sr-only), textarea'
+  )).filter(el => !el.disabled && el.offsetParent !== null);
+}
+
+function _kbUpdateBtns() {
+  const fields = _kbFocusableFields();
+  const idx    = fields.indexOf(document.activeElement);
+  const prev   = document.getElementById('kbPrev');
+  const next   = document.getElementById('kbNext');
+  if (prev) prev.disabled = idx <= 0;
+  if (next) next.disabled = idx < 0 || idx >= fields.length - 1;
+}
+
+function _kbStep(dir) {
+  const fields = _kbFocusableFields();
+  const idx    = fields.indexOf(document.activeElement);
+  const target = fields[idx + dir];
+  if (target) {
+    target.focus();
+    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'center' }), 50);
+  } else if (dir > 0) {
+    document.activeElement?.blur();
+  }
+  setTimeout(_kbUpdateBtns, 60);
+}
+
+function _positionKbToolbar() {
+  const vv = window.visualViewport;
+  const tb = document.getElementById('kbToolbar');
+  if (!vv || !tb) return;
+  tb.style.top   = (vv.offsetTop + vv.height) + 'px';
+  tb.style.left  = vv.offsetLeft + 'px';
+  tb.style.width = vv.width + 'px';
+}
+
+function _showKbToolbar() {
+  const tb = document.getElementById('kbToolbar');
+  if (!tb || _kbToolbarActive) return;
+  _kbToolbarActive = true;
+  _positionKbToolbar();
+  _kbUpdateBtns();
+  tb.classList.remove('hidden');
+}
+
+function _hideKbToolbar() {
+  const tb = document.getElementById('kbToolbar');
+  if (!tb || !_kbToolbarActive) return;
+  _kbToolbarActive = false;
+  tb.classList.add('hidden');
+}
+
+function initKbToolbar() {
+  if (!window.visualViewport) return;
+
+  let _lastVH = window.visualViewport.height;
+
+  window.visualViewport.addEventListener('resize', () => {
+    const vv  = window.visualViewport;
+    const kbH = window.innerHeight - vv.height - vv.offsetTop;
+    const kbOpen = kbH > 120;
+
+    if (kbOpen) {
+      _positionKbToolbar();
+      // Only show if a field inside panelContent is focused
+      const panel = document.getElementById('panelContent');
+      if (panel?.contains(document.activeElement)) _showKbToolbar();
+    } else {
+      _hideKbToolbar();
+    }
+  }, { passive: true });
+
+  // Show/hide on focus within panelContent
+  document.getElementById('panelContent')?.addEventListener('focusin', (e) => {
+    if (!e.target.matches('input, textarea')) return;
+    const vv  = window.visualViewport;
+    const kbH = window.innerHeight - vv.height - (vv.offsetTop || 0);
+    if (kbH > 120) _showKbToolbar();
+    setTimeout(_kbUpdateBtns, 60);
+  }, true);
+
+  document.getElementById('panelContent')?.addEventListener('focusout', () => {
+    // Small delay — focusout fires before the next focusin
+    setTimeout(() => {
+      const panel = document.getElementById('panelContent');
+      if (!panel?.contains(document.activeElement)) _hideKbToolbar();
+    }, 100);
+  }, true);
+
+  document.getElementById('kbPrev')?.addEventListener('click', () => _kbStep(-1));
+  document.getElementById('kbNext')?.addEventListener('click', () => _kbStep(1));
+  document.getElementById('kbDone')?.addEventListener('click', () => {
+    document.activeElement?.blur();
+    _hideKbToolbar();
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PUBLISH
+// ═══════════════════════════════════════════════════════════════════════════
+
+function getPublicUrl() {
+  if (!APP.ui.slug) return null;
+  return `${location.origin}/e/${APP.ui.slug}`;
+}
+
+function isPublished() {
+  return APP.ui.existingEvent?.status === 'PUBLISHED';
+}
+
+function updatePublishBtn() {
+  const btn   = document.getElementById('publishBtn');
+  const label = document.getElementById('publishBtnLabel');
+  if (!btn || !label) return;
+
+  if (isPublished()) {
+    btn.style.background = 'transparent';
+    btn.style.border     = '1.5px solid #3D6B45';
+    btn.style.color      = '#3D6B45';
+    label.innerHTML = `<span style="display:flex;align-items:center;gap:3px">
+      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      Ссылка
+    </span>`;
+  } else {
+    btn.style.background = '#3D6B45';
+    btn.style.border     = 'none';
+    btn.style.color      = 'white';
+    label.textContent = 'Опубликовать';
+  }
+}
+
+function showPublishSheet() {
+  const sheet    = document.getElementById('publishSheet');
+  const backdrop = document.getElementById('pubBackdrop');
+  const panel    = document.getElementById('pubPanel');
+  if (!sheet) return;
+
+  // Choose which state to show
+  const stateSuccess = document.getElementById('pubStateSuccess');
+  const stateConfirm = document.getElementById('pubStateConfirm');
+
+  if (isPublished()) {
+    stateSuccess?.classList.remove('hidden');
+    stateConfirm?.classList.add('hidden');
+    // Fill in link
+    const url = getPublicUrl() || '';
+    const linkText = document.getElementById('pubLinkText');
+    const openBtn  = document.getElementById('pubOpenBtn');
+    if (linkText) linkText.textContent = url;
+    if (openBtn)  openBtn.href = url;
+  } else {
+    stateSuccess?.classList.add('hidden');
+    stateConfirm?.classList.remove('hidden');
+  }
+
+  sheet.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    backdrop.style.opacity = '1';
+    panel.style.transform  = 'translateY(0)';
+  });
+}
+
+function hidePublishSheet() {
+  const backdrop = document.getElementById('pubBackdrop');
+  const panel    = document.getElementById('pubPanel');
+  const sheet    = document.getElementById('publishSheet');
+  if (!sheet) return;
+  backdrop.style.opacity = '0';
+  panel.style.transform  = 'translateY(100%)';
+  setTimeout(() => sheet.classList.add('hidden'), 300);
+}
+
+async function handlePublish() {
+  const phone = localStorage.getItem('tl_phone');
+  if (!phone) return;
+
+  // For new events: save first to get an id
+  if (!APP.ui.editEventId || APP.ui.dirty) {
+    await handleSave({ silent: true });
+    if (!APP.ui.editEventId) return; // validation failed
+  }
+
+  setSaveStatus('saving');
+  try {
+    const f = APP.form;
+    const b = APP.blocks;
+    const data = {
+      title:         f.title || `${f.person1 || ''} & ${f.person2 || ''}`.trim().replace(/^& |& $/, ''),
+      person1:       f.person1       || null,
+      person2:       f.person2       || null,
+      eventDate:     f.eventDate     || null,
+      rsvpDeadline:  f.rsvpDeadline  || null,
+      language:      f.language      || 'ru',
+      coverImageUrl: b.hero?.coverPhoto || null,
+      blocksConfig:  JSON.stringify(JSON.parse(JSON.stringify(b))),
+      status:        'PUBLISHED',
+    };
+    const result = await saveEvent(phone, data, APP.ui.editEventId);
+    if (result?.slug) APP.ui.slug = result.slug;
+    if (result?.status && APP.ui.existingEvent) APP.ui.existingEvent.status = result.status;
+    markClean();
+    updatePublishBtn();
+    // Re-open sheet in success state
+    hidePublishSheet();
+    setTimeout(() => showPublishSheet(), 320);
+  } catch (err) {
+    setSaveStatus('error');
+    showToast(err.message, 'error');
+  }
+}
+
+// ─── Publish sheet events ────────────────────────────────────────────────
+document.getElementById('publishBtn')?.addEventListener('click', showPublishSheet);
+
+document.getElementById('pubBackdrop')?.addEventListener('click', hidePublishSheet);
+
+document.getElementById('pubCancelBtn')?.addEventListener('click', hidePublishSheet);
+
+document.getElementById('pubConfirmBtn')?.addEventListener('click', handlePublish);
+
+document.getElementById('pubCopyBtn')?.addEventListener('click', async () => {
+  const url = getPublicUrl();
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Ссылка скопирована', 'success');
+  } catch {
+    // Fallback for browsers without clipboard API
+    const el = document.createElement('input');
+    el.value = url;
+    document.body.appendChild(el);
+    el.select();
+    document.execCommand('copy');
+    document.body.removeChild(el);
+    showToast('Ссылка скопирована', 'success');
+  }
+  hidePublishSheet();
+});
+
+document.getElementById('pubShareBtn')?.addEventListener('click', async () => {
+  const url = getPublicUrl();
+  if (!url) return;
+  const title = APP.form.title || 'Приглашение';
+  if (navigator.share) {
+    try {
+      await navigator.share({ title, url });
+    } catch (_) {}
+  } else {
+    await navigator.clipboard.writeText(url).catch(() => {});
+    showToast('Ссылка скопирована', 'success');
+    hidePublishSheet();
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // BOOT
@@ -951,6 +1410,7 @@ async function handleSave() {
 async function init() {
   initEditorDelegation();
   initDatePickerEvents();
+  initKbToolbar();
 
   const params = new URLSearchParams(location.search);
   APP.ui.editEventId = params.get('id') ? parseInt(params.get('id')) : null;
@@ -964,6 +1424,7 @@ async function init() {
 
     if (APP.ui.editEventId) {
       APP.ui.existingEvent = await fetchEvent(APP.ui.editEventId, phone);
+      APP.ui.slug = APP.ui.existingEvent.slug || null;
       APP.ui.selectedTemplate = templates.find(t => t.id === APP.ui.existingEvent.templateId) || templates[0];
       APP.form.title = APP.ui.existingEvent.title || '';
       // Load schema before opening editor
