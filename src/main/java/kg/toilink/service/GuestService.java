@@ -4,15 +4,19 @@ import kg.toilink.dto.request.CreateGuestRequest;
 import kg.toilink.dto.response.GuestResponse;
 import kg.toilink.entity.Event;
 import kg.toilink.entity.Guest;
+import kg.toilink.entity.RsvpResponse;
 import kg.toilink.entity.User;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
+import kg.toilink.repository.RsvpResponseRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,14 +24,22 @@ public class GuestService {
 
     private final GuestRepository guestRepository;
     private final EventRepository eventRepository;
+    private final RsvpResponseRepository rsvpResponseRepository;
     private final UserService userService;
 
     @Transactional(readOnly = true)
     public List<GuestResponse> findAllByEvent(Long eventId, String phone) {
         verifyOwnership(eventId, phone);
+
+        Map<Long, String> statusByGuest = rsvpResponseRepository.findAllByEventId(eventId).stream()
+                .collect(Collectors.toMap(
+                        r -> r.getGuest().getId(),
+                        RsvpResponse::getStatus,
+                        (a, b) -> b));
+
         return guestRepository.findAllByEventId(eventId)
                 .stream()
-                .map(GuestResponse::from)
+                .map(g -> GuestResponse.from(g, statusByGuest.get(g.getId())))
                 .toList();
     }
 
@@ -57,7 +69,8 @@ public class GuestService {
     }
 
     private Event verifyOwnership(Long eventId, String phone) {
-        User user = userService.findOrCreate(phone);
+        User user = userService.findByPhone(phone)
+                .orElseThrow(() -> NotFoundException.event(eventId));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> NotFoundException.event(eventId));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {

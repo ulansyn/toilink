@@ -3,12 +3,16 @@ package kg.toilink.service;
 import kg.toilink.dto.request.CreateEventRequest;
 import kg.toilink.dto.request.UpdateEventRequest;
 import kg.toilink.dto.response.EventResponse;
+import kg.toilink.dto.response.EventStatsResponse;
 import kg.toilink.entity.Event;
+import kg.toilink.entity.RsvpResponse;
 import kg.toilink.entity.Template;
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
+import kg.toilink.repository.GuestRepository;
+import kg.toilink.repository.RsvpResponseRepository;
 import kg.toilink.repository.TemplateRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,16 +26,19 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final TemplateRepository templateRepository;
+    private final GuestRepository guestRepository;
+    private final RsvpResponseRepository rsvpResponseRepository;
     private final UserService userService;
     private final SlugService slugService;
 
     @Transactional(readOnly = true)
     public List<EventResponse> findAllByUser(String phone) {
-        User user = userService.findOrCreate(phone);
-        return eventRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId())
-                .stream()
-                .map(EventResponse::from)
-                .toList();
+        return userService.findByPhone(phone)
+                .map(user -> eventRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId())
+                        .stream()
+                        .map(EventResponse::from)
+                        .toList())
+                .orElseGet(List::of);
     }
 
     @Transactional(readOnly = true)
@@ -97,8 +104,26 @@ public class EventService {
         eventRepository.delete(event);
     }
 
+    @Transactional(readOnly = true)
+    public EventStatsResponse getStats(Long id, String phone) {
+        Event event = getEventForUser(id, phone);
+        long total = guestRepository.findAllByEventId(event.getId()).size();
+
+        long attending = 0, declined = 0, maybe = 0;
+        for (RsvpResponse r : rsvpResponseRepository.findAllByEventId(event.getId())) {
+            switch (r.getStatus()) {
+                case "ATTENDING" -> attending++;
+                case "DECLINED" -> declined++;
+                case "MAYBE" -> maybe++;
+                default -> {}
+            }
+        }
+        return new EventStatsResponse(total, attending, declined, maybe);
+    }
+
     private Event getEventForUser(Long id, String phone) {
-        User user = userService.findOrCreate(phone);
+        User user = userService.findByPhone(phone)
+                .orElseThrow(() -> NotFoundException.event(id));
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.event(id));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {

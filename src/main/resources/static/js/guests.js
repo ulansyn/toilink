@@ -1,8 +1,26 @@
 // ─── State ────────────────────────────────────────────────────────────────────
 const BASE_URL = '';
-let eventId  = null;
-let eventData = null; // full event for slug
-let phone    = null;
+let eventId   = null;
+let eventData = null;
+let phone     = null;
+let allGuests = [];
+let _wired    = false;
+const state = {
+  filter: 'all',     // all | attending | declined | noReply
+  search: '',
+};
+
+// ─── Session cache ───────────────────────────────────────────────────────────
+function cacheSet(key, data) {
+  try { sessionStorage.setItem(key, JSON.stringify({ data, at: Date.now() })); } catch {}
+}
+function cacheGet(key, maxAge = 60_000) {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(key));
+    if (!v || Date.now() - v.at > maxAge) return null;
+    return v.data;
+  } catch { return null; }
+}
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function api(method, path, body) {
@@ -22,262 +40,644 @@ async function api(method, path, body) {
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
+let _toastTimer;
 function toast(msg, success = true) {
-  const t = document.createElement('div');
-  t.className = `fixed left-1/2 -translate-x-1/2 text-white text-sm px-5 py-3 rounded-2xl z-[60] shadow-lg whitespace-nowrap pointer-events-none transition-opacity duration-300 ${success ? 'bg-[#1E2820]' : 'bg-red-500'}`;
-  t.style.bottom = 'calc(80px + env(safe-area-inset-bottom, 0px))';
+  const t = document.getElementById('toast');
+  if (!t) return;
   t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 300); }, 2200);
+  t.classList.toggle('error', !success);
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
 }
 
-// ─── Copy link ────────────────────────────────────────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 function guestLink(guest) {
   if (!eventData?.slug || !guest.token) return null;
   return `${location.origin}/e/${eventData.slug}?token=${guest.token}`;
 }
 
-function copyGuestLink(guest) {
-  const url = guestLink(guest);
-  if (!url) { toast('Нет ссылки для этого гостя', false); return; }
-  navigator.clipboard.writeText(url)
-    .then(() => toast('Ссылка скопирована!'))
-    .catch(() => prompt('Ссылка гостя:', url));
+function pluralize(n, forms) {
+  const m = Math.abs(n) % 100;
+  const m1 = m % 10;
+  if (m > 10 && m < 20) return forms[2];
+  if (m1 > 1 && m1 < 5) return forms[1];
+  if (m1 === 1) return forms[0];
+  return forms[2];
 }
 
-// ─── Render stats ─────────────────────────────────────────────────────────────
-function renderStats(guests) {
-  const invited   = guests.filter(g => g.token).length;
-  const withNotes = guests.filter(g => g.notes).length;
-  document.getElementById('stats').innerHTML = `
-    <div class="stat-card bg-[#EDE9E4]">
-      <p class="text-[26px] font-bold text-[#1E2820] leading-none">${guests.length}</p>
-      <p class="text-[10px] uppercase tracking-wider text-[#6B6860] font-semibold">Всего</p>
-    </div>
-    <div class="stat-card bg-[#C2E0C6]">
-      <p class="text-[26px] font-bold text-[#1A3D20] leading-none">${invited}</p>
-      <p class="text-[10px] uppercase tracking-wider text-[#3D6B45] font-semibold">Invited</p>
-    </div>
-    <div class="stat-card bg-[#F5EFE6]">
-      <p class="text-[26px] font-bold text-[#7C6040] leading-none">${withNotes}</p>
-      <p class="text-[10px] uppercase tracking-wider text-[#8B7355] font-semibold">Заметки</p>
-    </div>`;
+function avatarPalette(name) {
+  const palettes = [
+    { bg: '#C2E0C6', fg: '#1A3D20' },
+    { bg: '#E6D5B8', fg: '#7C5520' },
+    { bg: '#DDE4EC', fg: '#3A5080' },
+    { bg: '#F0DCD5', fg: '#8B4030' },
+    { bg: '#EADDE4', fg: '#70345A' },
+  ];
+  return palettes[(name.charCodeAt(0) || 0) % palettes.length];
 }
 
-// ─── Render guest list ────────────────────────────────────────────────────────
-function renderGuests(guests) {
-  const container = document.getElementById('guest-list');
+function chipFor(status) {
+  switch (status) {
+    case 'ATTENDING':
+      return `<span class="chip-sm" style="background:#C2E0C6; color:#1A3D20;"><span class="chip-dot" style="background:#1A3D20;"></span>Придёт</span>`;
+    case 'DECLINED':
+      return `<span class="chip-sm" style="background:#F0DCD5; color:#8B4030;"><span class="chip-dot" style="background:#8B4030;"></span>Не придёт</span>`;
+    case 'MAYBE':
+      return `<span class="chip-sm" style="background:#E6D5B8; color:#7C5520;"><span class="chip-dot" style="background:#7C5520;"></span>Возможно</span>`;
+    default:
+      return `<span class="chip-sm" style="background:#F0EDE8; color:#7C6040;"><span class="chip-dot" style="background:#7C6040;"></span>Ждём</span>`;
+  }
+}
 
-  if (guests.length === 0) {
-    container.innerHTML = `
-      <div class="flex flex-col items-center justify-center py-20 text-center">
-        <div class="w-20 h-20 rounded-[24px] bg-[#C2E0C6] flex items-center justify-center mb-5">
-          <svg class="w-10 h-10 text-[#3D6B45]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-              d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>
-        </div>
-        <p class="font-cormorant text-[26px] font-semibold italic text-[#1E2820] mb-2">Гостей пока нет</p>
-        <p class="text-[#6B6860] text-sm mb-7 max-w-[220px] leading-relaxed">Добавьте первого гостя и отправьте ему личную ссылку</p>
-        <button onclick="openAddSheet()" class="fab">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
-          Добавить гостя
-        </button>
-      </div>`;
-    return;
+// ─── Stats & filtering ────────────────────────────────────────────────────────
+function computeStats(guests) {
+  const total = guests.length;
+  let attending = 0, declined = 0, maybe = 0;
+  for (const g of guests) {
+    if (g.rsvpStatus === 'ATTENDING') attending++;
+    else if (g.rsvpStatus === 'DECLINED') declined++;
+    else if (g.rsvpStatus === 'MAYBE') maybe++;
+  }
+  const noReply = total - attending - declined - maybe;
+  return { total, attending, declined, maybe, noReply };
+}
+
+const FILTERS = {
+  all:       { label: 'Все гости',   match: () => true },
+  attending: { label: 'Придут',      match: g => g.rsvpStatus === 'ATTENDING' },
+  declined:  { label: 'Не придут',   match: g => g.rsvpStatus === 'DECLINED' },
+  noReply:   { label: 'Без ответа',  match: g => !g.rsvpStatus },
+};
+
+function applyFilters() {
+  const f = FILTERS[state.filter] || FILTERS.all;
+  const q = state.search.trim().toLowerCase();
+  return allGuests.filter(g => {
+    if (!f.match(g)) return false;
+    if (!q) return true;
+    const hay = `${g.name || ''} ${g.phone || ''} ${g.notes || ''}`.toLowerCase();
+    return hay.includes(q);
+  });
+}
+
+function renderStats() {
+  const s = computeStats(allGuests);
+  const active = state.filter;
+
+  const cards = [
+    { key: 'all',       cls: '',             lbl: 'Приглашено', num: s.total },
+    { key: 'attending', cls: 'accent-mint',  lbl: 'Придут',     num: s.attending },
+    { key: 'declined',  cls: 'accent-rose',  lbl: 'Не придут',  num: s.declined },
+    { key: 'noReply',   cls: 'accent-gold',  lbl: 'Без ответа', num: s.noReply },
+  ];
+
+  document.getElementById('stats').innerHTML = cards.map(c => `
+    <button type="button"
+            data-filter="${c.key}"
+            class="stat-card ${c.cls} ${active === c.key ? 'active' : ''} fade-in">
+      <span class="lbl">${c.lbl}</span>
+      <span class="num">${c.num}</span>
+    </button>`).join('');
+
+  observeFadeIn();
+}
+
+function setFilter(key) {
+  state.filter = (state.filter === key && key !== 'all') ? 'all' : key;
+  renderStats();
+  syncToolbar();
+  renderList();
+}
+
+function syncToolbar() {
+  const toolbar = document.getElementById('toolbar');
+  const fc = document.getElementById('filter-clear');
+  const fcl = document.getElementById('filter-clear-label');
+  const searchClear = document.getElementById('search-clear');
+
+  toolbar.classList.remove('hidden');
+
+  if (state.filter !== 'all') {
+    fc.classList.remove('hidden');
+    fcl.textContent = FILTERS[state.filter].label;
+  } else {
+    fc.classList.add('hidden');
   }
 
-  container.innerHTML = `<div class="space-y-2">${guests.map(g => guestCard(g)).join('')}</div>`;
+  if (state.search) searchClear.classList.remove('hidden');
+  else searchClear.classList.add('hidden');
 }
 
-function guestCard(g) {
-  const initial  = (g.name || '?')[0].toUpperCase();
-  const link     = guestLink(g);
-  const avatarColors = [
-    'bg-[#C2E0C6] text-[#1A3D20]',
-    'bg-[#F5EFE6] text-[#7C6040]',
-    'bg-[#DBE4F0] text-[#3A5080]',
-    'bg-[#F0E0C8] text-[#7A4A1E]'
-  ];
-  const colorIdx = (g.name || '').charCodeAt(0) % avatarColors.length;
+// ─── Guest row ────────────────────────────────────────────────────────────────
+function guestRow(g) {
+  const name    = g.name || 'Аноним';
+  const initial = name[0].toUpperCase();
+  const p       = avatarPalette(name);
+  const chip    = chipFor(g.rsvpStatus);
+
+  const sub = g.notes
+    ? `<span class="italic-notes">«${escapeHtml(g.notes)}»</span>`
+    : (g.phone ? escapeHtml(g.phone) : '<span style="font-family:Cormorant Garamond,serif; font-style:italic; font-size:13px;">Без телефона</span>');
+
+  const copyBtn = g.token ? `
+    <button class="row-icon-btn copy" data-action="copy" data-guest-id="${g.id}" title="Скопировать ссылку" aria-label="Скопировать">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+    </button>` : '';
 
   return `
-    <div id="gc-${g.id}" class="guest-card">
-      <div class="flex items-center gap-3 p-4">
-        <div class="w-12 h-12 rounded-full ${avatarColors[colorIdx]} flex items-center justify-center font-bold text-base flex-shrink-0">
-          ${initial}
-        </div>
-
-        <div class="flex-1 min-w-0">
-          <p class="font-semibold text-[#1E2820] text-[15px] leading-tight">${g.name || 'Аноним'}</p>
-          ${g.phone
-            ? `<p class="text-xs text-[#6B6860] mt-0.5">${g.phone}</p>`
-            : '<p class="text-xs text-[#6B6860]/60 mt-0.5 italic">Без телефона</p>'}
-          ${g.notes ? `<p class="text-xs text-[#6B6860] italic mt-0.5 line-clamp-1">"${g.notes}"</p>` : ''}
-        </div>
-
-        <button onclick="copyGuestLink(${JSON.stringify(g).replace(/"/g, '&quot;')})"
-          class="flex-shrink-0 px-3 py-2.5 bg-[#C2E0C6] text-[#1A3D20] rounded-xl text-xs font-semibold
-                 active:scale-95 transition-transform flex items-center gap-1.5">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
-          </svg>
-          Ссылка
-        </button>
+    <div id="gc-${g.id}" class="guest-row fade-in" data-guest-id="${g.id}" data-rsvp="${g.rsvpStatus || ''}">
+      <div class="avatar flex-shrink-0"
+           style="width:40px; height:40px; border-radius:12px; background:${p.bg}; color:${p.fg}; font-size:18px;">
+        ${initial}
       </div>
-
-      ${link ? `
-        <div class="px-4 pb-3 -mt-1">
-          <div class="flex items-center gap-2 bg-[#3D6B45]/6 rounded-xl px-3 py-2">
-            <svg class="w-3.5 h-3.5 text-[#3D6B45] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-            </svg>
-            <p class="text-[10px] text-[#3D6B45] truncate flex-1 font-mono">${link}</p>
-          </div>
-        </div>` : ''}
-
-      <div class="flex border-t border-[#E8E4DE]/70">
-        <a href="/e/${eventData?.slug || ''}?token=${g.token || ''}" target="_blank" rel="noopener"
-          class="flex-1 py-3 text-center text-xs text-[#6B6860] hover:text-[#3D6B45] hover:bg-[#3D6B45]/5 transition-colors flex items-center justify-center gap-1.5 font-medium">
-          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-          </svg>
-          Просмотр
-        </a>
-        <div class="w-px bg-[#E8E4DE]/70"></div>
-        <button id="del-btn-${g.id}" onclick="handleDelete(${g.id})"
-          class="flex-1 py-3 text-center text-xs text-[#1E2820]/25 hover:text-red-400 hover:bg-red-50/60 transition-colors font-medium">
-          Удалить
+      <div class="guest-row-main">
+        <div class="guest-row-top">
+          <span class="guest-row-name">${escapeHtml(name)}</span>
+          ${chip}
+        </div>
+        <div class="guest-row-sub">${sub}</div>
+      </div>
+      <div class="guest-row-actions">
+        ${copyBtn}
+        <button class="row-icon-btn" data-action="menu" data-guest-id="${g.id}" title="Действия" aria-label="Действия">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg>
         </button>
       </div>
     </div>`;
 }
 
-// ─── Delete (soft confirm) ────────────────────────────────────────────────────
-const _delTimers = {};
-window.handleDelete = async function (guestId) {
-  const btn = document.getElementById('del-btn-' + guestId);
-  if (!btn) return;
-
-  if (_delTimers[guestId]) {
-    clearTimeout(_delTimers[guestId]);
-    delete _delTimers[guestId];
-    btn.textContent = '...';
-    btn.disabled = true;
-    try {
-      await api('DELETE', `/api/organizer/events/${eventId}/guests/${guestId}`);
-      const card = document.getElementById('gc-' + guestId);
-      if (card) {
-        card.style.transition = 'opacity 0.25s, transform 0.25s';
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.97)';
-        setTimeout(() => {
-          card.remove();
-          refreshStats();
-        }, 250);
-      }
-      toast('Гость удалён');
-    } catch {
-      toast('Не удалось удалить', false);
-      btn.textContent = 'Удалить';
-      btn.disabled = false;
-    }
-  } else {
-    btn.textContent = 'Удалить?';
-    btn.style.color = '#f87171';
-    _delTimers[guestId] = setTimeout(() => {
-      delete _delTimers[guestId];
-      if (btn) { btn.textContent = 'Удалить'; btn.style.color = ''; }
-    }, 3000);
-  }
-};
-
-function refreshStats() {
-  const cards = document.querySelectorAll('[id^="gc-"]');
-  document.getElementById('stats').querySelector('p').textContent = cards.length;
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-// ─── Add guest sheet ──────────────────────────────────────────────────────────
-window.openAddSheet = function () {
-  document.getElementById('add-backdrop').classList.remove('hidden');
-  const sheet = document.getElementById('add-sheet');
-  requestAnimationFrame(() => sheet.classList.add('open'));
-  document.getElementById('add-name').focus();
-};
-
-function closeAddSheet() {
-  document.getElementById('add-sheet').classList.remove('open');
-  setTimeout(() => document.getElementById('add-backdrop').classList.add('hidden'), 300);
-  document.getElementById('add-form').reset();
+// ─── List render ──────────────────────────────────────────────────────────────
+function renderEmpty() {
+  document.getElementById('listHeading')?.classList.add('hidden');
+  document.getElementById('toolbar')?.classList.add('hidden');
+  document.getElementById('guest-list').innerHTML = `
+    <div class="flex flex-col items-center justify-center text-center py-14 md:py-20 px-6 fade-in">
+      <div class="relative mb-6">
+        <div class="w-24 h-24 md:w-28 md:h-28 rounded-[28px] flex items-center justify-center"
+             style="background: linear-gradient(160deg, #C2E0C6 0%, #A8D2B0 100%);">
+          <svg class="w-10 h-10 md:w-12 md:h-12 text-sage2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+        </div>
+        <div class="absolute -top-3 -right-3 w-11 h-11 rounded-2xl bg-white border border-line flex items-center justify-center" style="box-shadow:0 6px 18px rgba(30,40,32,.08);">
+          <svg class="w-5 h-5 text-sage" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        </div>
+      </div>
+      <div class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-3">Начните список</div>
+      <h2 class="font-cormorant text-[30px] md:text-[40px] italic font-semibold text-ink leading-tight mb-3">
+        Добавьте <em class="text-sage">первого гостя</em>
+      </h2>
+      <p class="text-muted text-[14px] md:text-[15px] max-w-[320px] leading-relaxed mb-7">
+        Каждый гость получит уникальную ссылку на&nbsp;приглашение — с&nbsp;именем и&nbsp;возможностью ответить на&nbsp;RSVP.
+      </p>
+      <button onclick="openAddSheet()" class="btn-primary">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Добавить гостя
+      </button>
+    </div>`;
+  observeFadeIn();
 }
 
-document.getElementById('add-backdrop').addEventListener('click', closeAddSheet);
+function renderList() {
+  const container = document.getElementById('guest-list');
+  const heading   = document.getElementById('listHeading');
+  const title     = document.getElementById('listTitle');
+  const countLbl  = document.getElementById('guestCountLabel');
 
-window.submitAddGuest = async function (e) {
-  e.preventDefault();
-  const name  = document.getElementById('add-name').value.trim();
-  const phone_ = document.getElementById('add-phone').value.trim();
-  const notes = document.getElementById('add-notes').value.trim();
-
-  if (!name) {
-    document.getElementById('add-name').focus();
+  if (allGuests.length === 0) {
+    renderEmpty();
     return;
   }
 
-  const btn = e.target.querySelector('button[type="submit"]');
+  const filtered = applyFilters();
+
+  heading?.classList.remove('hidden');
+  if (title) title.textContent = FILTERS[state.filter].label;
+  if (countLbl) countLbl.textContent = `${filtered.length} ${pluralize(filtered.length, ['гость','гостя','гостей'])}`;
+
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="empty-filter fade-in">
+        <svg class="w-10 h-10 mx-auto mb-3 opacity-40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 10a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <p class="font-cormorant italic text-[20px] text-ink mb-1">Ничего не найдено</p>
+        <p class="text-[13px] text-muted">
+          ${state.search
+            ? `По запросу «${escapeHtml(state.search)}» — пусто`
+            : `В категории «${FILTERS[state.filter].label}» пока никого`}
+        </p>
+      </div>`;
+    observeFadeIn();
+    return;
+  }
+
+  container.innerHTML = `<div class="space-y-2">${filtered.map(guestRow).join('')}</div>`;
+  observeFadeIn();
+}
+
+function observeFadeIn() {
+  const obs = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
+  }, { threshold: 0.05 });
+  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => obs.observe(el));
+}
+
+// ─── Actions bottom sheet ────────────────────────────────────────────────────
+function openActionsSheet(g) {
+  document.getElementById('actionsBackdrop')?.remove();
+  document.getElementById('actionsSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'actionsBackdrop';
+  backdrop.className = 'bs-backdrop';
+
+  const sheet = document.createElement('div');
+  sheet.id = 'actionsSheet';
+  sheet.className = 'bs-sheet';
+
+  const name = g.name || 'Аноним';
+  const p = avatarPalette(name);
+  const chip = chipFor(g.rsvpStatus);
+  const link = guestLink(g);
+  const phoneClean = (g.phone || '').replace(/\D/g, '');
+
+  const waUrl = link ? (phoneClean
+    ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(`Дорогой(ая) ${name}, приглашаем вас на ${eventData?.title || 'приглашение'}!\n\n${link}`)}`
+    : `https://wa.me/?text=${encodeURIComponent(`Дорогой(ая) ${name}, приглашаем вас на ${eventData?.title || 'приглашение'}!\n\n${link}`)}`) : null;
+
+  const viewUrl = `/e/${eventData?.slug || ''}${g.token ? '?token=' + g.token : ''}`;
+
+  sheet.innerHTML = `
+    <div class="sheet-inner">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0 pt-2 md:pt-0">
+        <div class="flex items-center gap-3 mb-4 pb-4" style="border-bottom: 1px solid #F0EDE8;">
+          <div class="avatar flex-shrink-0"
+               style="width:48px; height:48px; border-radius:14px; background:${p.bg}; color:${p.fg}; font-size:22px;">
+            ${name[0].toUpperCase()}
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-cormorant italic text-[22px] font-semibold text-ink leading-tight truncate">${escapeHtml(name)}</p>
+            <div class="flex items-center gap-2 mt-1 flex-wrap">
+              ${chip}
+              ${g.phone ? `<span class="text-[12px] text-muted">${escapeHtml(g.phone)}</span>` : ''}
+            </div>
+            ${g.notes ? `<p class="text-[12.5px] text-muted font-cormorant italic mt-1.5 line-clamp-2">«${escapeHtml(g.notes)}»</p>` : ''}
+          </div>
+        </div>
+
+        <div class="flex flex-col">
+          ${link ? `
+            <button class="action-row" data-act="copy">
+              <div class="action-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+              </div>
+              <div class="action-main">
+                <div class="action-title">Скопировать ссылку</div>
+                <div class="action-sub">Отправить в любой мессенджер</div>
+              </div>
+            </button>` : ''}
+
+          ${waUrl ? `
+            <a class="action-row" href="${waUrl}" target="_blank" rel="noopener" data-act="wa">
+              <div class="action-icon" style="background: rgba(37,211,102,.10); color:#128C7E;">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              </div>
+              <div class="action-main">
+                <div class="action-title">Отправить в WhatsApp</div>
+                <div class="action-sub">${phoneClean ? 'Напрямую гостю' : 'Выбрать контакт'}</div>
+              </div>
+            </a>` : ''}
+
+          <a class="action-row" href="${viewUrl}" target="_blank" rel="noopener" data-act="view">
+            <div class="action-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            </div>
+            <div class="action-main">
+              <div class="action-title">Открыть приглашение</div>
+              <div class="action-sub">Как увидит гость</div>
+            </div>
+          </a>
+
+          <div class="action-divider"></div>
+
+          <button class="action-row danger" data-act="delete">
+            <div class="action-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+            </div>
+            <div class="action-main">
+              <div class="action-title">Удалить гостя</div>
+              <div class="action-sub">Ссылка перестанет работать</div>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+
+  let startY = 0;
+  sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - startY;
+    if (dy > 60) close();
+  }, { passive: true });
+
+  // action handlers
+  sheet.querySelectorAll('[data-act]').forEach(el => {
+    el.addEventListener('click', async (ev) => {
+      const act = el.getAttribute('data-act');
+      if (act === 'copy') {
+        ev.preventDefault();
+        const url = guestLink(g);
+        if (!url) return;
+        try {
+          await navigator.clipboard.writeText(url);
+          toast('Ссылка скопирована');
+        } catch {
+          prompt('Ссылка гостя:', url);
+        }
+        close();
+      } else if (act === 'delete') {
+        ev.preventDefault();
+        close();
+        setTimeout(() => confirmDelete(g.id), 260);
+      }
+      // wa/view: native link — just close after
+      else setTimeout(close, 100);
+    });
+  });
+
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  });
+}
+
+// ─── Confirm delete sheet ─────────────────────────────────────────────────────
+function confirmDelete(guestId) {
+  const g = allGuests.find(x => x.id === guestId);
+  if (!g) return;
+
+  document.getElementById('confirmBackdrop')?.remove();
+  document.getElementById('confirmSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'confirmBackdrop';
+  backdrop.className = 'bs-backdrop';
+
+  const sheet = document.createElement('div');
+  sheet.id = 'confirmSheet';
+  sheet.className = 'bs-sheet';
+
+  sheet.innerHTML = `
+    <div class="sheet-inner">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0 pt-3 md:pt-0 text-center">
+        <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background: rgba(184,65,46,.08); color:#B8412E;">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h2 class="font-cormorant italic text-[24px] md:text-[28px] font-semibold text-ink mb-2">Удалить гостя?</h2>
+        <p class="text-[14px] text-muted leading-relaxed mb-5 max-w-[320px] mx-auto">
+          <strong class="text-ink">${escapeHtml(g.name || 'Аноним')}</strong> исчезнет из&nbsp;списка.
+          ${g.token ? 'Персональная ссылка перестанет работать.' : ''}
+        </p>
+        <div class="flex flex-col gap-2">
+          <button id="confirm-delete-btn" class="btn-primary w-full" style="background:#B8412E;">
+            Да, удалить
+          </button>
+          <button id="confirm-cancel-btn" class="btn-ghost w-full">
+            Отмена
+          </button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+  sheet.querySelector('#confirm-cancel-btn').addEventListener('click', close);
+
+  sheet.querySelector('#confirm-delete-btn').addEventListener('click', async () => {
+    const btn = sheet.querySelector('#confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Удаление...';
+    try {
+      await api('DELETE', `/api/organizer/events/${eventId}/guests/${guestId}`);
+      allGuests = allGuests.filter(x => x.id !== guestId);
+      renderStats();
+      renderList();
+      toast('Гость удалён');
+      close();
+    } catch (err) {
+      toast(err.message || 'Не удалось удалить', false);
+      btn.disabled = false;
+      btn.textContent = 'Да, удалить';
+    }
+  });
+
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  });
+}
+
+// ─── Event delegation (row clicks) ────────────────────────────────────────────
+function wireListDelegation() {
+  document.getElementById('guest-list').addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (btn) {
+      const gid = parseInt(btn.getAttribute('data-guest-id'));
+      const g = allGuests.find(x => x.id === gid);
+      if (!g) return;
+      const act = btn.getAttribute('data-action');
+      if (act === 'copy') {
+        e.stopPropagation();
+        const url = guestLink(g);
+        if (!url) { toast('Нет ссылки', false); return; }
+        navigator.clipboard.writeText(url)
+          .then(() => toast('Ссылка скопирована'))
+          .catch(() => prompt('Ссылка:', url));
+      } else if (act === 'menu') {
+        e.stopPropagation();
+        openActionsSheet(g);
+      }
+      return;
+    }
+    // tap on row body → open actions
+    const row = e.target.closest('.guest-row');
+    if (row) {
+      const gid = parseInt(row.getAttribute('data-guest-id'));
+      const g = allGuests.find(x => x.id === gid);
+      if (g) openActionsSheet(g);
+    }
+  });
+}
+
+function wireStatsDelegation() {
+  document.getElementById('stats').addEventListener('click', (e) => {
+    const card = e.target.closest('[data-filter]');
+    if (!card) return;
+    setFilter(card.getAttribute('data-filter'));
+  });
+}
+
+function wireToolbar() {
+  const input = document.getElementById('search-input');
+  const searchClear = document.getElementById('search-clear');
+  const filterClear = document.getElementById('filter-clear');
+
+  let t;
+  input.addEventListener('input', () => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      state.search = input.value;
+      syncToolbar();
+      renderList();
+    }, 120);
+  });
+
+  searchClear.addEventListener('click', () => {
+    input.value = '';
+    state.search = '';
+    syncToolbar();
+    renderList();
+    input.focus();
+  });
+
+  filterClear.addEventListener('click', () => {
+    setFilter('all');
+  });
+}
+
+// ─── Add guest submit ─────────────────────────────────────────────────────────
+window.submitAddGuest = async function (e) {
+  e.preventDefault();
+  const name   = document.getElementById('add-name').value.trim();
+  const phone_ = document.getElementById('add-phone').value.trim();
+  const notes  = document.getElementById('add-notes').value.trim();
+
+  if (!name) { document.getElementById('add-name').focus(); return; }
+
+  const btn = document.getElementById('addSubmitBtn');
+  const origHtml = btn.innerHTML;
   btn.disabled = true;
-  btn.textContent = 'Добавляем...';
+  btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 018-8V2.5M20 12a8 8 0 01-8 8v1.5"/></svg> Добавляем...';
 
   try {
     const guest = await api('POST', `/api/organizer/events/${eventId}/guests`, {
-      name,
-      phone: phone_ || null,
-      notes: notes || null,
+      name, phone: phone_ || null, notes: notes || null,
     });
 
     closeAddSheet();
 
-    // Prepend new guest card
-    const container = document.getElementById('guest-list');
-    const existing = container.querySelector('.space-y-3');
-    if (existing) {
-      existing.insertAdjacentHTML('afterbegin', guestCard(guest));
-    } else {
-      // Was empty state — re-render
-      container.innerHTML = `<div class="space-y-3">${guestCard(guest)}</div>`;
-    }
+    allGuests = [guest, ...allGuests];
+    renderStats();
+    renderList();
 
-    // Update stats
-    const totalEl = document.querySelector('#stats div:first-child p');
-    if (totalEl) totalEl.textContent = parseInt(totalEl.textContent || '0') + 1;
-    const invEl = document.querySelector('#stats div:nth-child(2) p');
-    if (invEl && guest.token) invEl.textContent = parseInt(invEl.textContent || '0') + 1;
-
-    // Auto-copy link
     if (guest.token && eventData?.slug) {
       const url = `${location.origin}/e/${eventData.slug}?token=${guest.token}`;
-      navigator.clipboard.writeText(url).then(() => toast(`Гость добавлен! Ссылка скопирована`));
+      navigator.clipboard.writeText(url)
+        .then(() => toast('Гость добавлен. Ссылка скопирована'))
+        .catch(() => toast('Гость добавлен'));
     } else {
-      toast('Гость добавлен!');
+      toast('Гость добавлен');
     }
   } catch (err) {
     toast(err.message || 'Ошибка', false);
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Добавить и получить ссылку';
+    btn.innerHTML = origHtml;
   }
 };
 
-// Make copyGuestLink accessible from inline onclick with parsed object
-window.copyGuestLink = function (g) {
-  const link = guestLink(g);
-  if (!link) { toast('Нет токена у гостя', false); return; }
-  navigator.clipboard.writeText(link)
-    .then(() => toast('Ссылка скопирована!'))
-    .catch(() => prompt('Ссылка:', link));
-};
+function applyEventMeta(event) {
+  const name = event?.title || 'Гости';
+  document.title = `ToiLink — ${name}`;
+  const mob = document.getElementById('mob-event-title'); if (mob) mob.textContent = name;
+  const crumb = document.getElementById('crumb-event');   if (crumb) crumb.textContent = name;
+}
+
+function renderAll() {
+  renderStats();
+  if (allGuests.length > 0) syncToolbar();
+  renderList();
+  if (!_wired) {
+    wireStatsDelegation();
+    wireListDelegation();
+    wireToolbar();
+    _wired = true;
+  }
+}
+
+async function fetchData() {
+  return Promise.all([
+    fetch(`${BASE_URL}/api/organizer/events/${eventId}`, {
+      headers: { 'X-User-Phone': phone },
+    }).then(r => r.json()),
+    api('GET', `/api/organizer/events/${eventId}/guests`),
+  ]);
+}
+
+async function refreshData() {
+  try {
+    const [event, guests] = await fetchData();
+    const changed =
+      JSON.stringify(event) !== JSON.stringify(eventData) ||
+      JSON.stringify(guests) !== JSON.stringify(allGuests);
+    eventData = event;
+    allGuests = guests;
+    cacheSet(`tl:event:${eventId}`, event);
+    cacheSet(`tl:guests:${eventId}`, guests);
+    if (changed) {
+      applyEventMeta(event);
+      renderAll();
+    }
+  } catch { /* background — ignore */ }
+}
+
+function showErrorState(err) {
+  document.getElementById('stats').innerHTML = '';
+  document.getElementById('toolbar')?.classList.add('hidden');
+  document.getElementById('guest-list').innerHTML = `
+    <div class="flex flex-col items-center justify-center text-center py-16 md:py-20 px-6 fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-cream3 flex items-center justify-center mb-5">
+        <svg class="w-7 h-7 text-muted" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <h3 class="font-cormorant italic text-[24px] text-ink mb-2">Что-то пошло не так</h3>
+      <p class="text-muted text-[14px] mb-6 max-w-[300px]">${err?.message || 'Не удалось загрузить гостей'}</p>
+      <button onclick="location.reload()" class="btn-primary">Попробовать снова</button>
+    </div>`;
+  observeFadeIn();
+}
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 async function init() {
@@ -286,30 +686,35 @@ async function init() {
 
   if (!eventId) { location.href = '/'; return; }
 
+  const f = params.get('filter');
+  if (f && FILTERS[f]) state.filter = f;
+
   phone = await window.initAuth();
   if (!phone) return;
 
+  const cachedEvent  = cacheGet(`tl:event:${eventId}`);
+  const cachedGuests = cacheGet(`tl:guests:${eventId}`);
+
+  if (cachedEvent && cachedGuests) {
+    // Instant render from cache, then revalidate in background
+    eventData = cachedEvent;
+    allGuests = cachedGuests;
+    applyEventMeta(eventData);
+    renderAll();
+    refreshData();
+    return;
+  }
+
   try {
-    const [event, guests] = await Promise.all([
-      fetch(`${BASE_URL}/api/organizer/events/${eventId}`, {
-        headers: { 'X-User-Phone': phone },
-      }).then(r => r.json()),
-      api('GET', `/api/organizer/events/${eventId}/guests`),
-    ]);
-
+    const [event, guests] = await fetchData();
     eventData = event;
-
-    // Set page titles
-    const name = event.title || 'Гости';
-    document.title = `ToiLink — ${name}`;
-    document.getElementById('hdr-event-title').textContent = name;
-    document.getElementById('mob-event-title').textContent = name;
-
-    renderStats(guests);
-    renderGuests(guests);
+    allGuests = guests;
+    cacheSet(`tl:event:${eventId}`, event);
+    cacheSet(`tl:guests:${eventId}`, guests);
+    applyEventMeta(event);
+    renderAll();
   } catch (err) {
-    document.getElementById('guest-list').innerHTML = `
-      <p class="text-center text-[#1E2820]/40 py-12">${err.message || 'Ошибка загрузки'}</p>`;
+    showErrorState(err);
   }
 }
 

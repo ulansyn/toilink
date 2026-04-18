@@ -12,9 +12,14 @@ public record GuestResponse(
         String phone,
         String notes,
         UUID token,
+        String rsvpStatus,
         LocalDateTime createdAt
 ) {
     public static GuestResponse from(Guest g) {
+        return from(g, null);
+    }
+
+    public static GuestResponse from(Guest g, String rsvpStatus) {
         return new GuestResponse(
                 g.getId(),
                 g.getEvent().getId(),
@@ -22,6 +27,7 @@ public record GuestResponse(
                 g.getPhone(),
                 g.getNotes(),
                 g.getToken(),
+                rsvpStatus,
                 g.getCreatedAt()
         );
     }

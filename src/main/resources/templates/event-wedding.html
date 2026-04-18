@@ -248,6 +248,14 @@
         var rawDate = /*[[${eventDate}]]*/ '';
         var rawBlocksConfig = /*[[${eventBlocksConfig}]]*/ '{}';
         var eventSlug = /*[[${eventSlug}]]*/ '';
+        var eventStatus = /*[[${eventStatus}]]*/ '';
+        var rsvpDeadline = /*[[${eventRsvpDeadline}]]*/ '';
+
+        window.EVENT_META = {
+            slug: eventSlug,
+            status: eventStatus,
+            rsvpDeadline: rsvpDeadline
+        };
 
         var blocksConfig = {};
         try { blocksConfig = JSON.parse(rawBlocksConfig); } catch(e) {}

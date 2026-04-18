@@ -262,6 +262,22 @@ class WeddingRenderer {
     const container = document.querySelector('[data-render="rsvp"]');
     if (!container) return;
     const rsvp = this.config.rsvp;
+
+    // Check if event is closed for responses (skip in editor preview)
+    const meta = window.EVENT_META;
+    if (meta && !window.__IS_PREVIEW) {
+      const deadlinePassed = meta.rsvpDeadline && new Date(meta.rsvpDeadline) < new Date();
+      if (meta.status === 'CLOSED' || deadlinePassed) {
+        container.innerHTML = `
+          <div class="rsvp-form-wrap" style="text-align:center; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🕊️</div>
+            <h2 class="rsvp-heading" style="margin-bottom: 12px;">Приём ответов завершён</h2>
+            <p class="rsvp-subtitle" style="opacity: 0.75;">Спасибо за внимание к приглашению.</p>
+          </div>
+        `;
+        return;
+      }
+    }
     container.innerHTML = `
       <div class="rsvp-form-wrap">
         <h2 class="rsvp-heading">${rsvp.heading}</h2>
@@ -350,22 +366,19 @@ class WeddingRenderer {
     const wrap = container.querySelector('.rsvp-form-wrap');
     const success = container.querySelector('.rsvp-success');
 
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-
 
       let isValid = true;
       form.querySelectorAll('[required]').forEach(input => {
         if (!input.value.trim()) {
           isValid = false;
           input.parentElement.classList.add('has-error');
-
           input.addEventListener('input', () => input.parentElement.classList.remove('has-error'), { once: true });
         }
       });
 
       if (!isValid) {
-
         form.classList.add('form-shake');
         setTimeout(() => form.classList.remove('form-shake'), 500);
         return;
@@ -373,23 +386,69 @@ class WeddingRenderer {
 
       const btn = form.querySelector('.rsvp-button');
       if (btn.classList.contains('is-loading')) return;
-
-
       btn.classList.add('is-loading');
 
-
-      const data = new FormData(form);
-      if (rsvp.formAction && rsvp.formAction !== '#') {
-        fetch(rsvp.formAction, { method: rsvp.method || 'POST', body: data }).catch(() => { });
-      }
-
-
-      setTimeout(() => {
+      const showSuccess = () => {
         wrap.classList.add('is-hidden');
         success.classList.add('is-visible');
         this.startRSVPCountdown();
-      }, 1500);
+      };
+
+      // Editor preview: fake success, don't hit backend
+      if (window.__IS_PREVIEW) {
+        setTimeout(showSuccess, 1000);
+        return;
+      }
+
+      const meta = window.EVENT_META || {};
+      const slug = meta.slug;
+      if (!slug) {
+        btn.classList.remove('is-loading');
+        this._showRsvpError(form, 'Не удалось определить событие');
+        return;
+      }
+
+      const presence = form.querySelector('[name="presence"]:checked')?.value || 'yes';
+      const status = presence === 'yes' ? 'ATTENDING' : 'DECLINED';
+      const name = form.querySelector('[name="name"]')?.value?.trim() || null;
+      const guestCountRaw = form.querySelector('[name="guest_count"]')?.value;
+      const groupSize = Math.max(1, parseInt(guestCountRaw, 10) || 1);
+      const comment = form.querySelector('[name="message"]')?.value?.trim() || null;
+      const token = new URLSearchParams(location.search).get('token') || null;
+
+      try {
+        const res = await fetch(`/api/public/events/${encodeURIComponent(slug)}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ guestToken: token, name, status, groupSize, comment })
+        });
+        if (!res.ok) {
+          let msg = 'Не удалось отправить ответ';
+          try {
+            const body = await res.json();
+            if (body && body.message) msg = body.message;
+          } catch (_) {}
+          throw new Error(msg);
+        }
+        showSuccess();
+      } catch (err) {
+        btn.classList.remove('is-loading');
+        this._showRsvpError(form, err.message || 'Ошибка отправки');
+      }
     });
+  }
+
+  _showRsvpError(form, message) {
+    let errEl = form.querySelector('.rsvp-error');
+    if (!errEl) {
+      errEl = document.createElement('p');
+      errEl.className = 'rsvp-error';
+      errEl.style.cssText = 'color:#b33030; text-align:center; margin-top:12px; font-size:14px;';
+      form.appendChild(errEl);
+    }
+    errEl.textContent = message;
+    form.classList.add('form-shake');
+    setTimeout(() => form.classList.remove('form-shake'), 500);
   }
 
   startRSVPCountdown() {

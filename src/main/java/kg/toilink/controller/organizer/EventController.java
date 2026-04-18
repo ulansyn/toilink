@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import kg.toilink.dto.request.CreateEventRequest;
 import kg.toilink.dto.request.UpdateEventRequest;
 import kg.toilink.dto.response.EventResponse;
+import kg.toilink.dto.response.EventStatsResponse;
 import kg.toilink.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -27,6 +28,12 @@ public class EventController {
     public EventResponse getById(@PathVariable Long id,
                                  @RequestHeader("X-User-Phone") String phone) {
         return eventService.findById(id, phone);
+    }
+
+    @GetMapping("/{id}/stats")
+    public EventStatsResponse getStats(@PathVariable Long id,
+                                       @RequestHeader("X-User-Phone") String phone) {
+        return eventService.getStats(id, phone);
     }
 
     @PostMapping

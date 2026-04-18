@@ -2,6 +2,14 @@ spring:
   application:
     name: toilink
 
+  web:
+    resources:
+      cache:
+        period: 0
+        cachecontrol:
+          no-cache: true
+          must-revalidate: true
+
   datasource:
     url: jdbc:postgresql://${PGHOST:localhost}:${PGPORT:5432}/${PGDATABASE:toilink}
     username: ${PGUSER:postgres}
