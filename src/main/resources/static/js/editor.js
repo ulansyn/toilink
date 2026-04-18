@@ -35,6 +35,65 @@ const APP = {
   },
 };
 
+const cacheGet = (key, maxAge = 120000) => window.ToiAppShell?.cacheGet(key, maxAge) || null;
+const cacheSet = (key, data) => window.ToiAppShell?.cacheSet(key, data);
+const TEMPLATES_CACHE_KEY = 'tl:templates:list';
+const EVENTS_CACHE_KEY = 'tl:events:list';
+
+function syncEventCaches(event) {
+  if (!event?.id) return;
+  cacheSet(`tl:event:${event.id}`, event);
+  const existing = cacheGet(EVENTS_CACHE_KEY, 10 * 60_000);
+  if (Array.isArray(existing)) {
+    const found = existing.some(item => item.id === event.id);
+    const next = found
+      ? existing.map(item => item.id === event.id ? { ...item, ...event } : item)
+      : [event, ...existing];
+    cacheSet(EVENTS_CACHE_KEY, next);
+  }
+}
+
+function warmEditorRelatedPages() {
+  window.ToiAppShell?.prefetchPage('/');
+  if (APP.ui.editEventId) window.ToiAppShell?.prefetchPage(`/guests.html?eventId=${APP.ui.editEventId}`);
+}
+
+async function loadSchemaForTemplate(template) {
+  const tplPath = template?.templatePath || 'template-1';
+  const schemaUrl = `/templates/${tplPath}/schema.json`;
+  APP.schema = await fetch(schemaUrl).then(r => r.json());
+  initStateFromSchema(APP.schema);
+  APP.ui.activeBlock = APP.schema.blocks[0]?.type || null;
+}
+
+async function bootstrapEditor(templates, event, alreadyOpen = false) {
+  window._templates = templates;
+  cacheSet(TEMPLATES_CACHE_KEY, templates);
+
+  if (event) {
+    APP.ui.existingEvent = event;
+    APP.ui.editEventId = event.id;
+    APP.ui.slug = event.slug || null;
+    APP.ui.selectedTemplate = templates.find(t => t.id === event.templateId) || templates[0];
+    if (!APP.ui.selectedTemplate) throw new Error('Шаблон не найден');
+    await loadSchemaForTemplate(APP.ui.selectedTemplate);
+    syncEventCaches(event);
+    if (!alreadyOpen) openEditorOverlay();
+    warmEditorRelatedPages();
+    return true;
+  }
+
+  if (templates.length === 1) {
+    APP.ui.selectedTemplate = templates[0];
+    if (!alreadyOpen) goToEditor();
+    warmEditorRelatedPages();
+    return true;
+  }
+
+  if (!alreadyOpen) renderTemplatePicker(templates);
+  return true;
+}
+
 // ─── Schema helpers ───────────────────────────────────────────────────────
 function getBlockDefs() {
   return APP.schema?.blocks || [];
@@ -1366,8 +1425,12 @@ async function handleSave(opts = {}) {
       APP.ui.editEventId = result.id;
       history.replaceState(null, '', `?id=${result.id}`);
     }
+    if (!APP.ui.existingEvent) APP.ui.existingEvent = {};
+    APP.ui.existingEvent = { ...APP.ui.existingEvent, ...result };
     if (result?.slug) APP.ui.slug = result.slug;
     if (result?.status) { if (APP.ui.existingEvent) APP.ui.existingEvent.status = result.status; }
+    syncEventCaches(APP.ui.existingEvent);
+    warmEditorRelatedPages();
     updatePublishBtn();
 
     markClean();
@@ -1584,8 +1647,12 @@ async function handlePublish() {
       status:        'PUBLISHED',
     };
     const result = await saveEvent(phone, data, APP.ui.editEventId);
+    if (!APP.ui.existingEvent) APP.ui.existingEvent = {};
+    APP.ui.existingEvent = { ...APP.ui.existingEvent, ...result };
     if (result?.slug) APP.ui.slug = result.slug;
     if (result?.status && APP.ui.existingEvent) APP.ui.existingEvent.status = result.status;
+    syncEventCaches(APP.ui.existingEvent);
+    warmEditorRelatedPages();
     markClean();
     updatePublishBtn();
     // Re-open sheet in success state
@@ -1654,29 +1721,40 @@ async function init() {
   const phone = await window.initAuth?.();
   if (!phone) { location.href = '/'; return; }
 
+  const cachedTemplates = cacheGet(TEMPLATES_CACHE_KEY, 5 * 60_000);
+  const cachedEvent = APP.ui.editEventId ? cacheGet(`tl:event:${APP.ui.editEventId}`, 5 * 60_000) : null;
+  let bootstrapped = false;
+
+  if (cachedTemplates?.length) {
+    try {
+      bootstrapped = await bootstrapEditor(cachedTemplates, cachedEvent, false);
+    } catch (_) {
+      bootstrapped = false;
+    }
+  }
+
   try {
     const templates = await fetchTemplates();
-    window._templates = templates;
-
     if (APP.ui.editEventId) {
-      APP.ui.existingEvent = await fetchEvent(APP.ui.editEventId, phone);
-      APP.ui.slug = APP.ui.existingEvent.slug || null;
-      APP.ui.selectedTemplate = templates.find(t => t.id === APP.ui.existingEvent.templateId) || templates[0];
-      APP.form.title = APP.ui.existingEvent.title || '';
-      // Load schema before opening editor
-      const schemaUrl = `/templates/${APP.ui.selectedTemplate.templatePath}/schema.json`;
-      APP.schema = await fetch(schemaUrl).then(r => r.json());
-      initStateFromSchema(APP.schema);
-      APP.ui.activeBlock = APP.schema.blocks[0]?.type || null;
-      openEditorOverlay();
-    } else if (templates.length === 1) {
-      APP.ui.selectedTemplate = templates[0];
-      goToEditor();
+      const freshEvent = await fetchEvent(APP.ui.editEventId, phone);
+      if (!bootstrapped) {
+        await bootstrapEditor(templates, freshEvent, false);
+      } else {
+        APP.ui.existingEvent = { ...APP.ui.existingEvent, ...freshEvent };
+        APP.ui.slug = APP.ui.existingEvent.slug || APP.ui.slug;
+        syncEventCaches(APP.ui.existingEvent);
+        warmEditorRelatedPages();
+      }
+    } else if (!bootstrapped) {
+      await bootstrapEditor(templates, null, false);
     } else {
-      renderTemplatePicker(templates);
+      cacheSet(TEMPLATES_CACHE_KEY, templates);
+      window._templates = templates;
+      if (!APP.ui.editEventId && !APP.ui.selectedTemplate) renderTemplatePicker(templates);
+      warmEditorRelatedPages();
     }
   } catch (err) {
-    showToast(err.message, 'error');
+    if (!bootstrapped) showToast(err.message, 'error');
   }
 }
 

@@ -6,6 +6,19 @@ function cacheSet(key, data) {
   try { sessionStorage.setItem(key, JSON.stringify({ data, at: Date.now() })); } catch {}
 }
 
+function cacheGet(key, maxAge = 60_000) {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(key));
+    if (!v || Date.now() - v.at > maxAge) return null;
+    return v.data;
+  } catch {
+    return null;
+  }
+}
+
+const EVENTS_CACHE_KEY = 'tl:events:list';
+const STATS_CACHE_KEY = 'tl:events:stats';
+
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function fetchEvents(phone) {
   const res = await fetch(`${BASE_URL}/api/organizer/events`, {
@@ -544,18 +557,125 @@ function pluralize(n, forms) {
 }
 
 function _observeFadeIn() {
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-    });
-  }, { threshold: 0.05 });
-  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => io.observe(el));
+  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => el.classList.add('visible'));
+  window.ToiAppShell?.scheduleSnapshotCapture?.();
+}
+
+function cacheStats(eventId, stats) {
+  if (!eventId || !stats) return;
+  cacheSet(`tl:event:stats:${eventId}`, stats);
+  const existing = cacheGet(STATS_CACHE_KEY, 10 * 60_000) || {};
+  existing[eventId] = stats;
+  cacheSet(STATS_CACHE_KEY, existing);
+}
+
+function removeCachedEvent(eventId) {
+  const events = cacheGet(EVENTS_CACHE_KEY, 10 * 60_000);
+  if (Array.isArray(events)) {
+    cacheSet(EVENTS_CACHE_KEY, events.filter(event => event.id !== eventId));
+  }
+  const statsMap = cacheGet(STATS_CACHE_KEY, 10 * 60_000);
+  if (statsMap && typeof statsMap === 'object') {
+    delete statsMap[eventId];
+    cacheSet(STATS_CACHE_KEY, statsMap);
+  }
+  try {
+    sessionStorage.removeItem(`tl:event:${eventId}`);
+    sessionStorage.removeItem(`tl:guests:${eventId}`);
+    sessionStorage.removeItem(`tl:event:stats:${eventId}`);
+  } catch {}
+}
+
+function prefetchLikelyNextSteps(events, phone) {
+  window.ToiAppShell?.prefetchPage('/templates.html');
+  if (!events || events.length === 0) return;
+
+  const primary = events[0];
+  cacheSet(EVENTS_CACHE_KEY, events);
+  cacheSet(`tl:event:${primary.id}`, primary);
+  window.ToiAppShell?.prefetchPage(`/guests.html?eventId=${primary.id}`);
+  window.ToiAppShell?.prefetchPage(`/editor.html?id=${primary.id}`);
+
+  if (!phone) return;
+  const headers = { 'X-User-Phone': phone };
+  window.ToiAppShell?.prefetchJSON(`tl:event:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}`, { headers }, 2 * 60_000);
+  window.ToiAppShell?.prefetchJSON(`tl:guests:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/guests`, { headers }, 2 * 60_000);
+  window.ToiAppShell?.prefetchJSON(`tl:event:stats:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/stats`, { headers }, 2 * 60_000);
+}
+
+function renderDashboardSnapshot(events, statsMap) {
+  if (!events) return false;
+  if (events.length === 0) {
+    renderEmpty();
+    return true;
+  }
+  if (events.length === 1) {
+    const event = events[0];
+    const stats = statsMap?.[event.id] || cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000) || null;
+    renderEventHub(event, stats);
+    cacheSet(`tl:event:${event.id}`, event);
+    return true;
+  }
+  renderEvents(events, statsMap || {});
+  return true;
+}
+
+async function refreshDashboard(phone) {
+  const events = await fetchEvents(phone);
+  cacheSet(EVENTS_CACHE_KEY, events);
+
+  if (events.length === 0) {
+    renderEmpty();
+    prefetchLikelyNextSteps(events, phone);
+    return;
+  }
+
+  if (events.length === 1) {
+    const event = events[0];
+    let stats = cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000);
+    if (!stats) {
+      try {
+        stats = await fetchStats(event.id, phone);
+        cacheStats(event.id, stats);
+      } catch {
+        stats = null;
+      }
+    }
+    renderEventHub(event, stats);
+    cacheSet(`tl:event:${event.id}`, event);
+    fetchGuests(event.id, phone)
+      .then((guests) => cacheSet(`tl:guests:${event.id}`, guests))
+      .catch(() => {});
+    prefetchLikelyNextSteps(events, phone);
+    return;
+  }
+
+  const statsMap = {};
+  const results = await Promise.allSettled(events.map(e => fetchStats(e.id, phone)));
+  results.forEach((r, i) => {
+    if (r.status === 'fulfilled') {
+      statsMap[events[i].id] = r.value;
+      cacheStats(events[i].id, r.value);
+    }
+  });
+  cacheSet(STATS_CACHE_KEY, statsMap);
+  renderEvents(events, statsMap);
+  prefetchLikelyNextSteps(events, phone);
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 window.handleGuests = async function (eventId) {
   const phone = localStorage.getItem('tl_phone');
   if (!phone) return;
+
+  const cachedEvent = cacheGet(`tl:event:${eventId}`, 5 * 60_000)
+    || (cacheGet(EVENTS_CACHE_KEY, 5 * 60_000) || []).find((event) => event.id === eventId);
+  const cachedGuests = cacheGet(`tl:guests:${eventId}`, 5 * 60_000);
+
+  if (cachedEvent && cachedGuests) {
+    openGuestsSheet(cachedEvent, cachedGuests);
+  }
+
   try {
     const [events, guests] = await Promise.all([
       fetchEvents(phone),
@@ -587,6 +707,7 @@ window.handleDeleteClick = async function (eventId) {
     btn.disabled = true;
     try {
       await deleteEvent(eventId, phone);
+      removeCachedEvent(eventId);
       const card = document.getElementById('card-' + eventId);
       if (card) {
         card.style.transition = 'opacity .3s ease, transform .3s ease';
@@ -624,26 +745,17 @@ async function init() {
   const genericHero = document.getElementById('genericHero');
   if (genericHero) genericHero.style.display = '';
 
+  const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 2 * 60_000);
+  const cachedStats = cacheGet(STATS_CACHE_KEY, 2 * 60_000) || {};
+  if (cachedEvents) {
+    renderDashboardSnapshot(cachedEvents, cachedStats);
+    prefetchLikelyNextSteps(cachedEvents, phone);
+    refreshDashboard(phone).catch(() => {});
+    return;
+  }
+
   try {
-    const events = await fetchEvents(phone);
-    if (events.length === 0) {
-      renderEmpty();
-    } else if (events.length === 1) {
-      let stats = null;
-      try { stats = await fetchStats(events[0].id, phone); } catch { /* optional */ }
-      renderEventHub(events[0], stats);
-      // Warm cache for /guests.html so KPI click opens instantly
-      cacheSet(`tl:event:${events[0].id}`, events[0]);
-      fetchGuests(events[0].id, phone)
-        .then(guests => cacheSet(`tl:guests:${events[0].id}`, guests))
-        .catch(() => {});
-    } else {
-      // batch-fetch stats, then render
-      const statsMap = {};
-      const results = await Promise.allSettled(events.map(e => fetchStats(e.id, phone)));
-      results.forEach((r, i) => { if (r.status === 'fulfilled') statsMap[events[i].id] = r.value; });
-      renderEvents(events, statsMap);
-    }
+    await refreshDashboard(phone);
   } catch {
     document.getElementById('content').innerHTML = `
       <div class="flex flex-col items-center justify-center text-center py-16 md:py-20 px-6 fade-in">

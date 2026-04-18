@@ -4,6 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ToiLink — Выбор шаблона</title>
+  <meta name="theme-color" content="#FAFAF8"/>
 
   <script>
     (function () {
@@ -14,6 +15,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/app-shell.css?v=app2"/>
+  <script src="/js/app-shell.js?v=app2"></script>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -371,7 +374,7 @@
     }
   </style>
 </head>
-<body>
+<body data-app-page="templates">
 
 <!-- TOP NAV (desktop) -->
 <header class="top-nav fixed top-0 left-0 right-0 z-40 hidden md:block">
@@ -430,7 +433,7 @@
 </section>
 
 <!-- CONTENT -->
-<main class="max-w-6xl mx-auto px-5 md:px-6 pt-4 md:pt-6 pb-32 md:pb-20">
+<main data-app-surface class="max-w-6xl mx-auto px-5 md:px-6 pt-4 md:pt-6 pb-32 md:pb-20">
   <div id="app">
     <div class="tpl-grid">
       <div class="tpl-card"><div class="tpl-preview skeleton" style="aspect-ratio:3/4;"></div><div class="tpl-info"><div class="meta" style="flex:1"><div class="h-4 skeleton rounded w-3/5" style="border-radius:100px;"></div><div class="h-2.5 skeleton rounded w-2/5 mt-2" style="border-radius:100px;"></div></div></div></div>
@@ -440,6 +443,10 @@
     </div>
   </div>
 </main>
+
+<script>
+  window.ToiAppShell?.restoreSnapshot();
+</script>
 
 <!-- BOTTOM NAV (mobile) -->
 <nav class="nav-bar md:hidden fixed bottom-0 left-0 right-0 z-30"
@@ -481,6 +488,10 @@
   }
   const fetchTemplates = () => api('/api/organizer/templates');
   const createEvent = (body) => api('/api/organizer/events', { method: 'POST', body: JSON.stringify(body) });
+  const cacheGet = (key, maxAge = 120000) => window.ToiAppShell?.cacheGet(key, maxAge) || null;
+  const cacheSet = (key, data) => window.ToiAppShell?.cacheSet(key, data);
+  const TEMPLATES_CACHE_KEY = 'tl:templates:list';
+  const EVENTS_CACHE_KEY = 'tl:events:list';
 
   let _toastTimer;
   function showToast(msg) {
@@ -607,6 +618,12 @@
     setLoading(true);
     try {
       const ev = await createEvent({ title: name || 'Моё приглашение', templateId });
+      cacheSet(`tl:event:${ev.id}`, ev);
+      const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 10 * 60_000);
+      if (Array.isArray(cachedEvents)) {
+        cacheSet(EVENTS_CACHE_KEY, [ev, ...cachedEvents.filter(item => item.id !== ev.id)]);
+      }
+      window.ToiAppShell?.prefetchPage(`/editor.html?id=${ev.id}`);
       location.href = `/editor.html?id=${ev.id}`;
     } catch (e) {
       console.error(e);
@@ -617,31 +634,38 @@
   window.selectTemplate = selectTemplate;
 
   function observeFadeIn() {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.05 });
-    document.querySelectorAll('.fade-in:not(.visible)').forEach(el => io.observe(el));
+    document.querySelectorAll('.fade-in:not(.visible)').forEach(el => el.classList.add('visible'));
+    window.ToiAppShell?.scheduleSnapshotCapture?.();
   }
 
   function revealHero() {
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-    }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
   }
 
   async function init() {
     revealHero();
+
+    const cached = cacheGet(TEMPLATES_CACHE_KEY, 2 * 60_000);
+    if (cached && cached.length) {
+      _allTemplates = cached;
+      renderCategoryFilters();
+      renderGrid();
+      window.ToiAppShell?.prefetchPage('/');
+      window.ToiAppShell?.prefetchPage('/editor.html');
+    }
+
     try {
       const templates = await fetchTemplates();
       _allTemplates = (templates && templates.length > 0) ? templates : PREDEFINED_TEMPLATES;
+      cacheSet(TEMPLATES_CACHE_KEY, _allTemplates);
     } catch {
-      _allTemplates = PREDEFINED_TEMPLATES;
+      if (!_allTemplates.length) _allTemplates = PREDEFINED_TEMPLATES;
     }
+
     renderCategoryFilters();
     renderGrid();
+    window.ToiAppShell?.prefetchPage('/');
+    window.ToiAppShell?.prefetchPage('/editor.html');
   }
 
   init();

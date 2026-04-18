@@ -4,10 +4,13 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ToiLink — Редактор</title>
+  <meta name="theme-color" content="#F2F2F7"/>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/app-shell.css?v=app2"/>
+  <script src="/js/app-shell.js?v=app2"></script>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
@@ -210,7 +213,7 @@
     .toast.toast--info .toast-ico { background: rgba(237,233,228,0.92); color: #5C5850; }
   </style>
 </head>
-<body>
+<body data-app-page="editor">
 
   <!-- Step 1 — Template picker -->
   <div id="step1-wrap">

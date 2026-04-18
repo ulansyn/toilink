@@ -1,0 +1,45 @@
+:root {
+  --app-shell-bg: #FAFAF8;
+}
+
+html,
+body {
+  background: var(--app-shell-bg);
+}
+
+body[data-app-page] {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@view-transition {
+  navigation: none;
+}
+
+[data-app-surface] {
+  contain: layout paint style;
+}
+
+html[data-app-shell] .reveal,
+html[data-app-shell] .fade-in,
+html[data-app-shell] .reveal.visible,
+html[data-app-shell] .fade-in.visible {
+  opacity: 1 !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+html[data-app-shell-snapshot="1"] .skeleton {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-app-shell] .reveal,
+  html[data-app-shell] .fade-in,
+  html[data-app-shell] .reveal.visible,
+  html[data-app-shell] .fade-in.visible {
+    transition: none !important;
+    animation: none !important;
+  }
+}

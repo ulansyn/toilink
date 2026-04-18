@@ -5,6 +5,8 @@ let eventData = null;
 let phone     = null;
 let allGuests = [];
 let _wired    = false;
+const EVENTS_CACHE_KEY = 'tl:events:list';
+const STATS_CACHE_KEY  = 'tl:events:stats';
 const state = {
   filter: 'all',     // all | attending | declined | noReply
   search: '',
@@ -101,6 +103,42 @@ function computeStats(guests) {
   }
   const noReply = total - attending - declined - maybe;
   return { total, attending, declined, maybe, noReply };
+}
+
+function cacheStatsForEvent(id, stats) {
+  if (!id || !stats) return;
+  const normalized = {
+    total: stats.total || 0,
+    attending: stats.attending || 0,
+    declined: stats.declined || 0,
+    maybe: stats.maybe || 0,
+  };
+  cacheSet(`tl:event:stats:${id}`, normalized);
+  const map = cacheGet(STATS_CACHE_KEY, 10 * 60_000) || {};
+  map[id] = normalized;
+  cacheSet(STATS_CACHE_KEY, map);
+}
+
+function syncCachedEventList(event) {
+  if (!event?.id) return;
+  const existing = cacheGet(EVENTS_CACHE_KEY, 10 * 60_000);
+  if (!Array.isArray(existing) || existing.length === 0) return;
+  cacheSet(EVENTS_CACHE_KEY, existing.map(item => item.id === event.id ? { ...item, ...event } : item));
+}
+
+function syncAllCaches() {
+  if (!eventId) return;
+  if (eventData) {
+    cacheSet(`tl:event:${eventId}`, eventData);
+    syncCachedEventList(eventData);
+  }
+  cacheSet(`tl:guests:${eventId}`, allGuests);
+  cacheStatsForEvent(eventId, computeStats(allGuests));
+}
+
+function warmRelatedPages() {
+  window.ToiAppShell?.prefetchPage('/');
+  if (eventId) window.ToiAppShell?.prefetchPage(`/editor.html?id=${eventId}`);
 }
 
 const FILTERS = {
@@ -280,10 +318,8 @@ function renderList() {
 }
 
 function observeFadeIn() {
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); obs.unobserve(e.target); } });
-  }, { threshold: 0.05 });
-  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => obs.observe(el));
+  document.querySelectorAll('.fade-in:not(.visible)').forEach(el => el.classList.add('visible'));
+  window.ToiAppShell?.scheduleSnapshotCapture?.();
 }
 
 // ─── Actions bottom sheet ────────────────────────────────────────────────────
@@ -491,6 +527,7 @@ function confirmDelete(guestId) {
     try {
       await api('DELETE', `/api/organizer/events/${eventId}/guests/${guestId}`);
       allGuests = allGuests.filter(x => x.id !== guestId);
+      syncAllCaches();
       renderStats();
       renderList();
       toast('Гость удалён');
@@ -598,6 +635,7 @@ window.submitAddGuest = async function (e) {
     closeAddSheet();
 
     allGuests = [guest, ...allGuests];
+    syncAllCaches();
     renderStats();
     renderList();
 
@@ -653,8 +691,7 @@ async function refreshData() {
       JSON.stringify(guests) !== JSON.stringify(allGuests);
     eventData = event;
     allGuests = guests;
-    cacheSet(`tl:event:${eventId}`, event);
-    cacheSet(`tl:guests:${eventId}`, guests);
+    syncAllCaches();
     if (changed) {
       applyEventMeta(event);
       renderAll();
@@ -701,6 +738,7 @@ async function init() {
     allGuests = cachedGuests;
     applyEventMeta(eventData);
     renderAll();
+    warmRelatedPages();
     refreshData();
     return;
   }
@@ -709,10 +747,10 @@ async function init() {
     const [event, guests] = await fetchData();
     eventData = event;
     allGuests = guests;
-    cacheSet(`tl:event:${eventId}`, event);
-    cacheSet(`tl:guests:${eventId}`, guests);
+    syncAllCaches();
     applyEventMeta(event);
     renderAll();
+    warmRelatedPages();
   } catch (err) {
     showErrorState(err);
   }
