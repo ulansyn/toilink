@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 015-add-public-preview-and-guest-source
+      author: codex
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: preview_token
+                  type: uuid
+                  defaultValueComputed: gen_random_uuid()
+        - sql:
+            sql: UPDATE events SET preview_token = gen_random_uuid() WHERE preview_token IS NULL
+        - addNotNullConstraint:
+            tableName: events
+            columnName: preview_token
+            columnDataType: uuid
+        - addUniqueConstraint:
+            tableName: events
+            columnNames: preview_token
+            constraintName: uk_events_preview_token
+        - dropNotNullConstraint:
+            tableName: guests
+            columnName: token
+            columnDataType: uuid
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: source
+                  type: varchar(20)
+                  defaultValue: PERSONAL_LINK
+        - sql:
+            sql: UPDATE guests SET source = 'PERSONAL_LINK' WHERE source IS NULL OR source = ''
+        - addNotNullConstraint:
+            tableName: guests
+            columnName: source
+            columnDataType: varchar(20)
+        - createIndex:
+            indexName: idx_guests_source
+            tableName: guests
+            columns:
+              - column:
+                  name: source

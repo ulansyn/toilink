@@ -18,7 +18,7 @@ public record RsvpRequest(
         String status,
 
         @Min(value = 1, message = "Group size must be at least 1")
-        int groupSize,
+        Integer groupSize,
 
         String comment
 ) {}

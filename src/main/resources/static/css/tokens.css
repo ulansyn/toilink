@@ -1,50 +1,55 @@
 /**
- * ToiLink Design Tokens — Luxury Minimal
- * Based on: Net-a-Porter, Mr Porter aesthetic
- * Philosophy: "Less but better" — every element is justified
+ * ToiLink Design Tokens — Warm Editorial Refined
+ * Reference: Aesop / Monocle / Kinfolk
+ * Philosophy: disciplined warmth — ivory base, warm ink, one pressed-olive accent
  */
 
 :root {
   /* ─── Colors ───────────────────────────────────────────── */
   /* Background */
-  --color-bg: #FAF9F7;
-  --color-bg-elevated: #FFFFFF;
+  --color-bg: #F4F1EA;           /* warm ivory — richer than a flat cream */
+  --color-bg-elevated: #FBF9F4;
 
   /* Surface (cards, sheets) */
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #FAFAF8;
+  --color-surface: #FBF9F4;
+  --color-surface-hover: #F0ECE3;
 
-  /* Text */
-  --color-text: #1A1A1A;
-  --color-text-secondary: #6B6B6B;
-  --color-text-muted: #9B9B9B;
-  --color-text-inverse: #FFFFFF;
+  /* Text — warm ink, never pure black */
+  --color-text: #1A1613;
+  --color-text-secondary: #6B6358;
+  --color-text-muted: #938B7F;
+  --color-text-inverse: #FBF9F4;
 
-  /* Accent — Antique Gold */
-  --color-gold: #B8956A;
-  --color-gold-light: #D4B896;
-  --color-gold-dark: #8A7050;
+  /* Accent — Pressed Olive (replaces antique gold)
+     Intentionally unusual for an RSVP product; reads editorial, not bridal-template.
+     Variable kept as --color-gold for compatibility; value is olive. */
+  --color-gold: #5C5B3F;
+  --color-gold-light: #878651;
+  --color-gold-dark: #3E3D29;
+  --color-gold-glow: rgba(92, 91, 63, 0.12);
 
-  /* Accent Dark (Charcoal) */
-  --color-dark: #2C2C2C;
-  --color-dark-soft: #4A4A4A;
+  /* Accent Dark (Ink) */
+  --color-dark: #1A1613;
+  --color-dark-soft: #3E362F;
 
-  /* Borders */
-  --color-border: #E8E5E0;
-  --color-border-strong: #D4D0CA;
+  /* Borders — hairlines at ink-at-opacity, not grey chrome */
+  --color-border: rgba(26, 22, 19, 0.06);
+  --color-border-strong: rgba(26, 22, 19, 0.12);
 
   /* Semantic */
-  --color-success: #4A7C59;
-  --color-success-bg: #F0F5F1;
-  --color-error: #C45C5C;
-  --color-error-bg: #FDF5F5;
+  --color-success: #4A6A4F;
+  --color-success-bg: #EDF0EC;
+  --color-error: #A84848;
+  --color-error-bg: #F7ECEC;
 
   /* Overlay */
-  --color-overlay: rgba(26, 26, 26, 0.4);
-  --color-overlay-light: rgba(26, 26, 26, 0.2);
+  --color-overlay: rgba(26, 22, 19, 0.5);
+  --color-overlay-light: rgba(26, 22, 19, 0.25);
 
   /* ─── Typography ───────────────────────────────────────── */
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
+  /* Fraunces variable (opsz/SOFT/wght axes) — more architectural than Cormorant.
+     Cormorant kept as fallback so older tabs don't break. */
+  --font-serif: 'Fraunces', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', monospace;
 

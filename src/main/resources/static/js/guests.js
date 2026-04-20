@@ -54,9 +54,31 @@ function toast(msg, success = true) {
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+function isPubliclyVisibleEvent(event) {
+  return event?.status === 'PUBLISHED' || event?.status === 'CLOSED';
+}
+
+function buildEventUrl(event, guestToken = null) {
+  if (!event?.slug) return null;
+  const url = new URL(`/e/${event.slug}`, location.origin);
+  if (guestToken) url.searchParams.set('token', guestToken);
+  if (!isPubliclyVisibleEvent(event) && event.previewToken) {
+    url.searchParams.set('preview', event.previewToken);
+  }
+  return url.toString();
+}
+
+function guestSource(guest) {
+  return guest?.source || (guest?.token ? 'PERSONAL_LINK' : 'PUBLIC_LINK');
+}
+
+function hasPersonalLink(guest) {
+  return guestSource(guest) === 'PERSONAL_LINK' && !!guest?.token;
+}
+
 function guestLink(guest) {
-  if (!eventData?.slug || !guest.token) return null;
-  return `${location.origin}/e/${eventData.slug}?token=${guest.token}`;
+  if (!eventData?.slug || !hasPersonalLink(guest)) return null;
+  return buildEventUrl(eventData, guest.token);
 }
 
 function pluralize(n, forms) {
@@ -218,7 +240,7 @@ function guestRow(g) {
     ? `<span class="italic-notes">«${escapeHtml(g.notes)}»</span>`
     : (g.phone ? escapeHtml(g.phone) : '<span style="font-family:Cormorant Garamond,serif; font-style:italic; font-size:13px;">Без телефона</span>');
 
-  const copyBtn = g.token ? `
+  const copyBtn = hasPersonalLink(g) ? `
     <button class="row-icon-btn copy" data-action="copy" data-guest-id="${g.id}" title="Скопировать ссылку" aria-label="Скопировать">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
     </button>` : '';
@@ -271,7 +293,7 @@ function renderEmpty() {
         Добавьте <em class="text-sage">первого гостя</em>
       </h2>
       <p class="text-muted text-[14px] md:text-[15px] max-w-[320px] leading-relaxed mb-7">
-        Каждый гость получит уникальную ссылку на&nbsp;приглашение — с&nbsp;именем и&nbsp;возможностью ответить на&nbsp;RSVP.
+        Для персональных гостей можно копировать отдельную ссылку, а остальные смогут ответить по общей ссылке события.
       </p>
       <button onclick="openAddSheet()" class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -345,7 +367,7 @@ function openActionsSheet(g) {
     ? `https://wa.me/${phoneClean}?text=${encodeURIComponent(`Дорогой(ая) ${name}, приглашаем вас на ${eventData?.title || 'приглашение'}!\n\n${link}`)}`
     : `https://wa.me/?text=${encodeURIComponent(`Дорогой(ая) ${name}, приглашаем вас на ${eventData?.title || 'приглашение'}!\n\n${link}`)}`) : null;
 
-  const viewUrl = `/e/${eventData?.slug || ''}${g.token ? '?token=' + g.token : ''}`;
+  const viewUrl = buildEventUrl(eventData, hasPersonalLink(g) ? g.token : null) || '#';
 
   sheet.innerHTML = `
     <div class="sheet-inner">
@@ -492,7 +514,7 @@ function confirmDelete(guestId) {
         <h2 class="font-cormorant italic text-[24px] md:text-[28px] font-semibold text-ink mb-2">Удалить гостя?</h2>
         <p class="text-[14px] text-muted leading-relaxed mb-5 max-w-[320px] mx-auto">
           <strong class="text-ink">${escapeHtml(g.name || 'Аноним')}</strong> исчезнет из&nbsp;списка.
-          ${g.token ? 'Персональная ссылка перестанет работать.' : ''}
+          ${hasPersonalLink(g) ? 'Персональная ссылка перестанет работать.' : ''}
         </p>
         <div class="flex flex-col gap-2">
           <button id="confirm-delete-btn" class="btn-primary w-full" style="background:#B8412E;">
@@ -639,8 +661,8 @@ window.submitAddGuest = async function (e) {
     renderStats();
     renderList();
 
-    if (guest.token && eventData?.slug) {
-      const url = `${location.origin}/e/${eventData.slug}?token=${guest.token}`;
+    if (hasPersonalLink(guest) && eventData?.slug) {
+      const url = buildEventUrl(eventData, guest.token);
       navigator.clipboard.writeText(url)
         .then(() => toast('Гость добавлен. Ссылка скопирована'))
         .catch(() => toast('Гость добавлен'));

@@ -51,6 +51,7 @@ public class GuestService {
                 .event(event)
                 .name(req.name())
                 .phone(req.phone())
+                .source(Boolean.TRUE.equals(req.personalInvite()) ? "PERSONAL_LINK" : "MANUAL")
                 .notes(req.notes())
                 .build();
 
@@ -70,7 +71,7 @@ public class GuestService {
 
     private Event verifyOwnership(Long eventId, String phone) {
         User user = userService.findByPhone(phone)
-                .orElseThrow(() -> NotFoundException.event(eventId));
+                .orElseThrow(() -> new NotFoundException("User not found for phone: " + phone));
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> NotFoundException.event(eventId));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {

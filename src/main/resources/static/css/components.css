@@ -164,7 +164,7 @@
 
 .input:focus {
   border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px rgba(184, 149, 106, 0.12);
+  box-shadow: 0 0 0 3px var(--color-gold-glow);
 }
 
 .input-label {
@@ -468,8 +468,8 @@
 }
 
 .badge-draft {
-  background: #F5F3EF;
-  color: #6B6B6B;
+  background: var(--color-surface-hover);
+  color: var(--color-text-secondary);
 }
 
 .badge-published {

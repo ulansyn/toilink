@@ -3,6 +3,7 @@ package kg.toilink.controller.organizer;
 import jakarta.validation.Valid;
 import kg.toilink.dto.request.CreateEventRequest;
 import kg.toilink.dto.request.UpdateEventRequest;
+import kg.toilink.dto.response.EventDashboardResponse;
 import kg.toilink.dto.response.EventResponse;
 import kg.toilink.dto.response.EventStatsResponse;
 import kg.toilink.service.EventService;
@@ -22,6 +23,11 @@ public class EventController {
     @GetMapping
     public List<EventResponse> getAll(@RequestHeader("X-User-Phone") String phone) {
         return eventService.findAllByUser(phone);
+    }
+
+    @GetMapping("/summary")
+    public List<EventDashboardResponse> getSummary(@RequestHeader("X-User-Phone") String phone) {
+        return eventService.findDashboardByUser(phone);
     }
 
     @GetMapping("/{id}")

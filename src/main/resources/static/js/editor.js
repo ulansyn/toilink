@@ -1552,11 +1552,16 @@ function initKbToolbar() {
 
 function getPublicUrl() {
   if (!APP.ui.slug) return null;
-  return `${location.origin}/e/${APP.ui.slug}`;
+  const url = new URL(`/e/${APP.ui.slug}`, location.origin);
+  const status = APP.ui.existingEvent?.status;
+  if (status !== 'PUBLISHED' && status !== 'CLOSED' && APP.ui.existingEvent?.previewToken) {
+    url.searchParams.set('preview', APP.ui.existingEvent.previewToken);
+  }
+  return url.toString();
 }
 
 function isPublished() {
-  return APP.ui.existingEvent?.status === 'PUBLISHED';
+  return APP.ui.existingEvent?.status === 'PUBLISHED' || APP.ui.existingEvent?.status === 'CLOSED';
 }
 
 function updatePublishBtn() {

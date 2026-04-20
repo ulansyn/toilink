@@ -11,6 +11,17 @@ function guestToken() {
   return new URLSearchParams(location.search).get('token');
 }
 
+function previewToken() {
+  return new URLSearchParams(location.search).get('preview');
+}
+
+function buildPublicEventApiUrl(currentSlug) {
+  const url = new URL(`${BASE_URL}/api/public/events/${currentSlug}`, location.origin);
+  const preview = previewToken();
+  if (preview) url.searchParams.set('preview', preview);
+  return url.toString();
+}
+
 function formatDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -160,13 +171,19 @@ function renderRsvp(event) {
   const container = document.getElementById('rsvp');
   if (!container) return;
 
+  const isDraft = event.status === 'DRAFT';
   const isClosed = event.status === 'CLOSED';
   const deadlinePassed = event.rsvpDeadline && new Date(event.rsvpDeadline) < new Date();
 
-  if (isClosed || deadlinePassed) {
+  if (isDraft || isClosed || deadlinePassed) {
+    const title = isDraft ? 'Предпросмотр приглашения' : 'Приём ответов завершён';
+    const subtitle = isDraft
+      ? 'Событие ещё не опубликовано, поэтому ответы гостей пока отключены.'
+      : 'Спасибо за внимание к приглашению.';
     container.innerHTML = `
       <div class="text-center py-6 text-[#1E2820]/40">
-        <p class="text-lg">Приём ответов завершён</p>
+        <p class="text-lg">${title}</p>
+        <p class="text-sm mt-2">${subtitle}</p>
       </div>`;
     return;
   }
@@ -307,7 +324,7 @@ function renderEventMeta(event) {
 async function init() {
   const s = slug();
   try {
-    const res = await fetch(`${BASE_URL}/api/public/events/${s}`);
+    const res = await fetch(buildPublicEventApiUrl(s));
     if (!res.ok) { renderError(); return; }
     const event = await res.json();
     renderEventMeta(event);

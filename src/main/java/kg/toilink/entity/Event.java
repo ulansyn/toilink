@@ -2,10 +2,13 @@ package kg.toilink.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "events")
@@ -48,6 +51,12 @@ public class Event {
     @Column(nullable = false, unique = true, length = 50)
     private String slug;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Guest> guests = new ArrayList<>();
+
+    @Column(nullable = false, unique = true)
+    private UUID previewToken;
+
     @Column(nullable = false, length = 20)
     private String status;
 
@@ -72,6 +81,7 @@ public class Event {
         updatedAt = LocalDateTime.now();
         if (status == null) status = "DRAFT";
         if (language == null) language = "ru";
+        if (previewToken == null) previewToken = UUID.randomUUID();
     }
 
     @PreUpdate

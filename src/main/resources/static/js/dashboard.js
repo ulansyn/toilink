@@ -28,6 +28,14 @@ async function fetchEvents(phone) {
   return res.json();
 }
 
+async function fetchDashboardSummary(phone) {
+  const res = await fetch(`${BASE_URL}/api/organizer/events/summary`, {
+    headers: { 'X-User-Phone': phone },
+  });
+  if (!res.ok) throw new Error('Ошибка загрузки');
+  return res.json();
+}
+
 async function fetchGuests(eventId, phone) {
   const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/guests`, {
     headers: { 'X-User-Phone': phone },
@@ -79,8 +87,26 @@ function statusChipClass(status) {
   return { DRAFT: 'chip chip-draft', PUBLISHED: 'chip chip-published', CLOSED: 'chip chip-closed' }[status] || 'chip chip-draft';
 }
 
-function copyLink(slug) {
-  const url = `${location.origin}/e/${slug}`;
+function isPubliclyVisibleEvent(event) {
+  return event?.status === 'PUBLISHED' || event?.status === 'CLOSED';
+}
+
+function buildEventUrl(event, guestToken = null) {
+  if (!event?.slug) return null;
+  const url = new URL(`/e/${event.slug}`, location.origin);
+  if (guestToken) url.searchParams.set('token', guestToken);
+  if (!isPubliclyVisibleEvent(event) && event.previewToken) {
+    url.searchParams.set('preview', event.previewToken);
+  }
+  return url.toString();
+}
+
+function guestSource(guest) {
+  return guest?.source || (guest?.token ? 'PERSONAL_LINK' : 'PUBLIC_LINK');
+}
+
+function copyLink(url) {
+  if (!url) return;
   navigator.clipboard.writeText(url)
     .then(() => showToast('Ссылка скопирована'))
     .catch(() => { prompt('Скопируйте ссылку:', url); });
@@ -110,8 +136,8 @@ function openGuestsSheet(event, guests) {
   sheet.id = 'guestsSheet';
   sheet.className = 'bs-sheet';
 
-  const invited   = guests.filter(g => g.token).length;
-  const anonymous = guests.filter(g => !g.token).length;
+  const personal = guests.filter(g => guestSource(g) === 'PERSONAL_LINK' && g.token).length;
+  const publicLink = guests.filter(g => guestSource(g) === 'PUBLIC_LINK').length;
 
   const guestsHtml = guests.length === 0
     ? `<div class="flex flex-col items-center justify-center py-12 text-center">
@@ -146,12 +172,12 @@ function openGuestsSheet(event, guests) {
             <p class="text-[10px] uppercase tracking-wider text-muted mt-1.5 font-medium">Всего</p>
           </div>
           <div class="rounded-2xl p-3 md:p-4 text-center" style="background:#C2E0C6;">
-            <p class="font-cormorant text-[24px] md:text-[28px] font-semibold leading-none" style="color:#1A3D20;">${invited}</p>
-            <p class="text-[10px] uppercase tracking-wider mt-1.5 font-medium" style="color:#3D6B45;">Приглашено</p>
+            <p class="font-cormorant text-[24px] md:text-[28px] font-semibold leading-none" style="color:#1A3D20;">${personal}</p>
+            <p class="text-[10px] uppercase tracking-wider mt-1.5 font-medium" style="color:#3D6B45;">Персональных</p>
           </div>
           <div class="rounded-2xl p-3 md:p-4 text-center" style="background:#F0EDE8;">
-            <p class="font-cormorant text-[24px] md:text-[28px] font-semibold leading-none" style="color:#7C6040;">${anonymous}</p>
-            <p class="text-[10px] uppercase tracking-wider mt-1.5 font-medium" style="color:#8B7355;">Аноним</p>
+            <p class="font-cormorant text-[24px] md:text-[28px] font-semibold leading-none" style="color:#7C6040;">${publicLink}</p>
+            <p class="text-[10px] uppercase tracking-wider mt-1.5 font-medium" style="color:#8B7355;">По общей</p>
           </div>
         </div>
 
@@ -205,9 +231,11 @@ function guestRow(g) {
     { bg: '#F0DCD5', fg: '#8B4030' },
   ];
   const p = palettes[(name.charCodeAt(0) || 0) % palettes.length];
-  const badge = g.token
-    ? `<span class="chip chip-published" style="font-size:10px; padding:3px 8px;"><span class="chip-dot"></span>Приглашён</span>`
-    : `<span class="chip chip-draft" style="font-size:10px; padding:3px 8px;"><span class="chip-dot"></span>Аноним</span>`;
+  const badge = guestSource(g) === 'PUBLIC_LINK'
+    ? `<span class="chip chip-draft" style="font-size:10px; padding:3px 8px;"><span class="chip-dot"></span>Общая ссылка</span>`
+    : guestSource(g) === 'MANUAL'
+      ? `<span class="chip chip-draft" style="font-size:10px; padding:3px 8px;"><span class="chip-dot"></span>Без ссылки</span>`
+      : `<span class="chip chip-published" style="font-size:10px; padding:3px 8px;"><span class="chip-dot"></span>Персональная</span>`;
 
   return `
     <div class="flex items-center gap-3 py-3 px-1 border-b border-line last:border-0">
@@ -283,6 +311,7 @@ function rsvpStrip(stats) {
 }
 
 function renderEventCard(event, stats) {
+  const eventUrl = buildEventUrl(event) || `${location.origin}/e/${event.slug}`;
   const coverHtml = event.coverImageUrl
     ? `<img src="${event.coverImageUrl}" alt=""/>`
     : `<div class="event-cover-fallback">
@@ -295,7 +324,7 @@ function renderEventCard(event, stats) {
 
   return `
     <div id="card-${event.id}" class="event-card fade-in">
-      <a href="/e/${event.slug}" target="_blank" rel="noopener" class="event-cover block">
+      <a href="${eventUrl}" target="_blank" rel="noopener" class="event-cover block">
         ${coverHtml}
         <div class="absolute top-3 right-3 z-[2]">
           <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
@@ -327,7 +356,7 @@ function renderEventCard(event, stats) {
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
               Гости
             </button>
-            <button onclick="copyLink('${event.slug}')" class="card-btn">
+            <button onclick="copyLink('${eventUrl}')" class="card-btn">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
               Ссылка
             </button>
@@ -349,6 +378,7 @@ function renderEventCard(event, stats) {
 
 // ─── Event Hub (single-event layout) ──────────────────────────────────────────
 function renderEventHub(event, stats) {
+  const eventUrl = buildEventUrl(event) || `${location.origin}/e/${event.slug}`;
   // hide generic hero
   const genericHero = document.getElementById('genericHero');
   if (genericHero) genericHero.style.display = 'none';
@@ -410,11 +440,11 @@ function renderEventHub(event, stats) {
           </div>` : ''}
 
         <div class="hub-cta-row">
-          <button onclick="shareEvent('${event.slug}', ${JSON.stringify(event.title || '').replace(/"/g, '&quot;')})" class="btn-primary">
+          <button onclick="shareEvent('${eventUrl}', ${JSON.stringify(event.title || '').replace(/"/g, '&quot;')})" class="btn-primary">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             Поделиться
           </button>
-          <a href="/e/${event.slug}" target="_blank" rel="noopener" class="btn-secondary">
+          <a href="${eventUrl}" target="_blank" rel="noopener" class="btn-secondary">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
             Посмотреть
           </a>
@@ -481,7 +511,7 @@ function renderEventHub(event, stats) {
           </div>
         </a>
 
-        <button onclick="copyLink('${event.slug}')" class="hub-tile w-full text-left">
+        <button onclick="copyLink('${eventUrl}')" class="hub-tile w-full text-left">
           <div class="hub-tile-icon" style="background: linear-gradient(160deg, #E0E8F0 0%, #CDD9E8 100%); color: #3A5080;">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
           </div>
@@ -497,9 +527,9 @@ function renderEventHub(event, stats) {
 
       <!-- Footer -->
       <div class="hub-footer">
-        <button onclick="copyLink('${event.slug}')" class="slug-pill" title="Скопировать">
+        <button onclick="copyLink('${eventUrl}')" class="slug-pill" title="Скопировать">
           <svg class="w-3.5 h-3.5 text-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-          ${location.origin}/e/<strong>${event.slug}</strong>
+          ${eventUrl.replace(location.origin, '')}
         </button>
         <div class="flex items-center gap-2">
           <button onclick="showCreateSheet()" class="btn-ghost" style="font-size: 12px;">
@@ -515,8 +545,7 @@ function renderEventHub(event, stats) {
   _observeFadeIn();
 }
 
-window.shareEvent = async function (slug, title) {
-  const url = `${location.origin}/e/${slug}`;
+window.shareEvent = async function (url, title) {
   const text = title ? `Приглашаю вас на ${title}` : 'Приглашение';
   if (navigator.share) {
     try {
@@ -524,7 +553,7 @@ window.shareEvent = async function (slug, title) {
       return;
     } catch { /* user cancelled */ }
   }
-  copyLink(slug);
+  copyLink(url);
 };
 
 function renderEvents(events, statsMap) {
@@ -621,8 +650,15 @@ function renderDashboardSnapshot(events, statsMap) {
 }
 
 async function refreshDashboard(phone) {
-  const events = await fetchEvents(phone);
+  const summary = await fetchDashboardSummary(phone);
+  const events = summary.map(item => item.event).filter(Boolean);
+  const statsMap = summary.reduce((acc, item) => {
+    if (item?.event?.id && item.stats) acc[item.event.id] = item.stats;
+    return acc;
+  }, {});
+
   cacheSet(EVENTS_CACHE_KEY, events);
+  cacheSet(STATS_CACHE_KEY, statsMap);
 
   if (events.length === 0) {
     renderEmpty();
@@ -632,15 +668,8 @@ async function refreshDashboard(phone) {
 
   if (events.length === 1) {
     const event = events[0];
-    let stats = cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000);
-    if (!stats) {
-      try {
-        stats = await fetchStats(event.id, phone);
-        cacheStats(event.id, stats);
-      } catch {
-        stats = null;
-      }
-    }
+    const stats = statsMap[event.id] || cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000) || null;
+    if (stats) cacheStats(event.id, stats);
     renderEventHub(event, stats);
     cacheSet(`tl:event:${event.id}`, event);
     fetchGuests(event.id, phone)
@@ -650,15 +679,7 @@ async function refreshDashboard(phone) {
     return;
   }
 
-  const statsMap = {};
-  const results = await Promise.allSettled(events.map(e => fetchStats(e.id, phone)));
-  results.forEach((r, i) => {
-    if (r.status === 'fulfilled') {
-      statsMap[events[i].id] = r.value;
-      cacheStats(events[i].id, r.value);
-    }
-  });
-  cacheSet(STATS_CACHE_KEY, statsMap);
+  Object.entries(statsMap).forEach(([eventId, stats]) => cacheStats(Number(eventId), stats));
   renderEvents(events, statsMap);
   prefetchLikelyNextSteps(events, phone);
 }

@@ -2,24 +2,30 @@ package kg.toilink.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import kg.toilink.entity.Event;
-import kg.toilink.exception.NotFoundException;
-import kg.toilink.repository.EventRepository;
+import kg.toilink.service.PublicEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.UUID;
 
 @Controller
 @RequiredArgsConstructor
 public class EventPageController {
 
-    private final EventRepository eventRepository;
+    private final PublicEventService publicEventService;
 
     @GetMapping("/e/{slug}")
-    public String eventPage(@PathVariable String slug, Model model, HttpServletRequest request) {
-        Event event = eventRepository.findBySlug(slug)
-                .orElseThrow(() -> NotFoundException.eventBySlug(slug));
+    public String eventPage(@PathVariable String slug,
+                            @RequestParam(name = "preview", required = false) UUID previewToken,
+                            Model model,
+                            HttpServletRequest request) {
+        Event event = publicEventService.findAccessibleEvent(slug, previewToken);
+        boolean previewAccess = !publicEventService.isPubliclyVisible(event)
+                && publicEventService.hasPreviewAccess(event, previewToken);
 
         String baseUrl = request.getScheme() + "://" + request.getServerName()
                 + (request.getServerPort() != 80 && request.getServerPort() != 443
@@ -34,7 +40,7 @@ public class EventPageController {
         model.addAttribute("event", event);
         model.addAttribute("ogImage", ogImage);
         model.addAttribute("ogDescription", ogDescription);
-        model.addAttribute("ogUrl", baseUrl + "/e/" + slug);
+        model.addAttribute("ogUrl", baseUrl + "/e/" + slug + (previewAccess ? "?preview=" + previewToken : ""));
 
         // Pass serializable fields for JS injection (avoid lazy entity serialization)
         model.addAttribute("eventPerson1", event.getPerson1() != null ? event.getPerson1() : "");

@@ -18,13 +18,17 @@ public class RsvpController {
     @PostMapping("/{slug}/rsvp")
     public Map<String, String> rsvp(@PathVariable String slug,
                                     @Valid @RequestBody RsvpRequest request) {
-        String status = rsvpService.rsvp(slug, request);
-        String message = switch (status) {
+        RsvpService.RsvpResult result = rsvpService.rsvp(slug, request);
+        String message = switch (result.status()) {
             case "ATTENDING" -> "Great! Your attendance is confirmed.";
             case "DECLINED"  -> "Thank you for letting us know.";
             case "MAYBE"     -> "Got it! We will keep your spot tentative.";
             default          -> "Response recorded.";
         };
-        return Map.of("status", status, "message", message);
+        return Map.of(
+                "status", result.status(),
+                "message", message,
+                "guestToken", result.guestToken().toString()
+        );
     }
 }

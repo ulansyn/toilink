@@ -5,8 +5,11 @@ import kg.toilink.service.PublicEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/public/events")
@@ -16,7 +19,8 @@ public class PublicEventController {
     private final PublicEventService publicEventService;
 
     @GetMapping("/{slug}")
-    public EventPublicResponse getBySlug(@PathVariable String slug) {
-        return publicEventService.findBySlug(slug);
+    public EventPublicResponse getBySlug(@PathVariable String slug,
+                                         @RequestParam(name = "preview", required = false) UUID previewToken) {
+        return publicEventService.findBySlug(slug, previewToken);
     }
 }

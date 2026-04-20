@@ -267,12 +267,16 @@ class WeddingRenderer {
     const meta = window.EVENT_META;
     if (meta && !window.__IS_PREVIEW) {
       const deadlinePassed = meta.rsvpDeadline && new Date(meta.rsvpDeadline) < new Date();
-      if (meta.status === 'CLOSED' || deadlinePassed) {
+      if (meta.status === 'DRAFT' || meta.status === 'CLOSED' || deadlinePassed) {
+        const title = meta.status === 'DRAFT' ? 'Предпросмотр приглашения' : 'Приём ответов завершён';
+        const subtitle = meta.status === 'DRAFT'
+          ? 'Событие ещё не опубликовано, поэтому ответы гостей пока отключены.'
+          : 'Спасибо за внимание к приглашению.';
         container.innerHTML = `
           <div class="rsvp-form-wrap" style="text-align:center; padding: 40px 20px;">
             <div style="font-size: 48px; margin-bottom: 16px;">🕊️</div>
-            <h2 class="rsvp-heading" style="margin-bottom: 12px;">Приём ответов завершён</h2>
-            <p class="rsvp-subtitle" style="opacity: 0.75;">Спасибо за внимание к приглашению.</p>
+            <h2 class="rsvp-heading" style="margin-bottom: 12px;">${title}</h2>
+            <p class="rsvp-subtitle" style="opacity: 0.75;">${subtitle}</p>
           </div>
         `;
         return;
@@ -414,7 +418,11 @@ class WeddingRenderer {
       const guestCountRaw = form.querySelector('[name="guest_count"]')?.value;
       const groupSize = Math.max(1, parseInt(guestCountRaw, 10) || 1);
       const comment = form.querySelector('[name="message"]')?.value?.trim() || null;
-      const token = new URLSearchParams(location.search).get('token') || null;
+
+      // Token priority: URL param (personal invite) > localStorage (repeat anonymous visit)
+      const urlToken = new URLSearchParams(location.search).get('token') || null;
+      const savedToken = localStorage.getItem(`rsvp:${slug}:token`);
+      const token = urlToken || savedToken || null;
 
       try {
         const res = await fetch(`/api/public/events/${encodeURIComponent(slug)}/rsvp`, {
@@ -430,6 +438,15 @@ class WeddingRenderer {
           } catch (_) {}
           throw new Error(msg);
         }
+
+        // Save guestToken from response so repeat visits update the same guest
+        try {
+          const data = await res.json();
+          if (data.guestToken) {
+            localStorage.setItem(`rsvp:${slug}:token`, data.guestToken);
+          }
+        } catch (_) {}
+
         showSuccess();
       } catch (err) {
         btn.classList.remove('is-loading');

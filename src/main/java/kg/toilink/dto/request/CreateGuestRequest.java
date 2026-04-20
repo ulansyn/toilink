@@ -10,5 +10,7 @@ public record CreateGuestRequest(
         @Size(max = 20, message = "Phone must not exceed 20 characters")
         String phone,
 
-        String notes
+        String notes,
+
+        Boolean personalInvite
 ) {}

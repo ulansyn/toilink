@@ -25,3 +25,5 @@ databaseChangeLog:
       file: db/changelog/migrations/012-add-dresscode-to-template2.yaml
   - include:
       file: db/changelog/migrations/013-fix-templates-keep-only-template1.yaml
+  - include:
+      file: db/changelog/migrations/015-add-public-preview-and-guest-source.yaml

@@ -2,10 +2,10 @@ package kg.toilink.service;
 
 import kg.toilink.dto.request.CreateEventRequest;
 import kg.toilink.dto.request.UpdateEventRequest;
+import kg.toilink.dto.response.EventDashboardResponse;
 import kg.toilink.dto.response.EventResponse;
 import kg.toilink.dto.response.EventStatsResponse;
 import kg.toilink.entity.Event;
-import kg.toilink.entity.RsvpResponse;
 import kg.toilink.entity.Template;
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
@@ -18,7 +18,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +48,23 @@ public class EventService {
     public EventResponse findById(Long id, String phone) {
         Event event = getEventForUser(id, phone);
         return EventResponse.from(event);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventDashboardResponse> findDashboardByUser(String phone) {
+        List<EventResponse> events = findAllByUser(phone);
+        if (events.isEmpty()) return List.of();
+
+        Map<Long, EventStatsResponse> statsByEvent = buildStatsByEvent(
+                events.stream().map(EventResponse::id).toList()
+        );
+
+        return events.stream()
+                .map(event -> new EventDashboardResponse(
+                        event,
+                        statsByEvent.getOrDefault(event.id(), new EventStatsResponse(0, 0, 0, 0))
+                ))
+                .toList();
     }
 
     @Transactional
@@ -107,23 +127,12 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventStatsResponse getStats(Long id, String phone) {
         Event event = getEventForUser(id, phone);
-        long total = guestRepository.findAllByEventId(event.getId()).size();
-
-        long attending = 0, declined = 0, maybe = 0;
-        for (RsvpResponse r : rsvpResponseRepository.findAllByEventId(event.getId())) {
-            switch (r.getStatus()) {
-                case "ATTENDING" -> attending++;
-                case "DECLINED" -> declined++;
-                case "MAYBE" -> maybe++;
-                default -> {}
-            }
-        }
-        return new EventStatsResponse(total, attending, declined, maybe);
+        return buildStats(event.getId());
     }
 
     private Event getEventForUser(Long id, String phone) {
         User user = userService.findByPhone(phone)
-                .orElseThrow(() -> NotFoundException.event(id));
+                .orElseThrow(() -> new NotFoundException("User not found for phone: " + phone));
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.event(id));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {
@@ -136,5 +145,54 @@ public class EventService {
         if (!status.equals("DRAFT") && !status.equals("PUBLISHED") && !status.equals("CLOSED")) {
             throw new BadRequestException("Invalid status: " + status + ". Must be DRAFT, PUBLISHED or CLOSED");
         }
+    }
+
+    private EventStatsResponse buildStats(Long eventId) {
+        long total = guestRepository.countByEventId(eventId);
+        long attending = 0;
+        long declined = 0;
+        long maybe = 0;
+
+        for (RsvpResponseRepository.EventStatusCountView row : rsvpResponseRepository.countStatusesByEventId(eventId)) {
+            switch (row.getStatus()) {
+                case "ATTENDING" -> attending = row.getTotal();
+                case "DECLINED" -> declined = row.getTotal();
+                case "MAYBE" -> maybe = row.getTotal();
+                default -> {}
+            }
+        }
+
+        return new EventStatsResponse(total, attending, declined, maybe);
+    }
+
+    private Map<Long, EventStatsResponse> buildStatsByEvent(Collection<Long> eventIds) {
+        Map<Long, Long> totalsByEvent = new HashMap<>();
+        Map<Long, long[]> bucketsByEvent = new HashMap<>();
+
+        for (GuestRepository.EventGuestCountView row : guestRepository.countByEventIds(eventIds)) {
+            totalsByEvent.put(row.getEventId(), row.getTotal());
+        }
+
+        for (RsvpResponseRepository.EventStatusCountView row : rsvpResponseRepository.countStatusesByEventIds(eventIds)) {
+            long[] bucket = bucketsByEvent.computeIfAbsent(row.getEventId(), ignored -> new long[3]);
+            switch (row.getStatus()) {
+                case "ATTENDING" -> bucket[0] = row.getTotal();
+                case "DECLINED" -> bucket[1] = row.getTotal();
+                case "MAYBE" -> bucket[2] = row.getTotal();
+                default -> {}
+            }
+        }
+
+        Map<Long, EventStatsResponse> result = new HashMap<>();
+        for (Long eventId : eventIds) {
+            long[] bucket = bucketsByEvent.getOrDefault(eventId, new long[3]);
+            result.put(eventId, new EventStatsResponse(
+                    totalsByEvent.getOrDefault(eventId, 0L),
+                    bucket[0],
+                    bucket[1],
+                    bucket[2]
+            ));
+        }
+        return result;
     }
 }

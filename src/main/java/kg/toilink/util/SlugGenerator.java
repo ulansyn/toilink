@@ -1,5 +1,6 @@
 package kg.toilink.util;
 
+import java.security.SecureRandom;
 import java.util.Map;
 
 public class SlugGenerator {
@@ -31,6 +32,8 @@ public class SlugGenerator {
         return p1 + "-" + p2;
     }
 
+    private static final SecureRandom RANDOM = new SecureRandom();
+
     /**
      * Generates a random 8-char alphanumeric slug as fallback.
      */
@@ -38,7 +41,7 @@ public class SlugGenerator {
         String chars = "abcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder sb = new StringBuilder(8);
         for (int i = 0; i < 8; i++) {
-            sb.append(chars.charAt((int) (Math.random() * chars.length())));
+            sb.append(chars.charAt(RANDOM.nextInt(chars.length())));
         }
         return sb.toString();
     }

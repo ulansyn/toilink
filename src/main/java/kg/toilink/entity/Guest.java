@@ -3,6 +3,9 @@ package kg.toilink.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -29,11 +32,17 @@ public class Guest {
     @Column(length = 20)
     private String phone;
 
+    @Column(nullable = false, length = 20)
+    private String source;
+
     @Column(columnDefinition = "text")
     private String notes;
 
-    @Column(nullable = false, unique = true)
+    @Column(unique = true)
     private UUID token;
+
+    @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RsvpResponse> rsvpResponses = new ArrayList<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -41,6 +50,7 @@ public class Guest {
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
+        if (source == null) source = "PERSONAL_LINK";
         if (token == null) token = UUID.randomUUID();
     }
 }
