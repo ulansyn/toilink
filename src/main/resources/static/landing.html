@@ -24,17 +24,18 @@
         extend: {
           fontFamily: { inter: ['Inter', 'sans-serif'], cormorant: ['Cormorant Garamond', 'serif'] },
           colors: {
-            ink: '#1E2820',
-            ink2: '#2C3A2F',
-            muted: '#6B6860',
-            cream: '#FAFAF8',
-            cream2: '#F5F2EE',
-            cream3: '#F0EDE8',
-            line: '#E8E4DE',
-            sage: '#3D6B45',
-            sage2: '#2C4A30',
-            mint: '#C2E0C6',
-            gold: '#C2A882'
+            ink: '#2D1F2A',
+            ink2: '#3D2A38',
+            muted: '#7D6B78',
+            cream: '#FFF9F5',
+            cream2: '#F5EDE6',
+            cream3: '#EDE3DA',
+            line: '#DDD4CC',
+            plum: '#6B3A5B',
+            plum2: '#4A2840',
+            gold: '#C9A055',
+            gold2: '#B8903D',
+            champagne: '#E8D5B8'
           }
         }
       }
@@ -64,8 +65,8 @@
 
     body {
       font-family: 'Inter', sans-serif;
-      background: #FAFAF8;
-      color: #1E2820;
+      background: #FFF9F5;
+      color: #2D1F2A;
       overscroll-behavior-y: none;
     }
 
@@ -205,9 +206,9 @@
     /* ─── Hero background art ─── */
     .hero-bg {
       background:
-        radial-gradient(60% 38% at 80% 0%, rgba(61, 107, 69, .14) 0%, transparent 70%),
-        radial-gradient(50% 44% at 10% 10%, rgba(194, 168, 130, .18) 0%, transparent 70%),
-        #FAFAF8;
+        radial-gradient(60% 38% at 80% 0%, rgba(107, 58, 91, .14) 0%, transparent 70%),
+        radial-gradient(50% 44% at 10% 10%, rgba(201, 160, 85, .18) 0%, transparent 70%),
+        #FFF9F5;
     }
 
     .hero-grain {
@@ -233,7 +234,7 @@
       align-items: center;
       justify-content: center;
       gap: 8px;
-      background: #1E2820;
+      background: #2D1F2A;
       color: #fff;
       padding: 16px 28px;
       border-radius: 100px;
@@ -271,8 +272,8 @@
     }
 
     .btn-primary:hover {
-      background: #3D6B45;
-      box-shadow: 0 10px 30px rgba(61, 107, 69, .28);
+      background: #6B3A5B;
+      box-shadow: 0 10px 30px rgba(107, 58, 91, .28);
     }
 
     .btn-secondary {
@@ -281,7 +282,7 @@
       justify-content: center;
       gap: 8px;
       background: transparent;
-      color: #1E2820;
+      color: #2D1F2A;
       padding: 15px 28px;
       border-radius: 100px;
       font-size: 15px;
@@ -297,7 +298,7 @@
     }
 
     .btn-secondary:hover {
-      border-color: #1E2820;
+      border-color: #2D1F2A;
       background: rgba(30, 40, 32, .03);
     }
 
@@ -305,7 +306,7 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      color: #1E2820;
+      color: #2D1F2A;
       font-weight: 500;
       font-size: 14px;
       padding: 10px 14px;
@@ -330,7 +331,7 @@
       background: #fff;
       border-radius: 22px;
       padding: 22px;
-      border: 1px solid #F0EDE8;
+      border: 1px solid #F5EDE6;
       transition: transform .25s ease, box-shadow .25s ease, border-color .2s;
       position: relative;
       overflow: hidden;
@@ -347,8 +348,8 @@
       width: 44px;
       height: 44px;
       border-radius: 14px;
-      background: #1E2820;
-      color: #C2E0C6;
+      background: #2D1F2A;
+      color: #E8D5B8;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -363,13 +364,13 @@
       border-radius: 28px;
       padding: 28px 24px;
       background: #fff;
-      border: 1.5px solid #E8E4DE;
+      border: 1.5px solid #DDD4CC;
       transition: transform .25s ease, box-shadow .25s ease;
     }
 
     .price-card.featured {
-      background: linear-gradient(160deg, #1E2820 0%, #2C4A30 100%);
-      border-color: #1E2820;
+      background: linear-gradient(160deg, #4A2840 0%, #4A2840 100%);
+      border-color: #2D1F2A;
       color: #fff;
       box-shadow: 0 20px 60px rgba(30, 40, 32, .24);
       position: relative;
@@ -396,7 +397,7 @@
 
     /* ─── FAQ ─── */
     .faq-item {
-      border-bottom: 1px solid #E8E4DE;
+      border-bottom: 1px solid #DDD4CC;
     }
 
     .faq-answer {
@@ -433,7 +434,7 @@
       border-radius: 22px;
       overflow: hidden;
       background: #fff;
-      border: 1px solid #E8E4DE;
+      border: 1px solid #DDD4CC;
       box-shadow: 0 4px 18px rgba(30, 40, 32, .06);
       transition: transform .25s ease, box-shadow .25s ease;
       cursor: pointer;
@@ -454,7 +455,7 @@
       font-size: 52px;
       font-weight: 600;
       line-height: 1;
-      color: #1E2820;
+      color: #2D1F2A;
       letter-spacing: -1.2px;
     }
 
@@ -470,7 +471,7 @@
       bottom: 0;
       left: 0;
       right: 0;
-      background: #FAFAF8;
+      background: #FFF9F5;
       border-radius: 28px 28px 0 0;
       z-index: 60;
       transform: translateY(100%);
@@ -504,7 +505,7 @@
       }
 
       #authSheet .sheet-inner {
-        background: #FAFAF8;
+        background: #FFF9F5;
         border-radius: 28px;
         padding: 36px 32px 32px;
         width: 100%;
@@ -548,18 +549,18 @@
       width: 100%;
       padding: 16px 20px;
       background: #fff;
-      border: 1.5px solid #E8E4DE;
+      border: 1.5px solid #DDD4CC;
       border-radius: 16px;
       font-size: 17px;
       font-family: 'Inter', sans-serif;
       letter-spacing: .5px;
       outline: none;
-      color: #1E2820;
+      color: #2D1F2A;
       transition: border-color .2s ease, box-shadow .2s ease;
     }
 
     .phone-input:focus {
-      border-color: #3D6B45;
+      border-color: #6B3A5B;
       box-shadow: 0 0 0 3px rgba(61, 107, 69, .12);
     }
 
@@ -568,8 +569,8 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      background: #C2E0C6;
-      color: #1A3D20;
+      background: #E8D5B8;
+      color: #2D1F2A;
       padding: 6px 14px;
       border-radius: 100px;
       font-size: 12px;
@@ -582,7 +583,7 @@
       align-items: center;
       gap: 6px;
       border: 1px solid #D8D4CE;
-      color: #1E2820;
+      color: #2D1F2A;
       padding: 6px 14px;
       border-radius: 100px;
       font-size: 12px;
@@ -595,7 +596,7 @@
     .section-divider {
       width: 40px;
       height: 2px;
-      background: #C2E0C6;
+      background: #E8D5B8;
       border-radius: 2px;
       margin: 14px auto 0;
     }
@@ -621,7 +622,7 @@
     .phone-frame {
       width: 184px;
       height: 368px;
-      background: #1E2820;
+      background: #2D1F2A;
       border-radius: 30px;
       padding: 6px;
       box-shadow: 0 28px 60px rgba(30, 40, 32, .28), 0 6px 18px rgba(0, 0, 0, .14);
@@ -852,7 +853,7 @@
       font-weight: 600;
       font-size: 15px;
       margin-bottom: 3px;
-      color: #1E2820;
+      color: #2D1F2A;
     }
 
     .step-item-content p {
@@ -986,7 +987,7 @@
     .scroll-indicator {
       width: 2px;
       height: 40px;
-      background: linear-gradient(to bottom, #3D6B45, transparent);
+      background: linear-gradient(to bottom, #6B3A5B, transparent);
       border-radius: 2px;
       margin: 0 auto;
       animation: fadeIn 1s ease 2s both;
@@ -1014,12 +1015,12 @@
       padding: 8px 4px;
       font-size: 14px;
       font-weight: 500;
-      color: #1E2820;
+      color: #2D1F2A;
       transition: color .2s;
     }
 
     .nav-link:hover {
-      color: #3D6B45;
+      color: #6B3A5B;
     }
 
     .nav-link::after {
@@ -1029,7 +1030,7 @@
       left: 0;
       right: 0;
       height: 1.5px;
-      background: #3D6B45;
+      background: #6B3A5B;
       transform: scaleX(0);
       transition: transform .3s cubic-bezier(.22, 1, .36, 1);
       transform-origin: right;
@@ -1044,7 +1045,7 @@
     .nav-bar {
       background: rgba(250, 250, 248, .92);
       backdrop-filter: blur(20px);
-      border-top: 1px solid #E8E4DE;
+      border-top: 1px solid #DDD4CC;
     }
 
     /* Use-case tabs */
@@ -1054,7 +1055,7 @@
       font-size: 13px;
       font-weight: 500;
       color: #6B6860;
-      border: 1.5px solid #E8E4DE;
+      border: 1.5px solid #DDD4CC;
       background: #fff;
       white-space: nowrap;
       cursor: pointer;
@@ -1062,9 +1063,9 @@
     }
 
     .uc-tab.active {
-      background: #1E2820;
+      background: #2D1F2A;
       color: #fff;
-      border-color: #1E2820;
+      border-color: #2D1F2A;
     }
 
     .uc-tab:hover:not(.active) {
@@ -1089,7 +1090,7 @@
       font-family: 'Cormorant Garamond', serif;
       font-size: 22px;
       font-style: italic;
-      color: #1E2820;
+      color: #2D1F2A;
       display: inline-flex;
       align-items: center;
       gap: 48px;
@@ -1099,7 +1100,7 @@
 
     .marquee-item::after {
       content: '✦';
-      color: #C2A882;
+      color: #C9A055;
       font-size: 14px;
       font-style: normal;
     }
@@ -1107,7 +1108,7 @@
     /* Testimonial card */
     .tm-card {
       background: #fff;
-      border: 1px solid #F0EDE8;
+      border: 1px solid #F5EDE6;
       border-radius: 22px;
       padding: 22px 20px;
       transition: transform .25s ease, box-shadow .25s ease;
@@ -1556,16 +1557,6 @@
     </div>
   </header>
 
-  <!-- Desktop sticky "Create" CTA when scrolled -->
-  <div id="deskCta" class="desk-cta-bar desktop-only">
-    <button onclick="openAuth()" class="btn-primary" style="padding:12px 22px">
-      Создать приглашение
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-      </svg>
-    </button>
-  </div>
-
   <!-- ─────────────────────────────────────────────────────────── -->
   <!--  HERO                                                       -->
   <!-- ─────────────────────────────────────────────────────────── -->
@@ -1573,7 +1564,7 @@
 
     <!-- Decorative blobs -->
     <div class="blob"
-      style="top:-80px; right:-60px; width:340px; height:340px; background:radial-gradient(circle,#C2E0C6,transparent 70%);">
+      style="top:-80px; right:-60px; width:340px; height:340px; background:radial-gradient(circle,#E8D5B8,transparent 70%);">
     </div>
     <div class="blob"
       style="bottom:-120px; left:-80px; width:360px; height:360px; background:radial-gradient(circle,#E6D5B8,transparent 70%); animation-delay:-4s;">
@@ -1596,18 +1587,18 @@
         <!-- Badge -->
         <div class="ha-badge mt-5 md:mt-0" style="animation: fadeUp .6s ease .05s both">
           <span class="badge">
-            <span class="w-1.5 h-1.5 bg-sage rounded-full"></span>
+            <span class="w-1.5 h-1.5 bg-gold rounded-full"></span>
             Приглашения нового поколения
           </span>
         </div>
 
         <!-- Heading -->
-        <h1
-          class="ha-heading font-cormorant md:mt-4 leading-[1.05] font-semibold text-ink tracking-tight"
+        <h1 class="ha-heading font-cormorant md:mt-4 leading-[1.05] font-semibold text-ink tracking-tight"
           style="animation: fadeUp .7s ease .12s both">
-          <span class="block mb-2 text-sage text-[14px] md:text-[18px] uppercase tracking-[0.3em] font-bold opacity-80" style="font-family: var(--font-inter)">ToiLink — это</span>
+          <span class="block mb-2 text-gold text-[14px] md:text-[18px] uppercase tracking-[0.3em] font-bold opacity-80"
+            style="font-family: var(--font-inter)">ToiLink — это</span>
           Создавайте изящные<br />
-          <span class="text-sage italic px-2">приглашения</span><br />
+          <span class="text-gold italic px-2">приглашения</span><br />
           в пару кликов
         </h1>
 
@@ -1616,15 +1607,18 @@
       <!-- Description -->
       <p class="ha-desc md:mt-2 text-[16px] md:text-[21px] text-muted leading-relaxed max-w-2xl mx-auto"
         style="animation: fadeUp .7s ease .2s both">
-        Элегантные онлайн-приглашения на ваше событие. Гости подтверждают участие в один клик, а вы видите список гостей в реальном времени.
+        Элегантные онлайн-приглашения на ваше событие. Гости подтверждают участие в один клик, а вы видите список гостей
+        в реальном времени.
       </p>
 
       <!-- CTAs -->
-      <div class="ha-ctas md:mt-6 flex flex-col sm:flex-row justify-center gap-4" style="animation: fadeUp .7s ease .28s both">
-        <button onclick="openAuth()" class="btn-primary w-full sm:w-auto px-10 py-5 text-[17px]">
+      <div class="ha-ctas md:mt-6 flex flex-col sm:flex-row justify-center gap-4"
+        style="animation: fadeUp .7s ease .28s both">
+        <button onclick="openAuth()"
+          class="btn-primary w-full sm:w-auto px-6 py-4 md:px-10 md:py-5 text-[15px] md:text-[17px]">
           Начать бесплатно
         </button>
-        <a href="#how" class="btn-secondary w-full sm:w-auto px-10 py-5 text-[17px]">
+        <a href="#how" class="btn-secondary w-full sm:w-auto px-6 py-4 md:px-10 md:py-5 text-[15px] md:text-[17px]">
           Как это работает
         </a>
       </div>
@@ -1633,15 +1627,23 @@
       <div class="ha-social md:mt-12 flex flex-col items-center gap-4" style="animation: fadeUp .7s ease .44s both">
         <div class="flex items-center gap-3">
           <div class="flex -space-x-3">
-            <div class="avatar border-2 border-white" style="background:#E6D5B8; color:#8B4A3C; width:36px; height:36px; font-weight:600;">А</div>
-            <div class="avatar border-2 border-white" style="background:#C2E0C6; color:#1A3D20; width:36px; height:36px; font-weight:600;">Б</div>
-            <div class="avatar border-2 border-white" style="background:#D8C8E0; color:#4B2E6B; width:36px; height:36px; font-weight:600;">Н</div>
-            <div class="avatar border-2 border-white" style="background:#1E2820; color:#C2E0C6; width:36px; height:36px; font-size:12px; font-weight:600;">+1k</div>
+            <div class="avatar border-2 border-white"
+              style="background:#E6D5B8; color:#6B3A5B; width:36px; height:36px; font-weight:600;">А</div>
+            <div class="avatar border-2 border-white"
+              style="background:#E8D5B8; color:#4A2840; width:36px; height:36px; font-weight:600;">Б</div>
+            <div class="avatar border-2 border-white"
+              style="background:#D8C8E0; color:#4B2E6B; width:36px; height:36px; font-weight:600;">Н</div>
+            <div class="avatar border-2 border-white"
+              style="background:#4A2840; color:#E8D5B8; width:36px; height:36px; font-size:12px; font-weight:600;">+1k
+            </div>
           </div>
           <div class="h-4 w-[1px] bg-ink/10"></div>
           <div class="flex items-center gap-1.5">
             <div class="flex items-center">
-              <svg class="w-3.5 h-3.5 text-[#D4AF7A]" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+              <svg class="w-3.5 h-3.5 text-[#D4AF7A]" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+              </svg>
             </div>
             <span class="text-[13px] font-bold text-ink/80">4.9/5</span>
           </div>
@@ -1653,7 +1655,7 @@
       <div class="ha-chips md:mt-6 flex items-center gap-2 md:gap-2.5 flex-wrap"
         style="animation: fadeUp .7s ease .52s both">
         <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-sage" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
               clip-rule="evenodd" />
@@ -1661,7 +1663,7 @@
           Без приложения
         </span>
         <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-sage" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
               clip-rule="evenodd" />
@@ -1669,7 +1671,7 @@
           RSVP онлайн
         </span>
         <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-sage" fill="currentColor" viewBox="0 0 20 20">
+          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd"
               d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
               clip-rule="evenodd" />
@@ -1718,7 +1720,7 @@
   <section class="py-14 md:py-20 px-6 bg-cream3">
     <div class="max-w-5xl mx-auto grid grid-cols-3 gap-4 md:gap-12 text-center">
       <div class="reveal">
-        <div class="stat-num"><span data-count="1200">0</span><span class="text-sage">+</span></div>
+        <div class="stat-num"><span data-count="1200">0</span><span class="text-gold">+</span></div>
         <div class="text-[11px] md:text-[13px] text-muted font-medium mt-2 leading-tight">событий<br />создано</div>
       </div>
       <div class="reveal reveal-delay-1 border-x border-line">
@@ -1727,7 +1729,7 @@
           приглашения</div>
       </div>
       <div class="reveal reveal-delay-2">
-        <div class="stat-num">4.9<span class="text-sage">★</span></div>
+        <div class="stat-num">4.9<span class="text-gold">★</span></div>
         <div class="text-[11px] md:text-[13px] text-muted font-medium mt-2 leading-tight">средняя<br />оценка</div>
       </div>
     </div>
@@ -1741,7 +1743,7 @@
       <div class="reveal text-center mb-10 md:mb-14">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Для любого события</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">
-          Подойдёт для <em class="text-sage">вашего</em> праздника
+          Подойдёт для <em class="text-gold">вашего</em> праздника
         </h2>
         <div class="section-divider"></div>
       </div>
@@ -1760,7 +1762,7 @@
       <div class="reveal reveal-delay-1 mt-6 md:mt-10 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
         <div id="ucImage"
           class="relative rounded-3xl overflow-hidden aspect-[4/3] md:aspect-[5/4] border border-line shadow-xl"
-          style="background: linear-gradient(160deg,#2C4A30 0%,#1E2820 100%);">
+          style="background: linear-gradient(160deg,#4A2840 0%,#4A2840 100%);">
           <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
             <div id="ucTitle" class="font-cormorant text-white/90 text-[13px] md:text-[16px] italic mb-2">Приглашение
             </div>
@@ -1784,24 +1786,24 @@
           </p>
           <ul id="ucBullets" class="mt-6 space-y-3">
             <li class="check-item">
-              <div class="check-icon bg-mint">
-                <svg class="w-3 h-3 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="check-icon bg-champagne">
+                <svg class="w-3 h-3 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <span class="text-[13px] md:text-[15px]">Имена пары, история знакомства, таймлайн</span>
             </li>
             <li class="check-item">
-              <div class="check-icon bg-mint">
-                <svg class="w-3 h-3 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="check-icon bg-champagne">
+                <svg class="w-3 h-3 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
               <span class="text-[13px] md:text-[15px]">Карта с маршрутом и контакты организаторов</span>
             </li>
             <li class="check-item">
-              <div class="check-icon bg-mint">
-                <svg class="w-3 h-3 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div class="check-icon bg-champagne">
+                <svg class="w-3 h-3 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
                 </svg>
               </div>
@@ -1822,472 +1824,185 @@
   <!-- ─────────────────────────────────────────────────────────── -->
   <!--  HOW IT WORKS                                               -->
   <!-- ─────────────────────────────────────────────────────────── -->
-  <section id="how" class="py-20 md:py-32 px-6 bg-[#F9F7F4] relative overflow-hidden">
-    <!-- Decorative background elements for depth -->
-    <div class="absolute top-[20%] right-[-5%] w-[400px] h-[400px] bg-mint/20 blur-[100px] rounded-full pointer-events-none"></div>
-    <div class="absolute bottom-[10%] left-[-5%] w-[300px] h-[300px] bg-[#E6D5B8]/20 blur-[80px] rounded-full pointer-events-none"></div>
 
-    <style>
-      /* ─── Sync Fade List ─── */
-      .acc-list {
-        position: relative;
-        height: 140px;
-        z-index: 10;
-      }
+  <section id="how" class="py-16 md:py-24 bg-cream relative overflow-hidden">
+      <!-- Background Elements -->
+      <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-champagne/10 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
+      <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-champagne/5 blur-[80px] rounded-full pointer-events-none translate-y-1/3 -translate-x-1/4"></div>
 
-      @media (min-width: 768px) {
-        .acc-list {
-          height: 160px;
-        }
-      }
+      <div class="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
 
-      .acc-item {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        display: flex;
-        gap: 20px;
-        align-items: flex-start;
-        opacity: 0;
-        transform: translateY(20px) scale(0.97);
-        pointer-events: none;
-        will-change: opacity, transform;
-        /* Premium Glass Card */
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        box-shadow: 
-          0 20px 40px rgba(30, 40, 32, 0.08),
-          0 1px 2px rgba(30, 40, 32, 0.05);
-        border-radius: 24px;
-        padding: 20px 28px;
-        transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-
-      .acc-num {
-        width: 44px;
-        height: 44px;
-        border-radius: 14px;
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 22px;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        background: linear-gradient(135deg, #1E2820 0%, #3D6B45 100%);
-        color: #C2E0C6;
-        box-shadow: 0 8px 16px rgba(30, 40, 32, 0.18);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .acc-content {
-        flex: 1;
-        padding-top: 4px;
-      }
-
-      .acc-content h3 {
-        font-family: 'Cormorant Garamond', serif;
-        font-size: 24px;
-        font-weight: 600;
-        color: #1E2820;
-        line-height: 1.15;
-        margin: 0 0 10px 0;
-      }
-
-      @media (min-width: 768px) {
-        .acc-content h3 {
-          font-size: 28px;
-        }
-      }
-
-      .acc-content p {
-        font-size: 14px;
-        color: #6B6860;
-        line-height: 1.55;
-        margin: 0;
-        max-width: 400px;
-      }
-
-      /* Timings synched with scenes (12s total loop) */
-      .acc-item-1 {
-        animation: acc-fade-1 12s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
-      }
-
-      .acc-item-2 {
-        animation: acc-fade-2 12s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
-      }
-
-      .acc-item-3 {
-        animation: acc-fade-3 12s cubic-bezier(0.22, 1, 0.36, 1) infinite both;
-      }
-
-      @keyframes acc-fade-1 {
-        0%, 2% { opacity: 0; transform: translateY(20px) scale(0.97); }
-        5%, 29% { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        33%, 100% { opacity: 0; transform: translateY(-20px) scale(0.97); pointer-events: none; }
-      }
-      @keyframes acc-fade-2 {
-        0%, 31% { opacity: 0; transform: translateY(20px) scale(0.97); }
-        35%, 62% { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        66%, 100% { opacity: 0; transform: translateY(-20px) scale(0.97); pointer-events: none; }
-      }
-      @keyframes acc-fade-3 {
-        0%, 64% { opacity: 0; transform: translateY(20px) scale(0.97); }
-        68%, 94% { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-        98%, 100% { opacity: 0; transform: translateY(-20px) scale(0.97); pointer-events: none; }
-      }
-    </style>
-
-    <div class="max-w-6xl mx-auto">
-      <div class="how-layout">
-
-        <!-- Left: heading + auto accordion -->
-        <div class="how-left">
-          <div class="reveal text-center md:text-left mb-6 md:mb-12">
-            <div class="text-[11px] md:text-[12px] tracking-[0.28em] uppercase text-sage font-bold mb-3">Процесс создания</div>
-            <h2 class="font-cormorant text-[36px] md:text-[54px] font-semibold leading-[1.1] text-ink">
-              Три простых шага <br class="hidden md:block"/><em class="text-sage italic">к вашему событию</em>
-            </h2>
-            <div class="section-divider" style="margin-left:0; width:60px; height: 3px;"></div>
+          <!-- Header -->
+          <div class="text-center mb-10 md:mb-20 max-w-2xl mx-auto">
+              <span class="inline-block py-1 px-3 rounded-full bg-gold/10 text-gold text-[10px] md:text-xs font-bold tracking-widest uppercase mb-4 border border-gold/10">Процесс</span>
+              <h2 class="font-cormorant text-[32px] md:text-[56px] font-semibold leading-[1.1] text-ink mb-4">
+                  Три шага <br class="md:hidden"/><em class="text-gold italic">к идеальному событию</em>
+              </h2>
+              <p class="text-muted text-sm md:text-base max-w-md mx-auto md:max-w-none">
+                  Создайте приглашение за 5 минут и забудьте о бумажной рутине.
+              </p>
           </div>
 
-          <div class="reveal">
-            <div class="acc-list">
+          <!-- Mobile Horizontal Scroll Container / Desktop Grid -->
+          <!-- На мобильном: flex + overflow-x (свайп) -->
+          <!-- На десктопе: grid-cols-3 -->
+          <div class="flex md:grid md:grid-cols-3 gap-6 md:gap-10 overflow-x-auto md:overflow-visible pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
 
               <!-- Step 1 -->
-              <div class="acc-item acc-item-1">
-                <div class="acc-num">1</div>
-                <div class="acc-content">
-                  <h3>Создайте приглашение</h3>
-                  <p>Выберите шаблон, заполните имена, дату и место — всё за 5 минут через удобную форму.</p>
-                </div>
+              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
+                  <!-- Card Body -->
+                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
+
+                      <!-- Visual Area (Mockup) -->
+                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-gray-50 to-[#F5F5F4] rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
+                          <!-- Decorative Circle behind -->
+                          <div class="absolute w-32 h-32 bg-gold/10 rounded-full blur-2xl"></div>
+
+                          <!-- Mockup UI: Form -->
+                          <div class="relative w-40 md:w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-3 transform group-hover:-translate-y-2 transition-transform duration-500">
+                              <div class="flex items-center gap-2 mb-3 border-b border-gray-50 pb-2">
+                                  <div class="w-2 h-2 rounded-full bg-red-400"></div>
+                                  <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+                                  <div class="w-2 h-2 rounded-full bg-green-400"></div>
+                              </div>
+                              <div class="space-y-2">
+                                  <div class="h-6 w-full bg-gray-50 rounded border border-gray-100"></div>
+                                  <div class="h-6 w-3/4 bg-gray-50 rounded border border-gray-100"></div>
+                                  <div class="h-8 w-full bg-ink rounded mt-2 flex items-center justify-center">
+                                      <div class="w-12 h-1 bg-white/30 rounded-full"></div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Text Content -->
+                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
+                          <div class="flex items-center gap-3 mb-3">
+                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">1</div>
+                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Создайте</h3>
+                          </div>
+                          <p class="text-sm text-muted leading-relaxed">
+                              Выберите шаблон, добавьте фото и детали события. Конструктор простой и понятный.
+                          </p>
+                      </div>
+                  </div>
               </div>
 
               <!-- Step 2 -->
-              <div class="acc-item acc-item-2">
-                <div class="acc-num">2</div>
-                <div class="acc-content">
-                  <h3>Поделитесь ссылкой</h3>
-                  <p>Отправьте одну красивую ссылку в WhatsApp или Instagram — гости откроют прямо в браузере.</p>
-                </div>
+              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
+                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
+
+                      <!-- Visual Area (Mockup) -->
+                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-[#E4F2E6]/30 to-[#F0FDF4] rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
+                          <div class="absolute w-32 h-32 bg-green-200/20 rounded-full blur-2xl"></div>
+
+                          <!-- Mockup UI: Chat Bubble -->
+                          <div class="relative w-44 md:w-52 transform group-hover:-translate-y-2 transition-transform duration-500">
+                              <!-- Incoming Mesgold -->
+                              <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-md border border-gray-100 mb-3 ml-4">
+                                  <div class="text-[10px] text-gray-400 mb-1">Анна</div>
+                                  <div class="h-2 w-24 bg-gray-200 rounded-full mb-1"></div>
+                                  <div class="h-2 w-16 bg-gray-200 rounded-full"></div>
+                              </div>
+                              <!-- Outgoing Link -->
+                              <div class="bg-ink p-3 rounded-2xl rounded-tr-none shadow-lg shadow-ink/20 mr-4 flex items-center gap-3">
+                                  <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-xs font-bold">W</div>
+                                  <div class="flex-1">
+                                      <div class="h-2 w-16 bg-white/40 rounded-full mb-1"></div>
+                                      <div class="h-1.5 w-10 bg-white/20 rounded-full"></div>
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Text Content -->
+                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
+                          <div class="flex items-center gap-3 mb-3">
+                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">2</div>
+                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Отправьте</h3>
+                          </div>
+                          <p class="text-sm text-muted leading-relaxed">
+                              Скопируйте ссылку и отправьте гостям в WhatsApp или Telegram. Без приложений.
+                          </p>
+                      </div>
+                  </div>
               </div>
 
               <!-- Step 3 -->
-              <div class="acc-item acc-item-3">
-                <div class="acc-num">3</div>
-                <div class="acc-content">
-                  <h3>Следите за гостями</h3>
-                  <p>Видно кто подтвердил, кто отказал и сколько ждать. Экспорт списка в Excel одним нажатием.</p>
-                </div>
+              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
+                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
+
+                      <!-- Visual Area (Mockup) -->
+                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-blue-50 to-white rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
+                          <div class="absolute w-32 h-32 bg-blue-200/20 rounded-full blur-2xl"></div>
+
+                          <!-- Mockup UI: Dashboard/List -->
+                          <div class="relative w-40 md:w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-3 transform group-hover:-translate-y-2 transition-transform duration-500">
+                              <div class="flex justify-between items-center mb-3">
+                                  <div class="h-2 w-12 bg-gray-200 rounded-full"></div>
+                                  <div class="h-4 w-4 bg-green-100 rounded-full flex items-center justify-center">
+                                      <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                  </div>
+                              </div>
+                              <div class="space-y-2">
+                                  <!-- List Item 1 -->
+                                  <div class="flex items-center gap-2">
+                                      <div class="w-5 h-5 rounded-full bg-gray-100"></div>
+                                      <div class="h-1.5 w-20 bg-gray-100 rounded-full"></div>
+                                      <div class="ml-auto h-3 w-8 bg-green-50 rounded text-[6px] text-green-600 flex items-center justify-center">Да</div>
+                                  </div>
+                                  <!-- List Item 2 -->
+                                  <div class="flex items-center gap-2">
+                                      <div class="w-5 h-5 rounded-full bg-gray-100"></div>
+                                      <div class="h-1.5 w-16 bg-gray-100 rounded-full"></div>
+                                      <div class="ml-auto h-3 w-8 bg-red-50 rounded text-[6px] text-red-500 flex items-center justify-center">Нет</div>
+                                  </div>
+                              </div>
+                              <!-- Chart visual at bottom -->
+                              <div class="mt-3 pt-2 border-t border-gray-50 flex gap-1 items-end h-8">
+                                  <div class="w-1/3 h-full bg-gold/20 rounded-t"></div>
+                                  <div class="w-1/3 h-1/2 bg-gold/40 rounded-t"></div>
+                                  <div class="w-1/3 h-3/4 bg-gold rounded-t"></div>
+                              </div>
+                          </div>
+                      </div>
+
+                      <!-- Text Content -->
+                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
+                          <div class="flex items-center gap-3 mb-3">
+                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">3</div>
+                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Следите</h3>
+                          </div>
+                          <p class="text-sm text-muted leading-relaxed">
+                              Ответы гостей приходят мгновенно. Скачайте готовый список в Excel перед банкетом.
+                          </p>
+                      </div>
+                  </div>
               </div>
 
-            </div>
           </div>
-        </div>
 
-        <!-- Right: phone mockup with scroll-rotate -->
-        <div class="how-right">
-          <div class="steps-phone-wrap">
-            <div id="stepsPhone" class="steps-phone-device">
-              <div class="steps-phone-highlight"></div>
-              <!-- Screen content: animated scenes -->
-              <div class="steps-phone-screen">
-                <!-- Dynamic Island -->
-                <div class="dynamic-island"></div>
-
-                <!-- Scene 1: Editor -->
-                <div class="scene scene-1" style="background:#F2F2F7;display:flex;flex-direction:column;">
-                  <div style="padding:32px 14px 6px;">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">
-                      <span style="font-size:9px;color:#888;font-weight:600;letter-spacing:.04em;">ШАГ 2 ИЗ 3</span>
-                      <span style="font-size:9px;color:#3D6B45;font-weight:600;letter-spacing:.04em;">ДИЗАЙН</span>
-                    </div>
-                    <div style="height:3px;background:#ddd;border-radius:999px;overflow:hidden;">
-                      <div
-                        style="height:100%;background:linear-gradient(90deg,#3D6B45,#6aaa78);border-radius:999px;animation:progress-bar 12s infinite both;">
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style="flex:1;padding:6px 10px 4px;display:flex;align-items:flex-start;justify-content:space-between;gap:6px;animation:card-float 12s both;">
-                    <div style="display:flex;flex-direction:column;gap:7px;padding-top:6px;">
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:700;color:#1E3A2A;">
-                        T</div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
-                        <div
-                          style="width:16px;height:16px;border-radius:50%;background:linear-gradient(135deg,#c8d8ca,#7aab84);">
-                        </div>
-                      </div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
-                        <div style="width:15px;height:11px;background:#d1d5db;border-radius:3px;"></div>
-                      </div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:2px;">
-                          <div style="width:6px;height:6px;background:#b0b7c0;border-radius:2px;"></div>
-                          <div style="width:6px;height:6px;background:#b0b7c0;border-radius:2px;"></div>
-                          <div style="width:6px;height:6px;background:#b0b7c0;border-radius:2px;"></div>
-                          <div style="width:6px;height:6px;background:#b0b7c0;border-radius:2px;"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      style="width:120px;flex-shrink:0;background:#F5F0E8;border-radius:18px;border:1.5px solid #E0D8CC;box-shadow:0 4px 20px rgba(30,58,42,.1);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:12px 8px;position:relative;overflow:hidden;min-height:220px;">
-                      <div
-                        style="position:absolute;inset:7px;border:1px solid rgba(184,150,46,.25);border-radius:12px;pointer-events:none;">
-                      </div>
-                      <div
-                        style="width:40px;height:1.5px;background:rgba(184,150,46,.5);border-radius:999px;margin-bottom:10px;">
-                      </div>
-                      <div style="font-size:8px;color:#a09070;letter-spacing:.1em;font-weight:500;margin-bottom:6px;">
-                        СВАДЬБА</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:#1E3A2A;text-align:center;line-height:1.2;margin-bottom:4px;">
-                        Анель<br><span style="font-style:italic;color:#3D6B45;">&amp; Марат</span></div>
-                      <div style="font-size:7px;color:#b09070;letter-spacing:.08em;margin-bottom:10px;">12 · 07 · 2025
-                      </div>
-                      <div
-                        style="width:36px;height:1px;background:rgba(184,150,46,.4);border-radius:999px;margin-bottom:8px;">
-                      </div>
-                      <div style="font-size:7px;color:#a09070;letter-spacing:.06em;">АЛМАТЫ</div>
-                    </div>
-                    <div style="display:flex;flex-direction:column;gap:7px;padding-top:6px;">
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#555;">
-                        Intro</div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#555;">
-                        Time</div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#3D6B45;background:rgba(61,107,69,.08);">
-                        RSVP</div>
-                      <div
-                        style="width:34px;height:34px;background:white;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:#555;">
-                        Map</div>
-                    </div>
-                  </div>
-                  <div
-                    style="position:absolute;bottom:0;left:0;right:0;background:white;border-radius:24px 24px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.07);padding:14px 16px 20px;z-index:20;animation: sheet-rise 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                    <div style="width:32px;height:3px;background:#e0e0e0;border-radius:999px;margin:0 auto 12px;"></div>
-                    <div style="margin-bottom:10px;">
-                      <div style="font-size:8px;font-weight:700;color:#aaa;letter-spacing:.1em;margin-bottom:5px;">ИМЯ
-                        НЕВЕСТЫ</div>
-                      <div
-                        style="height:36px;background:#F2F2F7;border-radius:12px;padding:0 11px;display:flex;align-items:center;border:1.5px solid transparent;">
-                        <div class="typing-wrap">
-                          <div class="typing-text">Анель</div>
-                          <div class="cursor"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div style="animation: groom-row-in 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                      <div style="font-size:8px;font-weight:700;color:#aaa;letter-spacing:.1em;margin-bottom:5px;">ИМЯ
-                        ЖЕНИХА</div>
-                      <div
-                        style="height:36px;background:#F2F2F7;border-radius:12px;padding:0 11px;display:flex;align-items:center;">
-                        <span
-                          style="font-family:'Cormorant Garamond',serif;font-size:14px;color:#bbb;font-weight:400;font-style:italic;">Имя
-                          жениха...</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Scene 2: WhatsApp -->
-                <div class="scene scene-2" style="background:#efeae2;display:flex;flex-direction:column;">
-                  <div
-                    style="background:#075e54;padding:30px 14px 10px;display:flex;align-items:center;gap:10px;z-index:10;">
-                    <div
-                      style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="rgba(255,255,255,.8)">
-                        <path
-                          d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div style="font-size:12px;font-weight:600;color:white;line-height:1;">Айбек</div>
-                      <div style="font-size:9px;color:rgba(255,255,255,.65);margin-top:1px;">в сети</div>
-                    </div>
-                  </div>
-                  <div style="flex:1;padding:12px;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;">
-                    <div
-                      style="align-self:flex-start;max-width:80%;background:white;border-radius:16px 16px 16px 4px;padding:8px 10px;box-shadow:0 1px 2px rgba(0,0,0,.08);">
-                      <div style="font-size:10px;color:#333;line-height:1.4;">Когда свадьба? Можешь скинуть инфо?</div>
-                      <div style="font-size:7.5px;color:#aaa;text-align:right;margin-top:3px;">14:29</div>
-                    </div>
-                    <div
-                      style="align-self:flex-end;max-width:88%;background:#dcf8c6;border-radius:16px 4px 16px 16px;padding:8px 10px;box-shadow:0 1px 2px rgba(0,0,0,.08);animation:bubble-pop 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                      <div style="font-size:10px;color:#1a1a1a;margin-bottom:7px;line-height:1.4;">Конечно! Жду тебя на
-                        нашем торжестве, вот приглашение:</div>
-                      <div
-                        style="background:rgba(0,0,0,.05);border-radius:12px;padding:8px;display:flex;gap:8px;align-items:center;position:relative;overflow:hidden;">
-                        <div
-                          style="width:36px;height:36px;background:#F5F0E8;border-radius:9px;border:1px solid rgba(184,150,46,.3);display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:14px;font-weight:700;color:#1E3A2A;font-style:italic;flex-shrink:0;">
-                          T</div>
-                        <div style="flex:1;min-width:0;">
-                          <div
-                            style="font-size:10px;font-weight:700;color:#1E3A2A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-                            Свадьба Анель и Марата</div>
-                          <div style="font-size:8px;color:#888;margin-top:1px;">toilink.kz/inv/am2025</div>
-                        </div>
-                        <div
-                          style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;background:rgba(30,58,42,.18);border-radius:50%;pointer-events:none;animation:ripple-tap 12s infinite both;">
-                        </div>
-                      </div>
-                      <div style="font-size:7.5px;color:#888;text-align:right;margin-top:4px;">14:30 <span
-                          style="color:#4fc3f7;">&#10003;&#10003;</span></div>
-                    </div>
-                  </div>
-                  <div
-                    style="background:white;padding:8px 12px;display:flex;align-items:center;gap:8px;border-top:1px solid rgba(0,0,0,.06);">
-                    <div
-                      style="flex:1;height:28px;background:#f0f0f0;border-radius:999px;padding:0 12px;display:flex;align-items:center;">
-                      <span style="font-size:9px;color:#bbb;">Написать сообщение...</span>
-                    </div>
-                    <div
-                      style="width:28px;height:28px;background:#25d366;border-radius:50%;display:flex;align-items:center;justify-content:center;">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="white">
-                        <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Scene 3: Dashboard -->
-                <div class="scene scene-3" style="background:#F5F0E8;display:flex;flex-direction:column;padding:0;">
-                  <div style="padding:30px 14px 10px;display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                      <div style="font-size:8px;color:#999;font-weight:600;letter-spacing:.1em;margin-bottom:2px;">
-                        СОБЫТИЯ / Классическая свадьба</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:#1E3A2A;line-height:1.1;">
-                        Список <em style="color:#3D6B45;">гостей</em></div>
-                      <div style="width:28px;height:2px;background:#3D6B45;border-radius:999px;margin-top:5px;"></div>
-                    </div>
-                    <div
-                      style="width:28px;height:28px;border-radius:50%;background:white;border:1px solid rgba(184,150,46,.3);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.06);">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#B8962E" stroke-width="2">
-                        <circle cx="12" cy="12" r="3" />
-                        <path
-                          d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div style="padding:0 14px 10px;">
-                    <div style="font-size:9px;color:#888;line-height:1.5;">Добавляйте гостей, отправляйте персональную
-                      ссылку и следите за подтверждениями.</div>
-                  </div>
-                  <div style="padding:0 10px;display:grid;grid-template-columns:1fr 1fr;gap:7px;">
-                    <div
-                      style="background:white;border-radius:18px;border:2px solid #1E3A2A;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.05);">
-                      <div style="font-size:7.5px;font-weight:700;color:#555;letter-spacing:.08em;margin-bottom:4px;">
-                        ПРИГЛАШЕНО</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#1E3A2A;line-height:1;">
-                        120</div>
-                    </div>
-                    <div
-                      style="background:#E4EFE6;border-radius:18px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.04);">
-                      <div
-                        style="font-size:7.5px;font-weight:700;color:#3D6B45;letter-spacing:.08em;margin-bottom:4px;">
-                        ПРИДУТ</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#1E3A2A;line-height:1;overflow:hidden;height:28px;position:relative;">
-                        <div
-                          style="position:absolute;display:flex;flex-direction:column;animation:count-flip 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                          <span style="height:28px;line-height:28px;display:block;">45</span>
-                          <span style="height:28px;line-height:28px;display:block;color:#3D6B45;">46</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div
-                      style="background:#FDECEA;border-radius:18px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.04);">
-                      <div
-                        style="font-size:7.5px;font-weight:700;color:#c0524a;letter-spacing:.08em;margin-bottom:4px;">НЕ
-                        ПРИДУТ</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#1E3A2A;line-height:1;">
-                        12</div>
-                    </div>
-                    <div
-                      style="background:#FDF5E6;border-radius:18px;padding:10px 12px;box-shadow:0 2px 10px rgba(0,0,0,.04);">
-                      <div
-                        style="font-size:7.5px;font-weight:700;color:#b08030;letter-spacing:.08em;margin-bottom:4px;">
-                        БЕЗ ОТВЕТА</div>
-                      <div
-                        style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:#1E3A2A;line-height:1;">
-                        63</div>
-                    </div>
-                  </div>
-                        </div>
-                        <div style="flex:1;">
-                          <div style="font-size:10px;font-weight:700;color:#1E3A2A;">Марат</div>
-                          <div style="font-size:8px;color:#3D6B45;">Подтвердил присутствие</div>
-                        </div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#3D6B45" stroke-width="2.5">
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                      </div>
-                      <div
-                        style="background:white;border-radius:13px;padding:8px 10px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 6px rgba(0,0,0,.05);animation:row-in-3 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                        <div
-                          style="width:26px;height:26px;background:#FDECEA;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="#c0524a">
-                            <path
-                              d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z" />
-                          </svg>
-                        </div>
-                        <div style="flex:1;">
-                          <div style="font-size:10px;font-weight:700;color:#1E3A2A;">Гульнара</div>
-                          <div style="font-size:8px;color:#c0524a;">Не сможет прийти</div>
-                        </div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c0524a" stroke-width="2.5">
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                  <div
-                    style="position:absolute;bottom:10px;left:10px;right:10px;background:white;box-shadow:0 12px 40px rgba(0,0,0,.14);border:1px solid rgba(61,107,69,.12);border-radius:18px;padding:10px 12px;display:flex;gap:10px;align-items:center;z-index:50;animation: toast-slide 12s cubic-bezier(.4,0,.2,1) infinite both;">
-                    <div
-                      style="width:30px;height:30px;background:#E4EFE6;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3D6B45" stroke-width="2.5">
-                        <path d="M20 6L9 17l-5-5" />
-                      </svg>
-                    </div>
-                    <div>
-                      <div
-                        style="font-size:9.5px;font-weight:700;color:#1E3A2A;letter-spacing:.05em;margin-bottom:1px;">
-                        НОВЫЙ ОТВЕТ</div>
-                      <div style="font-size:8.5px;color:#777;">Айбек подтвердил присутствие</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <!-- CTA Button -->
+          <div class="text-center mt-8 md:mt-16">
+              <button onclick="openAuth()" class="btn-primary inline-flex items-center justify-center px-8 py-4 text-base font-medium text-cream bg-ink rounded-full shadow-lg shadow-ink/20 hover:shadow-xl hover:shadow-gold/20 hover:-translate-y-1 transition-all duration-300">
+                  Создать приглашение
+                  <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+              </button>
           </div>
-        </div>
 
       </div>
 
-      <!-- CTA below both columns -->
-      <div class="reveal text-center mt-10 md:mt-14">
-        <button onclick="openAuth()" class="btn-primary">
-          Попробовать бесплатно
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-          </svg>
-        </button>
-      </div>
-    </div>
+      <!-- Helper style to hide scrollbar but keep functionality -->
+      <style>
+          .hide-scrollbar::-webkit-scrollbar {
+              display: none;
+          }
+          .hide-scrollbar {
+              -ms-overflow-style: none;
+              scrollbar-width: none;
+          }
+      </style>
   </section>
-
   <!-- ─────────────────────────────────────────────────────────── -->
   <!--  FEATURES                                                   -->
   <!-- ─────────────────────────────────────────────────────────── -->
@@ -2296,7 +2011,7 @@
       <div class="reveal text-center mb-10 md:mb-14">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Возможности</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Всё&nbsp;что&nbsp;<em
-            class="text-sage">нужно</em></h2>
+            class="text-gold">нужно</em></h2>
         <div class="section-divider"></div>
         <p class="text-[13px] md:text-[16px] text-muted mt-4 leading-relaxed max-w-xl mx-auto">Никаких дополнительных
           программ. Всё работает прямо в браузере телефона или компьютера.</p>
@@ -2305,8 +2020,8 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
 
         <div class="reveal reveal-delay-1 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
@@ -2316,8 +2031,8 @@
         </div>
 
         <div class="reveal reveal-delay-2 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
             </svg>
@@ -2327,8 +2042,8 @@
         </div>
 
         <div class="reveal reveal-delay-3 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
@@ -2338,8 +2053,8 @@
         </div>
 
         <div class="reveal reveal-delay-4 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
             </svg>
@@ -2350,8 +2065,8 @@
         </div>
 
         <div class="reveal reveal-delay-1 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
@@ -2362,8 +2077,8 @@
         </div>
 
         <div class="reveal reveal-delay-2 feature-card">
-          <div class="w-11 h-11 bg-mint rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
+            <svg class="w-5 h-5 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h4" />
@@ -2375,11 +2090,11 @@
 
         <!-- Big showcase -->
         <div class="reveal reveal-delay-3 feature-card col-span-2 md:col-span-3"
-          style="background: linear-gradient(135deg,#1E2820 0%,#2C4A30 100%); color:white; border:none;">
+          style="background: linear-gradient(135deg,#4A2840 0%,#4A2840 100%); color:white; border:none;">
           <div class="flex flex-col md:flex-row items-start md:items-center gap-5">
             <div
-              class="w-12 h-12 md:w-14 md:h-14 bg-mint/15 border border-mint/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 md:w-7 md:h-7 text-mint" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              class="w-12 h-12 md:w-14 md:h-14 bg-champagne/15 border border-champagne/20 rounded-2xl flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6 md:w-7 md:h-7 text-champagne" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
               </svg>
@@ -2391,7 +2106,7 @@
                 приложение, регистрироваться или запоминать логины. Открыли ссылку — увидели красивое приглашение. На
                 любом телефоне, в любом мессенджере.</p>
             </div>
-            <button onclick="openAuth()" class="mt-2 md:mt-0 btn-primary !bg-mint !text-[#1A3D20] flex-shrink-0">
+            <button onclick="openAuth()" class="mt-2 md:mt-0 btn-primary !bg-champagne !text-[#4A2840] flex-shrink-0">
               Попробовать
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -2412,7 +2127,7 @@
       <div class="reveal text-center mb-8 md:mb-14 px-6">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Галерея</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Наши <em
-            class="text-sage">шаблоны</em></h2>
+            class="text-gold">шаблоны</em></h2>
         <div class="section-divider"></div>
         <p class="text-[13px] md:text-[16px] text-muted mt-4">Выберите стиль для вашего события</p>
       </div>
@@ -2422,7 +2137,7 @@
         <!-- Template 1 -->
         <div class="template-card" onclick="openAuth()">
           <div class="h-56 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#2C4A30 0%,#1E2820 100%)">
+            style="background: linear-gradient(160deg,#4A2840 0%,#4A2840 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
               <div class="font-cormorant text-white text-[13px] italic mb-1">Приглашение</div>
               <div class="w-10 h-px bg-white/30 mb-2"></div>
@@ -2451,7 +2166,7 @@
               <div class="text-[10px] tracking-widest text-muted uppercase mb-2">You are invited</div>
               <div class="font-cormorant text-ink text-[24px] font-semibold italic leading-tight">Свадебный<br />той
               </div>
-              <div class="w-8 h-0.5 bg-gold mx-auto my-3 rounded"></div>
+              <div class="w-8 h-0.5 bg-champagne mx-auto my-3 rounded"></div>
               <div class="text-[10px] text-muted">Venue Bishkek · 19:00</div>
               <div class="mt-5 px-5 py-2 bg-ink rounded-full text-white text-[10px] font-medium">Подтвердить →</div>
             </div>
@@ -2490,12 +2205,12 @@
             style="background: linear-gradient(160deg,#FDF6F0 0%,#F9EDE0 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
               <div class="text-[28px] mb-1">🌸</div>
-              <div class="font-cormorant text-[#8B4A3C] text-[22px] font-semibold italic leading-tight">
+              <div class="font-cormorant text-[#6B3A5B] text-[22px] font-semibold italic leading-tight">
                 Айгерим<br />Асанова</div>
               <div class="text-[10px] text-muted mt-1">25 лет</div>
               <div class="w-8 h-0.5 bg-[#E8B4A0] mx-auto my-3 rounded"></div>
               <div class="text-[10px] text-muted">Flora · 18:00</div>
-              <div class="mt-4 px-5 py-2 bg-[#8B4A3C] rounded-full text-white text-[10px] font-medium">Буду!</div>
+              <div class="mt-4 px-5 py-2 bg-[#6B3A5B] rounded-full text-white text-[10px] font-medium">Буду!</div>
             </div>
           </div>
           <div class="p-4">
@@ -2510,7 +2225,7 @@
         <!-- Карточка 1 -->
         <div class="template-card tilt" onclick="openAuth()">
           <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#2C4A30 0%,#1E2820 100%)">
+            style="background: linear-gradient(160deg,#4A2840 0%,#4A2840 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
               <div class="font-cormorant text-white text-[14px] italic mb-2">Приглашение</div>
               <div class="w-12 h-px bg-white/30 mb-3"></div>
@@ -2540,7 +2255,7 @@
               <div class="text-[11px] tracking-widest text-muted uppercase mb-3">You are invited</div>
               <div class="font-cormorant text-ink text-[32px] font-semibold italic leading-tight">Свадебный<br />той
               </div>
-              <div class="w-10 h-0.5 bg-gold mx-auto my-4 rounded"></div>
+              <div class="w-10 h-0.5 bg-champagne mx-auto my-4 rounded"></div>
               <div class="text-[12px] text-muted">Venue Bishkek · 19:00</div>
               <div class="mt-6 px-6 py-2.5 bg-ink rounded-full text-white text-[12px] font-medium">Подтвердить →</div>
             </div>
@@ -2581,12 +2296,12 @@
             style="background: linear-gradient(160deg,#FDF6F0 0%,#F9EDE0 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
               <div class="text-[36px] mb-2">🌸</div>
-              <div class="font-cormorant text-[#8B4A3C] text-[30px] font-semibold italic leading-tight">
+              <div class="font-cormorant text-[#6B3A5B] text-[30px] font-semibold italic leading-tight">
                 Айгерим<br />Асанова</div>
               <div class="text-[11px] text-muted mt-2">25 лет</div>
               <div class="w-10 h-0.5 bg-[#E8B4A0] mx-auto my-3 rounded"></div>
               <div class="text-[12px] text-muted">Flora · 18:00</div>
-              <div class="mt-5 px-6 py-2.5 bg-[#8B4A3C] rounded-full text-white text-[12px] font-medium">Буду!</div>
+              <div class="mt-5 px-6 py-2.5 bg-[#6B3A5B] rounded-full text-white text-[12px] font-medium">Буду!</div>
             </div>
           </div>
           <div class="p-5">
@@ -2600,12 +2315,12 @@
           <div class="h-80 relative overflow-hidden"
             style="background: linear-gradient(160deg,#0F1F3A 0%,#1E3A5F 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="text-[11px] tracking-widest text-[#C2A882] uppercase mb-3">Wedding day</div>
+              <div class="text-[11px] tracking-widest text-[#C9A055] uppercase mb-3">Wedding day</div>
               <div class="font-cormorant text-white text-[32px] font-semibold italic leading-tight">Асылбек<br />&amp;
                 Айжан</div>
-              <div class="w-10 h-0.5 bg-[#C2A882] mx-auto my-4 rounded"></div>
+              <div class="w-10 h-0.5 bg-[#C9A055] mx-auto my-4 rounded"></div>
               <div class="text-[12px] text-white/60">Иссык-Куль · 18:00</div>
-              <div class="mt-6 px-6 py-2.5 bg-[#C2A882] rounded-full text-[#0F1F3A] text-[12px] font-semibold">RSVP
+              <div class="mt-6 px-6 py-2.5 bg-[#C9A055] rounded-full text-[#0F1F3A] text-[12px] font-semibold">RSVP
               </div>
             </div>
           </div>
@@ -2614,7 +2329,7 @@
               <div class="font-semibold text-[15px]">Морской</div>
               <div class="text-[12px] text-muted mt-0.5">Глубокий синий</div>
             </div>
-            <span class="badge text-[11px]" style="background:#E6D5B8; color:#8B4A3C;">Новый</span>
+            <span class="badge text-[11px]" style="background:#E6D5B8; color:#6B3A5B;">Новый</span>
           </div>
         </div>
 
@@ -2622,8 +2337,8 @@
         <div class="template-card tilt" onclick="openAuth()">
           <div class="h-80 relative overflow-hidden" style="background: linear-gradient(160deg,#FFF 0%,#F5F0EA 100%)">
             <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="w-14 h-14 border-2 border-[#8B4A3C] rounded-full flex items-center justify-center mb-3">
-                <span class="font-cormorant italic font-semibold text-[#8B4A3C] text-[20px]">Б&amp;Ж</span>
+              <div class="w-14 h-14 border-2 border-[#6B3A5B] rounded-full flex items-center justify-center mb-3">
+                <span class="font-cormorant italic font-semibold text-[#6B3A5B] text-[20px]">Б&amp;Ж</span>
               </div>
               <div class="font-cormorant text-ink text-[28px] font-semibold italic leading-tight">Бакыт<br />&amp;
                 Жылдыз</div>
@@ -2657,7 +2372,7 @@
       <div class="reveal text-center mb-10 md:mb-14">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Отзывы</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">
-          Что <em class="text-sage">говорят</em> пары
+          Что <em class="text-gold">говорят</em> пары
         </h2>
         <div class="section-divider"></div>
       </div>
@@ -2692,7 +2407,7 @@
             восторге, а я экономнула кучу денег на печати.»
           </p>
           <div class="mt-5 pt-4 border-t border-line flex items-center gap-3">
-            <div class="avatar" style="background:#C2E0C6; color:#1A3D20;">А</div>
+            <div class="avatar" style="background:#E8D5B8; color:#4A2840;">А</div>
             <div>
               <div class="font-semibold text-[13px]">Айгуль Сатарова</div>
               <div class="text-[11px] text-muted">Свадьба · 320 гостей</div>
@@ -2728,7 +2443,7 @@
             восторге: точное число за неделю до тоя.»
           </p>
           <div class="mt-5 pt-4 border-t border-line flex items-center gap-3">
-            <div class="avatar" style="background:#E6D5B8; color:#8B4A3C;">Н</div>
+            <div class="avatar" style="background:#E6D5B8; color:#6B3A5B;">Н</div>
             <div>
               <div class="font-semibold text-[13px]">Нурланбек Омуралиев</div>
               <div class="text-[11px] text-muted">Той · 450 гостей</div>
@@ -2784,7 +2499,7 @@
       <div class="reveal text-center mb-10 md:mb-14">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Цены</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Прозрачно и&nbsp;<em
-            class="text-sage">честно</em></h2>
+            class="text-gold">честно</em></h2>
         <div class="section-divider"></div>
         <p class="text-[13px] md:text-[16px] text-muted mt-4">Оплата один раз за мероприятие — никаких подписок</p>
       </div>
@@ -2840,17 +2555,17 @@
 
         <div class="reveal reveal-delay-1 price-card featured relative">
           <div
-            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-mint text-[#1A3D20] text-[10px] font-bold tracking-wider uppercase px-4 py-1.5 rounded-full shadow-lg">
+            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-champagne text-[#4A2840] text-[10px] font-bold tracking-wider uppercase px-4 py-1.5 rounded-full shadow-lg">
             ★ Хит</div>
           <div class="flex items-start justify-between mb-5">
             <div>
-              <div class="text-[12px] font-semibold text-mint uppercase tracking-wider mb-1">Премиум</div>
+              <div class="text-[12px] font-semibold text-champagne uppercase tracking-wider mb-1">Премиум</div>
               <div class="font-cormorant text-[48px] md:text-[56px] font-semibold leading-none text-white">1 490 <span
                   class="text-[22px] text-white/60 font-normal">сом</span></div>
               <div class="text-[11px] md:text-[12px] text-white/40 mt-1">за одно мероприятие</div>
             </div>
             <div class="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center">
-              <svg class="w-5 h-5 text-mint" fill="currentColor" viewBox="0 0 20 20">
+              <svg class="w-5 h-5 text-champagne" fill="currentColor" viewBox="0 0 20 20">
                 <path
                   d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
@@ -2858,49 +2573,49 @@
           </div>
           <div class="space-y-2.5 mb-6">
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Неограниченно гостей</span>
             </div>
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Все 12 шаблонов</span>
             </div>
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Кастомизация цветов и текста</span>
             </div>
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Без водяного знака</span>
             </div>
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Экспорт списка гостей (Excel)</span>
             </div>
             <div class="check-item">
-              <div class="check-icon bg-mint/20"><svg class="w-3 h-3 text-mint" fill="none" stroke="currentColor"
+              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
                   viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
                 </svg></div>
               <span class="text-[13px] md:text-[14px] text-white/85">Приоритетная поддержка</span>
             </div>
           </div>
-          <button onclick="openAuth()" class="btn-primary w-full !bg-mint !text-[#1A3D20]">
+          <button onclick="openAuth()" class="btn-primary w-full !bg-champagne !text-[#4A2840]">
             Получить Премиум
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -2924,7 +2639,7 @@
       <div class="reveal text-center mb-10 md:mb-14">
         <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">FAQ</div>
         <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Частые <em
-            class="text-sage">вопросы</em></h2>
+            class="text-gold">вопросы</em></h2>
         <div class="section-divider"></div>
       </div>
 
@@ -3040,7 +2755,7 @@
   <section class="py-14 md:py-20 px-6">
     <div class="max-w-5xl mx-auto">
       <div class="reveal glass-card p-8 md:p-16 text-center relative overflow-hidden"
-        style="background: linear-gradient(160deg,#1E2820 0%,#2C4A30 100%); border-color: transparent;">
+        style="background: linear-gradient(160deg,#4A2840 0%,#4A2840 100%); border-color: transparent;">
         <!-- Decorative -->
         <div class="absolute -top-20 -right-20 w-56 h-56 rounded-full border border-white/10"></div>
         <div class="absolute -bottom-24 -left-24 w-64 h-64 rounded-full border border-white/10"></div>
@@ -3051,21 +2766,21 @@
         <div class="relative z-10">
           <div
             class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 rounded-full text-[11px] md:text-[12px] text-white/90 font-medium tracking-wider uppercase mb-6">
-            <span class="w-1.5 h-1.5 bg-mint rounded-full animate-pulse"></span>
+            <span class="w-1.5 h-1.5 bg-champagne rounded-full animate-pulse"></span>
             Бесплатно · Без регистрации с длинными формами
           </div>
 
           <h2
             class="font-cormorant text-[36px] md:text-[60px] font-semibold italic text-white leading-tight mb-4 md:mb-6">
             Ваш той заслуживает<br />
-            <span class="text-mint">красивого</span> приглашения
+            <span class="text-champagne">красивого</span> приглашения
           </h2>
           <p class="text-white/60 text-[14px] md:text-[18px] leading-relaxed mb-8 md:mb-10 max-w-xl mx-auto">
             Создайте первое приглашение прямо сейчас. 1&nbsp;200+ семей уже выбрали ToiLink.
           </p>
 
           <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onclick="openAuth()" class="btn-primary !bg-mint !text-[#1A3D20] w-full sm:w-auto">
+            <button onclick="openAuth()" class="btn-primary !bg-champagne !text-[#4A2840] w-full sm:w-auto">
               Создать приглашение
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -3124,10 +2839,10 @@
         <div>
           <div class="text-[11px] tracking-wider uppercase text-muted font-semibold mb-4">Продукт</div>
           <ul class="space-y-2.5">
-            <li><a href="#templates" class="text-[13px] text-ink hover:text-sage transition-colors">Шаблоны</a></li>
-            <li><a href="#pricing" class="text-[13px] text-ink hover:text-sage transition-colors">Цены</a></li>
-            <li><a href="#how" class="text-[13px] text-ink hover:text-sage transition-colors">Как работает</a></li>
-            <li><a href="#faq" class="text-[13px] text-ink hover:text-sage transition-colors">Частые вопросы</a></li>
+            <li><a href="#templates" class="text-[13px] text-ink hover:text-gold transition-colors">Шаблоны</a></li>
+            <li><a href="#pricing" class="text-[13px] text-ink hover:text-gold transition-colors">Цены</a></li>
+            <li><a href="#how" class="text-[13px] text-ink hover:text-gold transition-colors">Как работает</a></li>
+            <li><a href="#faq" class="text-[13px] text-ink hover:text-gold transition-colors">Частые вопросы</a></li>
           </ul>
         </div>
 
@@ -3159,7 +2874,7 @@
   <div id="authSheet">
     <div class="sheet-inner">
       <div class="drag-pill flex justify-center pt-3 pb-1">
-        <div class="w-10 h-1 bg-[#1E2820]/10 rounded-full"></div>
+        <div class="w-10 h-1 bg-[#4A2840]/10 rounded-full"></div>
       </div>
       <div class="px-6 md:px-0 pt-4 md:pt-0 pb-2">
         <div class="text-center mb-6">
@@ -3169,7 +2884,7 @@
 
         <div class="space-y-3">
           <div>
-            <label class="block text-[10px] font-bold uppercase tracking-widest text-[#1E2820]/40 mb-2 ml-1">Номер
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-[#4A2840]/40 mb-2 ml-1">Номер
               телефона</label>
             <input type="tel" id="phoneInput" placeholder="+996 700 000 000" class="phone-input"
               oninput="formatPhone(this)" onkeydown="if(event.key==='Enter') handleLogin()" />
@@ -3177,7 +2892,7 @@
           <button onclick="handleLogin()" id="loginBtn" class="btn-primary w-full">
             Войти и создать приглашение
           </button>
-          <p class="text-[10px] text-[#1E2820]/30 text-center leading-relaxed px-2">
+          <p class="text-[10px] text-[#4A2840]/30 text-center leading-relaxed px-2">
             Продолжая, вы соглашаетесь с условиями использования сервиса
           </p>
         </div>
@@ -3310,12 +3025,6 @@
       if (dy > 60) closeAuth();
     }, { passive: true });
 
-    /* ── Desktop sticky CTA on scroll ── */
-    const deskCta = document.getElementById('deskCta');
-    window.addEventListener('scroll', () => {
-      if (window.scrollY > 520) deskCta.classList.add('show');
-      else deskCta.classList.remove('show');
-    }, { passive: true });
 
     /* ── Hero phone scroll-rotate (desktop only) ── */
     const heroPhone = document.getElementById('heroPhone');
@@ -3365,13 +3074,13 @@
           'Карта с маршрутом и контакты организаторов',
           'Таймер обратного отсчёта и RSVP блок'
         ],
-        bg: 'linear-gradient(160deg,#2C4A30 0%,#1E2820 100%)'
+        bg: 'linear-gradient(160deg,#4A2840 0%,#4A2840 100%)'
       },
       toi: {
         title: 'Той',
         names: 'Мирбек<br/>Асанов',
         date: '15 августа 2026',
-        heading: 'Большой той с&nbsp;<em class="text-sage">удобным</em> RSVP',
+        heading: 'Большой той с&nbsp;<em class="text-gold">удобным</em> RSVP',
         text: 'Для многолюдных тоев важно точно знать количество гостей. ToiLink показывает ответы в реальном времени и помогает согласовать с рестораном.',
         bullets: [
           'Неограниченное количество гостей',
@@ -3384,7 +3093,7 @@
         title: 'День рождения',
         names: 'Айгерим<br/>Асанова',
         date: '7 июля · 25 лет',
-        heading: 'Праздник в&nbsp;<em class="text-sage">вашем</em> стиле',
+        heading: 'Праздник в&nbsp;<em class="text-gold">вашем</em> стиле',
         text: 'Цветочные, минималистичные, игривые и элегантные темы. Удобные блоки для дресс-кода, подарков и плейлиста пожеланий.',
         bullets: [
           'Выбор цветов и акцентов под ваше настроение',
@@ -3398,7 +3107,7 @@
         title: 'Юбилей',
         names: 'Мирбек<br/>Осмонов',
         date: '60 лет',
-        heading: 'Юбилей, <em class="text-sage">достойный</em> воспоминаний',
+        heading: 'Юбилей, <em class="text-gold">достойный</em> воспоминаний',
         text: 'Подчеркните значимость события: тёплые слова, фото через годы, семейное древо гостей, видеоприветствия.',
         bullets: [
           'Галерея памятных фотографий',
@@ -3411,7 +3120,7 @@
         title: 'Узатуу',
         names: 'Жаннат<br/>Омурова',
         date: '10 июня 2026',
-        heading: 'Нежное <em class="text-sage">узатуу</em> с памятью навсегда',
+        heading: 'Нежное <em class="text-gold">узатуу</em> с памятью навсегда',
         text: 'Специальные шаблоны в традициях кыргызской свадьбы. Мягкие пастельные тона, пожелания девичнику, карта места.',
         bullets: [
           'Шаблоны в национальном стиле',
@@ -3424,14 +3133,14 @@
         title: 'Корпоратив',
         names: 'Новый год<br/>2027',
         date: '28 декабря · 19:00',
-        heading: 'Корпоратив — <em class="text-sage">красиво</em> и&nbsp;чётко',
+        heading: 'Корпоратив — <em class="text-gold">красиво</em> и&nbsp;чётко',
         text: 'Идеально для HR и офис-менеджеров. RSVP от всех сотрудников за день, без бесконечных Excel-опросов.',
         bullets: [
           'Одна ссылка на всю компанию',
           'Трекинг ответов по отделам',
           'Фирменные цвета и лого'
         ],
-        bg: 'linear-gradient(160deg,#1E2820 0%,#3D6B45 100%)'
+        bg: 'linear-gradient(160deg,#4A2840 0%,#6B3A5B 100%)'
       }
     };
 
@@ -3448,7 +3157,7 @@
       image.style.background = d.bg;
       const dark = d.dark !== false;
       image.querySelectorAll('[id^="uc"]').forEach(el => {
-        if (el.id === 'ucNames') el.style.color = dark ? '#fff' : '#1E2820';
+        if (el.id === 'ucNames') el.style.color = dark ? '#fff' : '#4A2840';
         if (el.id === 'ucTitle') el.style.color = dark ? 'rgba(255,255,255,.8)' : '#6B6860';
         if (el.id === 'ucDate') el.style.color = dark ? 'rgba(255,255,255,.7)' : '#6B6860';
       });
@@ -3456,8 +3165,8 @@
       const ul = document.getElementById('ucBullets');
       ul.innerHTML = d.bullets.map(b => `
       <li class="check-item">
-        <div class="check-icon bg-mint">
-          <svg class="w-3 h-3 text-[#1A3D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+        <div class="check-icon bg-champagne">
+          <svg class="w-3 h-3 text-[#4A2840]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
         </div>
         <span class="text-[13px] md:text-[15px]">${b}</span>
       </li>`).join('');
