@@ -330,9 +330,16 @@ function openEditorOverlay() {
   initDragHandle();
   initVisualViewport();
   initPreviewResize();
+  initDesktopPanelNav();
 
-  // Start with sheet collapsed — show preview + tiles
-  snapSheet(SHEET_SNAP.collapsed);
+  // Desktop: init right panel immediately
+  if (isDesktopLayout()) {
+    const rp = document.getElementById('rightPanel');
+    if (rp) rp.style.display = 'flex';
+  } else {
+    // Mobile: start with sheet collapsed
+    snapSheet(SHEET_SNAP.collapsed);
+  }
 
   document.getElementById('previewSkeleton').style.display = '';
   const frame = document.getElementById('previewFrame');
@@ -587,15 +594,16 @@ function setMode(mode) {
 
   const tilesLeft  = document.getElementById('tilesLeft');
   const tilesRight = document.getElementById('tilesRight');
+  const rp = document.getElementById('rightPanel');
 
   if (mode === 'preview') {
-    snapSheet(SHEET_SNAP.collapsed);
     if (tilesLeft)  { tilesLeft.style.transition  = 'opacity 0.2s, width 0.25s'; tilesLeft.style.opacity  = '0'; tilesLeft.style.width  = '0'; tilesLeft.style.padding  = '0'; tilesLeft.style.overflow = 'hidden'; }
     if (tilesRight) { tilesRight.style.transition = 'opacity 0.2s, width 0.25s'; tilesRight.style.opacity = '0'; tilesRight.style.width = '0'; tilesRight.style.padding = '0'; tilesRight.style.overflow = 'hidden'; }
+    if (rp) rp.style.display = 'none';
   } else {
-    snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
     if (tilesLeft)  { tilesLeft.style.transition  = 'opacity 0.2s, width 0.25s'; tilesLeft.style.opacity  = ''; tilesLeft.style.width  = ''; tilesLeft.style.padding  = ''; tilesLeft.style.overflow = ''; }
     if (tilesRight) { tilesRight.style.transition = 'opacity 0.2s, width 0.25s'; tilesRight.style.opacity = ''; tilesRight.style.width = ''; tilesRight.style.padding = ''; tilesRight.style.overflow = ''; }
+    if (rp) rp.style.display = 'flex';
   }
 }
 
@@ -656,12 +664,12 @@ function renderBlockNav() {
         : 'bg-white/30 text-[#C5BFB8] border border-dashed border-[#DDDAD6]';
 
     return `<button data-block="${def.type}"
-      class="relative flex flex-col items-center justify-center gap-1 rounded-2xl w-[58px] h-[62px] transition-all active:scale-93 overflow-hidden ${tileClass}"
+      class="relative flex flex-col items-center justify-center gap-1 rounded-2xl w-[58px] h-[62px] transition-all active:scale-93 overflow-hidden ${tileClass} desktop:flex-row desktop:w-full desktop:min-h-[52px] desktop:h-auto desktop:px-3 desktop:py-2 desktop:gap-2 desktop:rounded-xl"
       aria-label="${def.label}">
       ${dot}
       ${eyeSlash}
       <span style="opacity:${enabled || active ? '1' : '0.45'}">${blockIcon(def.icon, 18)}</span>
-      <span class="text-[9px] font-semibold leading-tight text-center px-1 truncate w-full" style="opacity:${enabled || active ? '1' : '0.5'}">${def.label}</span>
+      <span class="text-[9px] font-semibold leading-tight text-center px-1 truncate w-full desktop:text-left desktop:flex-1" style="opacity:${enabled || active ? '1' : '0.5'}">${def.label}</span>
     </button>`;
   }
 
@@ -681,6 +689,14 @@ function updateSheetHeader(type) {
   const defs = getBlockDefs();
   const idx  = defs.findIndex(d => d.type === type);
   if (counterEl) counterEl.textContent = `${idx + 1} из ${defs.length}`;
+
+  // Desktop sidebar header sync
+  const deskIcon  = document.getElementById('sidebarBlockIcon');
+  const deskTitle = document.getElementById('sidebarBlockTitle');
+  const deskCount = document.getElementById('sidebarBlockCounter');
+  if (deskIcon)  deskIcon.innerHTML  = blockIcon(def.icon, 16);
+  if (deskTitle) deskTitle.textContent = def.label;
+  if (deskCount) deskCount.textContent = `${idx + 1} из ${defs.length}`;
 }
 
 function toggleBlockPicker() {
@@ -748,6 +764,10 @@ function _navigateBlock(dir) {
   if (target) activateBlock(target.type);
 }
 
+function isDesktopLayout() {
+  return window.matchMedia('(min-width: 768px)').matches;
+}
+
 function activateBlock(type, silent) {
   APP.ui.activeBlock = type;
   renderBlockNav();
@@ -757,7 +777,13 @@ function activateBlock(type, silent) {
   // Open sheet when tapping a block (unless silent — initial load)
   if (!silent) {
     hideOnboardingHint();
-    snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
+    if (isDesktopLayout()) {
+      // Desktop: show right panel if hidden
+      const rp = document.getElementById('rightPanel');
+      if (rp) rp.style.display = 'flex';
+    } else {
+      snapSheet(APP.ui.lastExpandedSnap || SHEET_SNAP.half);
+    }
   }
 
   scrollPreviewTo(type);
@@ -1761,6 +1787,12 @@ async function init() {
   } catch (err) {
     if (!bootstrapped) showToast(err.message, 'error');
   }
+}
+
+// ─── Desktop right panel navigation ────────────────────────────────────────
+function initDesktopPanelNav() {
+  document.getElementById('sidebarPrevBtn')?.addEventListener('click', () => _navigateBlock(-1));
+  document.getElementById('sidebarNextBtn')?.addEventListener('click', () => _navigateBlock(1));
 }
 
 // ─── Keyboard shortcuts ──────────────────────────────────────────────────

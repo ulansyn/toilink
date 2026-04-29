@@ -77,6 +77,7 @@
       display: flex; align-items: flex-start; justify-content: center;
       padding: 8px 2px;
     }
+
     #phoneFrame {
       --mob-w: 375;
       width: calc(var(--mob-scale) * var(--mob-w) * 1px);
@@ -97,12 +98,182 @@
       border: none;
     }
 
-    /* Bottom sheet — absolutely positioned overlay */
+    /* Onboarding overlay: covers ONLY the preview (between tile columns) */
+    #onboardingOverlay { position: absolute; top: 0; bottom: 0; hidden; z-index: 22; background: rgba(12,20,14,0.58); backdrop-filter: blur(2px); transition: opacity 0.3s ease; pointer-events: none; }
+
+    /* Bottom sheet — full width (mobile) */
     #bottomSheet {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
+      position: absolute; bottom: 0; left: 0; right: 0;
       transition: height 0.34s cubic-bezier(0.32, 0.72, 0, 1);
       z-index: 20;
+    }
+
+    @media (min-width: 768px) {
+      #editorOverlay {
+        display: grid;
+        grid-template-columns: 160px 1fr 280px;
+        grid-template-rows: auto auto 1fr;
+      }
+
+      #progressWrap { grid-column: 1 / 4; }
+
+      /* Editor body: tiles-left | preview | right-panel */
+      #editorBody {
+        display: grid;
+        grid-template-columns: 160px 1fr 280px;
+        grid-template-rows: 1fr;
+        min-height: 0;
+        grid-column: 1 / 4;
+        position: relative;
+      }
+
+      #previewCol {
+        grid-column: 2;
+        grid-row: 1;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      #phoneFrame {
+        --mob-w: 375;
+        width: 375px;
+        height: 812px;
+        border-radius: 40px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+        background: #FAFAF8;
+        flex-shrink: 0;
+      }
+
+      #phoneFrame iframe {
+        width: calc(var(--mob-w) * 1px);
+        height: calc(var(--mob-w) * 1px * 812 / 375);
+        transform: scale(1);
+        transform-origin: top left;
+        border: none;
+      }
+
+      /* Left tiles sidebar */
+      #tilesLeft, #tilesRight {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 8px;
+        background: #FFFFFF;
+        overflow-y: auto;
+      }
+
+      #tilesLeft {
+        grid-column: 1;
+        grid-row: 1;
+        border-right: 1px solid #E5E5EA;
+      }
+
+      #tilesRight {
+        grid-column: 3;
+        grid-row: 1;
+        border-left: 1px solid #E5E5EA;
+      }
+
+      /* Right panel */
+      #rightPanel {
+        display: flex;
+        flex-direction: column;
+        background: #FFFFFF;
+        border-left: 1px solid #E5E5EA;
+        overflow: hidden;
+        grid-column: 3;
+        grid-row: 1;
+      }
+
+      /* Desktop tile buttons — horizontal layout, always show label */
+      #tilesLeft .tile-btn-desktop,
+      #tilesRight .tile-btn-desktop {
+        width: 100%;
+        height: auto;
+        min-height: 52px;
+        padding: 8px 10px;
+        border-radius: 14px;
+        flex-direction: row;
+        gap: 10px;
+        justify-content: flex-start;
+        align-items: center;
+      }
+      #tilesLeft .tile-btn-desktop span:last-child,
+      #tilesRight .tile-btn-desktop span:last-child {
+        font-size: 12px;
+        display: block;
+        text-align: left;
+      }
+      #tilesLeft .tile-btn-desktop svg,
+      #tilesRight .tile-btn-desktop svg {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+
+      #panelContent {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px 16px 24px;
+        scrollbar-width: thin;
+        scrollbar-color: #DDD9D4 transparent;
+      }
+      #panelContent::-webkit-scrollbar { display: block; width: 3px; }
+      #panelContent::-webkit-scrollbar-thumb { background: #DDD9D4; border-radius: 3px; }
+
+      #sidebarHeader {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid #E5E5EA;
+        flex-shrink: 0;
+      }
+
+      #sidebarBlockIcon {
+        width: 32px; height: 32px;
+        border-radius: 10px;
+        background: #F2F2F7;
+        display: flex; align-items: center; justify-content: center;
+        color: #3D6B45;
+        flex-shrink: 0;
+      }
+
+      #sidebarBlockTitle {
+        font-size: 15px; font-semibold; color: #1E2820;
+        flex: 1; min-width: 0;
+      }
+
+      #sidebarBlockCounter {
+        font-size: 12px; color: #6B6860;
+        flex-shrink: 0;
+      }
+
+      #sidebarPrevBtn, #sidebarNextBtn {
+        width: 28px; height: 28px;
+        border-radius: 8px;
+        display: flex; align-items: center; justify-content: center;
+        color: #6B6860;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        transition: background 0.15s;
+      }
+      #sidebarPrevBtn:hover, #sidebarNextBtn:hover { background: #F2F2F7; }
+
+      #onboardingTooltip { left: 176px !important; }
+      #onboardingOverlay { left: 160px !important; right: 280px !important; }
+
+      #bottomSheet { display: none !important; }
+    }
+
+    @media (max-width: 767px) {
+      #rightPanel { display: none !important; }
+      #sidebarHeader { display: none; }
+      #sidebarPrevBtn, #sidebarNextBtn { display: none; }
     }
 
     /* Skeleton pulse */
@@ -310,6 +481,22 @@
       <!-- Right tiles (5-8) -->
       <div id="tilesRight" class="tile-col"></div>
 
+      <!-- Desktop right panel (hidden on mobile) -->
+      <div id="rightPanel">
+        <div id="sidebarHeader">
+          <div id="sidebarBlockIcon"></div>
+          <span id="sidebarBlockTitle" class="truncate"></span>
+          <span id="sidebarBlockCounter" class="text-[12px] text-[#6B6860] flex-shrink-0"></span>
+          <button id="sidebarPrevBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6860] active:scale-90 transition-all">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+          </button>
+          <button id="sidebarNextBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-[#6B6860] active:scale-90 transition-all">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </button>
+        </div>
+        <div id="panelContent" class="flex-1 overflow-y-auto px-3 pt-1 pb-10" style="-webkit-overflow-scrolling:touch"></div>
+      </div>
+
       <!-- Onboarding overlay: covers ONLY the preview (between tile columns) -->
       <div id="onboardingOverlay" class="absolute top-0 bottom-0 hidden" style="z-index:22; left:66px; right:66px; background:rgba(12,20,14,0.58); backdrop-filter:blur(2px); transition:opacity 0.3s ease; pointer-events:none"></div>
 
@@ -323,8 +510,8 @@
         </div>
       </div>
 
-      <!-- Bottom sheet — full width -->
-      <div id="bottomSheet" class="bg-white rounded-t-[24px] shadow-[0_-1px_0_rgba(0,0,0,0.06),0_-8px_32px_rgba(0,0,0,0.10)] flex flex-col"
+      <!-- Bottom sheet — mobile only -->
+      <div id="bottomSheet" class="bg-white rounded-t-[24px] shadow-[0_-1px_0_rgba(0,0,0,0.06),0_-8px_32px_rgba(0,0,0,0.10)] flex flex-col md:hidden"
            style="height:44px; padding-bottom:env(safe-area-inset-bottom,0px)">
         <!-- Drag handle (44px touch target, 6px visual indicator) -->
         <div id="sheetHandle" class="flex-shrink-0 flex justify-center items-end cursor-grab active:cursor-grabbing" style="touch-action:none; user-select:none; min-height:44px; padding-bottom:8px">
@@ -355,8 +542,8 @@
           <div id="blockPickerList"></div>
         </div>
 
-        <!-- Panel content -->
-        <div id="panelContent" class="flex-1 overflow-y-auto px-3 pt-1 pb-10" style="-webkit-overflow-scrolling:touch"></div>
+        <!-- Panel content — mobile sheet version -->
+        <div id="panelContentMobile" class="flex-1 overflow-y-auto px-3 pt-1 pb-10" style="-webkit-overflow-scrolling:touch"></div>
       </div>
     </div>
   </div>

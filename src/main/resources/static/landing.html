@@ -1,3184 +1,1074 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>ToiLink — Красивые цифровые приглашения на той и свадьбу</title>
-  <meta name="description"
-    content="Создайте элегантное онлайн-приглашение на свадьбу, той, юбилей или день рождения за 5 минут. RSVP онлайн, список гостей, премиальные шаблоны." />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>ToiLink — Красивые цифровые приглашения на той и свадьбу</title>
+    <meta name="description" content="Создайте элегантное онлайн-приглашение на свадьбу, той, юбилей или день рождения за 5 минут. RSVP онлайн, список гостей, премиальные шаблоны." />
+    <meta property="og:title" content="ToiLink — Цифровые приглашения за 5 минут" />
+    <meta property="og:description" content="Ссылка, RSVP и список гостей — всё в одном месте." />
+    <meta property="og:type" content="website" />
 
-  <meta property="og:title" content="ToiLink — Цифровые приглашения за 5 минут" />
-  <meta property="og:description" content="Элегантные онлайн-приглашения с RSVP. Без приложений, без распечаток." />
-  <meta property="og:type" content="website" />
+    <link rel="icon" type="image/png" href="/images/logo.png" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-  <link
-    href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap"
-    rel="stylesheet" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { inter: ['Inter', 'sans-serif'], cormorant: ['Cormorant Garamond', 'serif'] },
-          colors: {
-            ink: '#1A1A1A',
-            ink2: '#2A2A2A',
-            muted: '#7D7570',
-            cream: '#FEFCFA',
-            cream2: '#F8F5F0',
-            cream3: '#F0EDE8',
-            line: '#E8E4DC',
-            gold: '#C9A86C',
-            gold2: '#B89858',
-            pearl: '#E8E4DC',
-            ivory: '#FAF6F0'
-          }
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { -ms-overflow-style: none; scrollbar-width: none; }
+        ::-webkit-scrollbar { display: none; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: transparent;
+            color: #111827;
+            overscroll-behavior-y: none;
         }
-      }
-    }
-  </script>
 
-  <style>
-    *,
-    *::before,
-    *::after {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
-
-    * {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-
-    ::-webkit-scrollbar {
-      display: none;
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #FAF8F5;
-      color: #1A1A1A;
-      overscroll-behavior-y: none;
-    }
-
-    .font-cormorant {
-      font-family: 'Cormorant Garamond', serif;
-    }
-
-    /* ─── Animations ─── */
-    @keyframes fadeUp {
-      from {
-        opacity: 0;
-        transform: translateY(28px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0
-      }
-
-      to {
-        opacity: 1
-      }
-    }
-
-    @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(0.92);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @keyframes float {
-
-      0%,
-      100% {
-        transform: translateY(0px);
-      }
-
-      50% {
-        transform: translateY(-8px);
-      }
-    }
-
-    @keyframes float-slow {
-
-      0%,
-      100% {
-        transform: translateY(0) rotate(0deg);
-      }
-
-      50% {
-        transform: translateY(-14px) rotate(2deg);
-      }
-    }
-
-    @keyframes spinSlow {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    @keyframes marqueeX {
-      from {
-        transform: translateX(0);
-      }
-
-      to {
-        transform: translateX(-50%);
-      }
-    }
-
-    @keyframes blob {
-
-      0%,
-      100% {
-        border-radius: 64% 36% 54% 46% / 52% 48% 52% 48%;
-      }
-
-      50% {
-        border-radius: 42% 58% 40% 60% / 48% 58% 42% 52%;
-      }
-    }
-
-    @keyframes shine {
-      0% {
-        transform: translateX(-120%) skewX(-20deg);
-      }
-
-      100% {
-        transform: translateX(260%) skewX(-20deg);
-      }
-    }
-
-    /* Scroll-triggered reveal */
-    .reveal {
-      opacity: 0;
-      transform: translateY(32px);
-      transition: opacity .7s cubic-bezier(.22, 1, .36, 1), transform .7s cubic-bezier(.22, 1, .36, 1);
-    }
-
-    .reveal.visible {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    .reveal-delay-1 {
-      transition-delay: .08s;
-    }
-
-    .reveal-delay-2 {
-      transition-delay: .16s;
-    }
-
-    .reveal-delay-3 {
-      transition-delay: .24s;
-    }
-
-    .reveal-delay-4 {
-      transition-delay: .32s;
-    }
-
-    .reveal-delay-5 {
-      transition-delay: .40s;
-    }
-
-    /* ─── Hero background art ─── */
-    .hero-bg {
-      background:
-        radial-gradient(60% 38% at 80% 0%, rgba(107, 58, 91, .14) 0%, transparent 70%),
-        radial-gradient(50% 44% at 10% 10%, rgba(201, 160, 85, .18) 0%, transparent 70%),
-        #FFFBF5;
-    }
-
-    .hero-grain {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      opacity: .35;
-      background-image: radial-gradient(rgba(30, 40, 32, .08) 1px, transparent 1px);
-      background-size: 22px 22px;
-      mask-image: radial-gradient(ellipse at 50% 40%, rgba(0, 0, 0, .7), transparent 75%);
-    }
-
-    .blob {
-      position: absolute;
-      filter: blur(40px);
-      opacity: .55;
-      animation: blob 18s ease-in-out infinite, float-slow 9s ease-in-out infinite;
-    }
-
-    /* ─── Buttons ─── */
-    .btn-primary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: #1A1A1A;
-      color: #fff;
-      padding: 16px 28px;
-      border-radius: 100px;
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: -.1px;
-      box-shadow: 0 6px 20px rgba(30, 40, 32, .22), 0 1px 3px rgba(0, 0, 0, .08);
-      transition: transform .15s ease, box-shadow .2s ease, background .2s;
-      text-decoration: none;
-      cursor: pointer;
-      border: none;
-      -webkit-appearance: none;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-primary::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 40%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .25), transparent);
-      transform: translateX(-120%) skewX(-20deg);
-    }
-
-    .btn-primary:hover::after {
-      animation: shine 1.1s ease;
-    }
-
-    .btn-primary:active {
-      transform: scale(.96);
-      box-shadow: 0 2px 8px rgba(30, 40, 32, .2);
-    }
-
-    .btn-primary:hover {
-      background: #C9A86C;
-      box-shadow: 0 10px 30px rgba(107, 58, 91, .28);
-    }
-
-    .btn-secondary {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      background: transparent;
-      color: #1A1A1A;
-      padding: 15px 28px;
-      border-radius: 100px;
-      font-size: 15px;
-      font-weight: 500;
-      border: 1.5px solid #D8D4CE;
-      transition: transform .15s ease, border-color .2s, background .2s;
-      text-decoration: none;
-      cursor: pointer;
-    }
-
-    .btn-secondary:active {
-      transform: scale(.96);
-    }
-
-    .btn-secondary:hover {
-      border-color: #1A1A1A;
-      background: rgba(30, 40, 32, .03);
-    }
-
-    .btn-ghost {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: #1A1A1A;
-      font-weight: 500;
-      font-size: 14px;
-      padding: 10px 14px;
-      border-radius: 100px;
-      transition: background .2s;
-    }
-
-    .btn-ghost:hover {
-      background: rgba(30, 40, 32, .06);
-    }
-
-    /* ─── Cards ─── */
-    .glass-card {
-      background: rgba(255, 255, 255, .75);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255, 255, 255, .9);
-      border-radius: 24px;
-      box-shadow: 0 2px 12px rgba(30, 40, 32, .06), 0 1px 3px rgba(0, 0, 0, .04);
-    }
-
-    .feature-card {
-      background: #fff;
-      border-radius: 22px;
-      padding: 22px;
-      border: 1px solid #F5EDE6;
-      transition: transform .25s ease, box-shadow .25s ease, border-color .2s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 36px rgba(30, 40, 32, .09);
-      border-color: #DDD8CE;
-    }
-
-    /* ─── Step number ─── */
-    .step-num {
-      width: 44px;
-      height: 44px;
-      border-radius: 14px;
-      background: #1A1A1A;
-      color: #E5D0A1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 17px;
-      flex-shrink: 0;
-      font-family: 'Cormorant Garamond', serif;
-    }
-
-    /* ─── Price card ─── */
-    .price-card {
-      border-radius: 28px;
-      padding: 28px 24px;
-      background: #fff;
-      border: 1.5px solid #DDD4CC;
-      transition: transform .25s ease, box-shadow .25s ease;
-    }
-
-    .price-card.featured {
-      background: linear-gradient(160deg, #1A1A1A 0%, #1A1A1A 100%);
-      border-color: #1A1A1A;
-      color: #fff;
-      box-shadow: 0 20px 60px rgba(30, 40, 32, .24);
-      position: relative;
-    }
-
-    .price-card.featured::before {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 28px;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(194, 224, 198, .55), transparent 40%);
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-    }
-
-    .price-card:not(.featured):hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(30, 40, 32, .1);
-    }
-
-    /* ─── FAQ ─── */
-    .faq-item {
-      border-bottom: 1px solid #DDD4CC;
-    }
-
-    .faq-answer {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .45s cubic-bezier(.22, 1, .36, 1), padding .3s ease;
-    }
-
-    .faq-answer.open {
-      max-height: 480px;
-    }
-
-    .faq-chevron {
-      transition: transform .3s cubic-bezier(.22, 1, .36, 1);
-    }
-
-    .faq-chevron.open {
-      transform: rotate(180deg);
-    }
-
-    /* ─── Template slider ─── */
-    .template-slider {
-      display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      padding: 6px 24px 18px;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .template-card {
-      flex: 0 0 260px;
-      scroll-snap-align: center;
-      border-radius: 22px;
-      overflow: hidden;
-      background: #fff;
-      border: 1px solid #DDD4CC;
-      box-shadow: 0 4px 18px rgba(30, 40, 32, .06);
-      transition: transform .25s ease, box-shadow .25s ease;
-      cursor: pointer;
-    }
-
-    .template-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(30, 40, 32, .12);
-    }
-
-    .template-card:active {
-      transform: scale(.97);
-    }
-
-    /* ─── Stats ─── */
-    .stat-num {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 52px;
-      font-weight: 600;
-      line-height: 1;
-      color: #1A1A1A;
-      letter-spacing: -1.2px;
-    }
-
-    @media (min-width: 768px) {
-      .stat-num {
-        font-size: 72px;
-      }
-    }
-
-    /* ─── Auth Bottom Sheet ─── */
-    #authSheet {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: #FAF8F5;
-      border-radius: 28px 28px 0 0;
-      z-index: 60;
-      transform: translateY(100%);
-      transition: transform .4s cubic-bezier(.32, .72, 0, 1);
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
-      box-shadow: 0 -4px 40px rgba(30, 40, 32, .12);
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    @media (min-width: 768px) {
-      #authSheet {
-        position: fixed;
-        inset: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: transparent;
-        box-shadow: none;
-        padding-bottom: 0;
-        border-radius: 0;
-        transform: none;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity .3s ease;
-      }
-
-      #authSheet.open {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      #authSheet .sheet-inner {
-        background: #FAF8F5;
-        border-radius: 28px;
-        padding: 36px 32px 32px;
-        width: 100%;
-        max-width: 420px;
-        box-shadow: 0 40px 80px rgba(30, 40, 32, .25);
-        transform: scale(.94);
-        transition: transform .3s cubic-bezier(.22, 1, .36, 1);
-      }
-
-      #authSheet.open .sheet-inner {
-        transform: scale(1);
-      }
-
-      #authSheet .drag-pill {
-        display: none;
-      }
-    }
-
-    #authSheet.open {
-      transform: translateY(0);
-    }
-
-    #authBackdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(30, 40, 32, .45);
-      backdrop-filter: blur(8px);
-      z-index: 59;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .3s ease;
-    }
-
-    #authBackdrop.open {
-      opacity: 1;
-      pointer-events: auto;
-    }
-
-    /* ─── Phone input ─── */
-    .phone-input {
-      width: 100%;
-      padding: 16px 20px;
-      background: #fff;
-      border: 1.5px solid #DDD4CC;
-      border-radius: 16px;
-      font-size: 17px;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: .5px;
-      outline: none;
-      color: #1A1A1A;
-      transition: border-color .2s ease, box-shadow .2s ease;
-    }
-
-    .phone-input:focus {
-      border-color: #C9A86C;
-      box-shadow: 0 0 0 3px rgba(61, 107, 69, .12);
-    }
-
-    /* ─── Floating badge ─── */
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: #E5D0A1;
-      color: #1A1A1A;
-      padding: 6px 14px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: .3px;
-    }
-
-    .badge-outline {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      border: 1px solid #D8D4CE;
-      color: #1A1A1A;
-      padding: 6px 14px;
-      border-radius: 100px;
-      font-size: 12px;
-      font-weight: 500;
-      background: rgba(255, 255, 255, .5);
-      backdrop-filter: blur(10px);
-    }
-
-    /* ─── Divider ─── */
-    .section-divider {
-      width: 40px;
-      height: 2px;
-      background: #E5D0A1;
-      border-radius: 2px;
-      margin: 14px auto 0;
-    }
-
-    /* ─── Checkmark list ─── */
-    .check-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .check-icon {
-      width: 20px;
-      height: 20px;
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    /* ─── Hero mock phone ─── */
-    .phone-frame {
-      width: 184px;
-      height: 368px;
-      background: #1A1A1A;
-      border-radius: 30px;
-      padding: 6px;
-      box-shadow: 0 28px 60px rgba(30, 40, 32, .28), 0 6px 18px rgba(0, 0, 0, .14);
-      animation: float 5s ease-in-out infinite;
-      position: relative;
-    }
-
-    @media (min-width: 768px) {
-      .phone-frame {
-        width: 280px;
-        height: 560px;
-        border-radius: 48px;
-        padding: 11px;
-      }
-    }
-
-    .phone-screen {
-      width: 100%;
-      height: 100%;
-      border-radius: 24px;
-      background: linear-gradient(160deg, #F5F0EA 0%, #EDE8E0 100%);
-      overflow: hidden;
-      position: relative;
-    }
-
-    @media (min-width: 768px) {
-      .phone-screen {
-        border-radius: 38px;
-      }
-    }
-
-    /* ─── Hero grid (mobile: stacked with centered phone; desktop: two columns) ─── */
-    .hero-grid {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      gap: 32px;
-    }
-
-    /* Mobile stage: vertical stack — badge, heading, phone */
-    .hero-stage {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 24px;
-      position: relative;
-    }
-
-    .ha-badge {
-      align-self: center;
-    }
-
-    .ha-heading {
-      font-size: clamp(38px, 10vw, 92px);
-      line-height: 1.05;
-      max-width: 900px;
-    }
-
-    .ha-desc {
-      max-width: 34rem;
-    }
-
-    .ha-ctas {
-      width: 100%;
-    }
-
-    /* Phone mockup wrapper — mobile: centered, prominent, own spotlight */
-    .ha-phone {
-      position: relative;
-      align-self: center;
-      width: 220px;
-      height: 456px;
-      margin: 18px auto 6px;
-      z-index: 1;
-    }
-
-    /* Soft green glow behind phone */
-    .ha-phone::before {
-      content: '';
-      position: absolute;
-      inset: -44px -36px -32px;
-      background: radial-gradient(closest-side, rgba(194, 224, 198, .8), transparent 72%);
-      filter: blur(30px);
-      z-index: -1;
-      pointer-events: none;
-    }
-
-    .ha-phone>* {
-      position: relative;
-      z-index: 1;
-    }
-
-    /* Phone device body (3D mockup) — desktop logical size */
-    .phone-device {
-      display: block;
-      width: 280px;
-      height: 580px;
-      background: #fff;
-      border: 5.5px solid #111;
-      transition: transform 0.1s linear;
-      border-radius: 40px;
-      box-shadow: -20px 32px 64px rgba(26, 61, 32, .22), 0 8px 24px rgba(0, 0, 0, .08);
-      transform: rotateY(-14deg) rotateX(6deg) rotateZ(2deg);
-      transform-style: preserve-3d;
-      will-change: transform;
-      position: relative;
-    }
-
-    /* Mobile: center the 280x580 device inside wrapper, scaled + softer 3D tilt */
-    @media (max-width: 767px) {
-      .ha-phone .phone-device {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%) rotateY(-10deg) rotateX(4deg) rotateZ(-2deg) scale(.786);
-        transform-origin: center;
-        box-shadow: -16px 24px 44px rgba(26, 61, 32, .26), 0 6px 18px rgba(0, 0, 0, .08);
-      }
-    }
-
-    @media (min-width: 768px) {
-      .hero-stage {
-        display: contents;
-      }
-
-      .hero-grid {
-        display: grid;
-        align-items: center;
-        grid-template-columns: 1fr 1fr;
-        column-gap: 56px;
-        gap: 0;
-        grid-template-areas:
-          "badge   phone"
-          "heading phone"
-          "desc    phone"
-          "ctas    phone"
-          "social  phone"
-          "chips   phone";
-      }
-
-      .ha-badge {
-        grid-area: badge;
-        align-self: end;
-      }
-
-      .ha-heading {
-        grid-area: heading;
-        font-size: unset;
-        line-height: unset;
-      }
-
-      .ha-desc {
-        grid-area: desc;
-        max-width: none;
-      }
-
-      .ha-ctas {
-        grid-area: ctas;
-        width: auto;
-      }
-
-      .ha-phone {
-        grid-area: phone;
-        justify-self: center;
-        align-self: center;
-        width: auto;
-        height: auto;
-        margin: 0;
-        z-index: auto;
-      }
-
-      .ha-social {
-        grid-area: social;
-      }
-
-      .ha-chips {
-        grid-area: chips;
-      }
-
-      .ha-phone::before {
-        display: none;
-      }
-    }
-
-    /* ─── How It Works — 2-col layout ─── */
-    .how-layout {
-      display: flex;
-      flex-direction: column;
-      gap: 36px;
-    }
-
-    .how-left {
-      flex: 1;
-    }
-
-    .how-right {
-      display: flex;
-      justify-content: center;
-    }
-
-    @media (min-width: 768px) {
-      .how-layout {
-        flex-direction: row;
-        align-items: center;
-        gap: 32px;
-      }
-
-      .how-right {
-        flex: 0 0 auto;
-      }
-    }
-
-    .steps-list {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      margin-bottom: 32px;
-    }
-
-    .step-item {
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-
-    .step-item-content h3 {
-      font-weight: 600;
-      font-size: 15px;
-      margin-bottom: 3px;
-      color: #1A1A1A;
-    }
-
-    .step-item-content p {
-      font-size: 13px;
-      color: #6B6860;
-      line-height: 1.55;
-    }
-
-    /* ─── Steps phone ─── */
-    .steps-phone-wrap {
-      position: relative;
-      perspective: 1200px;
-    }
-
-    .steps-phone-device {
-      width: 320px;
-      height: 660px;
-      background: #000;
-      border-radius: 46px;
-      box-shadow:
-        inset 0 0 0 1px #000,
-        inset 0 0 0 3px #2c2c2e,
-        inset 0 0 0 4px #4a4a4c,
-        inset 0 0 0 8px #000,
-        30px 40px 70px rgba(26, 61, 32, .25),
-        0 14px 40px rgba(0, 0, 0, .15);
-      transform: rotateY(18deg) rotateX(-6deg) rotateZ(-3deg);
-      transform-style: preserve-3d;
-      will-change: transform;
-      transition: transform 0.9s cubic-bezier(.22, 1, .36, 1);
-      position: relative;
-      padding: 8px;
-    }
-
-    .steps-phone-device.in-view {
-      transform: rotateY(-12deg) rotateX(5deg) rotateZ(2deg);
-      box-shadow:
-        inset 0 0 0 1px #000,
-        inset 0 0 0 3px #2c2c2e,
-        inset 0 0 0 4px #4a4a4c,
-        inset 0 0 0 8px #000,
-        -24px 34px 60px rgba(26, 61, 32, .25),
-        0 14px 40px rgba(0, 0, 0, .15);
-    }
-
-    @media (max-width: 767px) {
-      .steps-phone-device {
-        width: 260px;
-        height: 540px;
-        border-radius: 36px;
-        padding: 7px;
-      }
-    }
-
-    .steps-phone-device::before,
-    .steps-phone-device::after {
-      display: none;
-    }
-
-    .steps-phone-highlight {
-      position: absolute;
-      inset: 0;
-      border-radius: 46px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 30%);
-      pointer-events: none;
-      z-index: 100;
-    }
-
-    .steps-phone-screen {
-      width: 100%;
-      height: 100%;
-      position: relative;
-      overflow: hidden;
-      border-radius: 34px;
-      background: #fff;
-    }
-
-    @media (max-width: 767px) {
-      .steps-phone-screen {
-        border-radius: 30px;
-      }
-
-      .steps-phone-highlight {
-        border-radius: 36px;
-      }
-    }
-
-    .dynamic-island {
-      position: absolute;
-      top: 8px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 90px;
-      height: 26px;
-      background: #000;
-      border-radius: 13px;
-      z-index: 60;
-    }
-
-    .dynamic-island::after {
-      display: none;
-    }
-
-    @media (max-width: 767px) {
-      .dynamic-island {
-        top: 6px;
-        width: 74px;
-        height: 22px;
-        border-radius: 11px;
-      }
-
-      .dynamic-island::after {
-        width: 8px;
-        height: 8px;
-      }
-    }
-
-    /* Floating card near phone (desktop) */
-    .float-card {
-      position: absolute;
-      background: #fff;
-      border-radius: 18px;
-      padding: 12px 14px;
-      box-shadow: 0 16px 40px rgba(30, 40, 32, .14);
-      border: 1px solid rgba(30, 40, 32, .05);
-      animation: float 6s ease-in-out infinite;
-    }
-
-    /* ─── Scroll indicator ─── */
-    .scroll-indicator {
-      width: 2px;
-      height: 40px;
-      background: linear-gradient(to bottom, #C9A86C, transparent);
-      border-radius: 2px;
-      margin: 0 auto;
-      animation: fadeIn 1s ease 2s both;
-    }
-
-    /* ─── Trust logos ─── */
-    .trust-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 12px;
-      color: #6B6860;
-      font-weight: 500;
-    }
-
-    /* ─── Top Nav (desktop) ─── */
-    .top-nav {
-      background: rgba(250, 250, 248, .78);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid rgba(232, 228, 222, .6);
-    }
-
-    .nav-link {
-      position: relative;
-      padding: 8px 4px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #1A1A1A;
-      transition: color .2s;
-    }
-
-    .nav-link:hover {
-      color: #C9A86C;
-    }
-
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: 2px;
-      left: 0;
-      right: 0;
-      height: 1.5px;
-      background: #C9A86C;
-      transform: scaleX(0);
-      transition: transform .3s cubic-bezier(.22, 1, .36, 1);
-      transform-origin: right;
-    }
-
-    .nav-link:hover::after {
-      transform: scaleX(1);
-      transform-origin: left;
-    }
-
-    /* Bottom nav bar (mobile) */
-    .nav-bar {
-      background: rgba(250, 250, 248, .92);
-      backdrop-filter: blur(20px);
-      border-top: 1px solid #DDD4CC;
-    }
-
-    /* Use-case tabs */
-    .uc-tab {
-      padding: 10px 18px;
-      border-radius: 100px;
-      font-size: 13px;
-      font-weight: 500;
-      color: #6B6860;
-      border: 1.5px solid #DDD4CC;
-      background: #fff;
-      white-space: nowrap;
-      cursor: pointer;
-      transition: all .2s;
-    }
-
-    .uc-tab.active {
-      background: #1A1A1A;
-      color: #fff;
-      border-color: #1A1A1A;
-    }
-
-    .uc-tab:hover:not(.active) {
-      border-color: #B8B4AE;
-    }
-
-    /* Marquee */
-    .marquee {
-      overflow: hidden;
-      position: relative;
-      mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-    }
-
-    .marquee-track {
-      display: flex;
-      gap: 48px;
-      width: max-content;
-      animation: marqueeX 40s linear infinite;
-    }
-
-    .marquee-item {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 22px;
-      font-style: italic;
-      color: #1A1A1A;
-      display: inline-flex;
-      align-items: center;
-      gap: 48px;
-      white-space: nowrap;
-      opacity: .55;
-    }
-
-    .marquee-item::after {
-      content: '✦';
-      color: #C9A055;
-      font-size: 14px;
-      font-style: normal;
-    }
-
-    /* Testimonial card */
-    .tm-card {
-      background: #fff;
-      border: 1px solid #F5EDE6;
-      border-radius: 22px;
-      padding: 22px 20px;
-      transition: transform .25s ease, box-shadow .25s ease;
-    }
-
-    .tm-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 16px 40px rgba(30, 40, 32, .08);
-    }
-
-    .avatar {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'Cormorant Garamond', serif;
-      font-weight: 600;
-      font-size: 16px;
-      flex-shrink: 0;
-    }
-
-    /* Sticky desktop CTA on scroll (hidden on mobile) */
-    .desk-cta-bar {
-      position: fixed;
-      top: 72px;
-      right: 24px;
-      z-index: 45;
-      opacity: 0;
-      pointer-events: none;
-      transform: translateY(-12px);
-      transition: opacity .3s, transform .3s;
-    }
-
-    .desk-cta-bar.show {
-      opacity: 1;
-      pointer-events: auto;
-      transform: translateY(0);
-    }
-
-    /* Template tilt */
-    .tilt {
-      transition: transform .3s ease;
-    }
-
-    .tilt:hover {
-      transform: perspective(600px) rotateX(2deg) rotateY(-2deg) translateY(-4px);
-    }
-
-    /* Hide hero scroll-hint on desktop */
-    @media (min-width: 768px) {
-      .mobile-only {
-        display: none;
-      }
-    }
-
-    @media (max-width: 767px) {
-      .desktop-only {
-        display: none;
-      }
-    }
-
-    /* Phone preview animations */
-    * {
-      box-sizing: border-box;
-    }
-
-    .scene {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      will-change: transform, opacity;
-      pointer-events: none;
-    }
-
-    @keyframes scaleIn {
-      from {
-        opacity: 0;
-        transform: scale(.95);
-      }
-
-      to {
-        opacity: 1;
-        transform: scale(1);
-      }
-    }
-
-    @keyframes s1-in {
-      0% {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      5% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      29% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      34% {
-        opacity: 0;
-        transform: translateY(-6px);
-        pointer-events: none;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes s2-in {
-
-      0%,
-      31% {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      36% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      62% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      67% {
-        opacity: 0;
-        transform: translateY(-6px);
-        pointer-events: none;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes s3-in {
-
-      0%,
-      64% {
-        opacity: 0;
-        transform: translateY(8px);
-      }
-
-      69% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      94% {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
-      99% {
-        opacity: 0;
-        transform: translateY(-6px);
-        pointer-events: none;
-      }
-
-      100% {
-        opacity: 0;
-      }
-    }
-
-    .scene-1 {
-      animation: s1-in 12s ease-in-out infinite both;
-    }
-
-    .scene-2 {
-      animation: s2-in 12s ease-in-out infinite both;
-    }
-
-    .scene-3 {
-      animation: s3-in 12s ease-in-out infinite both;
-    }
-
-    @keyframes progress-bar {
-
-      0%,
-      4% {
-        width: 42%;
-      }
-
-      22%,
-      100% {
-        width: 100%;
-      }
-    }
-
-    @keyframes sheet-rise {
-
-      0%,
-      6% {
-        transform: translateY(105%);
-      }
-
-      13%,
-      28% {
-        transform: translateY(0);
-      }
-
-      34%,
-      100% {
-        transform: translateY(105%);
-      }
-    }
-
-    @keyframes card-float {
-
-      0%,
-      4% {
-        transform: translateY(8px);
-        opacity: .7;
-      }
-
-      12%,
-      100% {
-        transform: translateY(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes type-cursor {
-
-      0%,
-      100% {
-        opacity: 1;
-      }
-
-      50% {
-        opacity: 0;
-      }
-    }
-
-    @keyframes bride-text {
-
-      0%,
-      8% {
-        max-width: 0;
-      }
-
-      22%,
-      100% {
-        max-width: 64px;
-      }
-    }
-
-    @keyframes groom-row-in {
-
-      0%,
-      16% {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-
-      22%,
-      100% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @keyframes bubble-pop {
-
-      0%,
-      38% {
-        opacity: 0;
-        transform: translateY(14px) scale(.94);
-        transform-origin: bottom right;
-      }
-
-      44%,
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    @keyframes ripple-tap {
-
-      0%,
-      50% {
-        opacity: 0;
-        transform: scale(1.6);
-      }
-
-      53% {
-        opacity: .25;
-        transform: scale(1);
-      }
-
-      57%,
-      100% {
-        opacity: 0;
-        transform: scale(1.6);
-      }
-    }
-
-    @keyframes toast-slide {
-
-      0%,
-      76% {
-        opacity: 0;
-        transform: translateY(120%);
-      }
-
-      81%,
-      91% {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      96%,
-      100% {
-        opacity: 0;
-        transform: translateY(120%);
-      }
-    }
-
-    @keyframes count-flip {
-
-      0%,
-      78% {
-        transform: translateY(0);
-      }
-
-      83%,
-      100% {
-        transform: translateY(-50%);
-      }
-    }
-
-    @keyframes row-in-1 {
-
-      0%,
-      70% {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-
-      75%,
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes row-in-2 {
-
-      0%,
-      73% {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-
-      78%,
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    @keyframes row-in-3 {
-
-      0%,
-      76% {
-        opacity: 0;
-        transform: translateX(-10px);
-      }
-
-      81%,
-      100% {
-        opacity: 1;
-        transform: translateX(0);
-      }
-    }
-
-    .typing-wrap {
-      position: relative;
-      display: inline-flex;
-      align-items: center;
-    }
-
-    .typing-text {
-      display: inline-block;
-      overflow: hidden;
-      white-space: nowrap;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 16px;
-      color: #1E3A2A;
-      font-weight: 700;
-      font-style: italic;
-      animation: bride-text 12s cubic-bezier(0.2, 0.8, 0.2, 1) infinite both;
-      border-right: none;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 1.5px;
-      height: 15px;
-      background: #1E3A2A;
-      margin-left: 2px;
-      animation: type-cursor 0.7s steps(1) infinite, bride-text 12s cubic-bezier(0.2, 0.8, 0.2, 1) infinite both;
-    }
-  </style>
+        /* ── Radial background glows ── */
+        .bg-glow {
+            background: #ffffff;
+            background-image:
+                    radial-gradient(ellipse 70% 50% at 85% 0%,   rgba(249, 59,122, 0.07) 0%, transparent 70%),
+                    radial-gradient(ellipse 55% 40% at 15% 95%,  rgba(249, 59,122, 0.05) 0%, transparent 65%);
+        }
+
+        /* ── Buttons ── */
+        .btn-pink {
+            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: box-shadow 200ms ease, transform 200ms ease;
+            box-shadow: 0 6px 24px rgba(249, 59, 122, 0.32);
+        }
+        .btn-pink:hover  { box-shadow: 0 10px 32px rgba(249, 59, 122, 0.42); transform: translateY(-1px); }
+        .btn-pink:active { transform: translateY(0); box-shadow: 0 4px 14px rgba(249, 59, 122, 0.25); }
+
+        .btn-outline-pink {
+            background: transparent;
+            color: #F93B7A;
+            border: 1.5px solid #F93B7A;
+            border-radius: 999px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 200ms ease;
+            text-decoration: none;
+        }
+        .btn-outline-pink:hover { background: rgba(249, 59, 122, 0.06); }
+
+        /* ── Badge (fire pill) ── */
+        .badge-fire {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(249, 59, 122, 0.10);
+            color: #C71F5C;
+            border-radius: 999px;
+            padding: 6px 18px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* ── Feature icon box ── */
+        .feat-box {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            background: #FFF0F6;
+        }
+
+        /* ──────────────────────────────────────
+           iPHONE 17 PRO MOCKUP
+        ────────────────────────────────────── */
+        .iphone-scene-wrap {
+            position: relative;
+            height: 640px;
+            overflow: hidden;
+        }
+        .iphone-scene {
+            position: absolute;
+            width: 600px;
+            height: 700px;
+            perspective: 1400px;
+            perspective-origin: 50% 48%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            top: 34%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.75);
+            z-index: 1;
+        }
+        .ip-badge {
+            position: absolute;
+            width: 80px; height: 80px;
+            border-radius: 20px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 14px 36px rgba(0,0,0,0.20), 0 4px 10px rgba(0,0,0,0.14);
+            z-index: 10;
+        }
+        .ip-badge-heart {
+            background: linear-gradient(148deg, #ff6fa8 0%, #ee2e6e 100%);
+            left: 28px; top: 130px;
+            transform: rotate(-5deg);
+        }
+        .ip-badge-people {
+            background: linear-gradient(148deg, #ffbc6e 0%, #ee6c28 100%);
+            right: 24px; bottom: 148px;
+            transform: rotate(5deg);
+        }
+        .ip-gem {
+            position: absolute;
+            border-radius: 3px;
+            transform: rotate(45deg);
+            z-index: 5;
+        }
+        .iphone-shell {
+            position: relative;
+            width: 258px; height: 530px;
+            border-radius: 50px;
+            background:
+                    linear-gradient(112deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 9%, transparent 17%),
+                    linear-gradient(90deg, rgba(86,86,86,0.30) 0%, rgba(65,65,65,0.18) 13%, transparent 30%),
+                    linear-gradient(160deg, #414141 0%, #262626 16%, #070707 39%, #050505 58%, #202020 80%, #414141 100%);
+            transform: rotateY(-20deg) rotateZ(10deg) rotateX(5deg);
+            transform-style: preserve-3d;
+            padding: 5px;
+            z-index: 6;
+        }
+        /* Титановая боковая рамка — dark gunmetal */
+        .iphone-shell::before {
+            content: '';
+            position: absolute;
+            top: 1px; left: 1px; right: 1px; bottom: 1px;
+            border-radius: 49px;
+            background:
+                    linear-gradient(90deg,
+                    #4a4a4a 0%,
+                    #414141 24%,
+                    #3a3a3a 52%,
+                    #303030 78%,
+                    #464646 100%
+            );
+            box-shadow:
+                    inset 1px 0 0 rgba(255,255,255,0.14),
+                    inset -5px 0 9px rgba(255,255,255,0.04),
+                    inset -10px 0 16px rgba(0,0,0,0.48);
+            transform: translate3d(6px, 3px, -1px);
+            z-index: -1;
+            pointer-events: none;
+        }
+        /* Верхняя грань — отражение света */
+        .iphone-shell::after {
+            content: '';
+            position: absolute;
+            top: -1px; left: 12%; right: 14%;
+            height: 4px;
+            border-radius: 0 0 8px 8px;
+            background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(255,255,255,0.16) 22%,
+            rgba(236,226,212,0.54) 48%,
+            rgba(255,255,255,0.18) 74%,
+            transparent 100%
+            );
+            box-shadow: 0 1px 9px rgba(255,244,224,0.18);
+            z-index: 1;
+            pointer-events: none;
+        }
+        .ip-btn {
+            position: absolute;
+            pointer-events: none;
+            background: linear-gradient(90deg,
+            #2a2828 0%,
+            #4e4c4c 30%,
+            #585454 55%,
+            #383434 80%,
+            #1e1c1c 100%
+            );
+            box-shadow:
+                    inset 0  1px 0 rgba(255,255,255,0.32),
+                    inset 0 -1px 0 rgba(0,0,0,0.75),
+                    inset 1px 0 0 rgba(255,255,255,0.12),
+                    0 1px 3px rgba(0,0,0,0.60);
+        }
+        .ip-btn-power {
+            right: -6px;
+            top: 180px;
+            width: 6px;
+            height: 64px;
+            border-radius: 0 3px 3px 0;
+            background: linear-gradient(90deg,
+            #242424 0%,
+            #414141 22%,
+            #4a4a4a 48%,
+            #3d3d3d 68%,
+            #292929 100%
+            );
+            box-shadow:
+                    inset 0  1px 0 rgba(255,255,255,0.62),
+                    inset 0 -1px 0 rgba(0,0,0,0.90),
+                    inset 0  2px 0 rgba(255,244,224,0.26),
+                    inset 0 -2px 0 rgba(0,0,0,0.60),
+                    2px 0 5px rgba(0,0,0,0.70);
+        }
+        .iphone-screen {
+            width: 100%; height: 100%;
+            border-radius: 45px;
+            overflow: hidden;
+            position: relative;
+            background: #faf6f0;
+            box-shadow:
+                    inset 0 0 0 1px rgba(0,0,0,0.54),
+                    inset 0 0 0 2px rgba(255,255,255,0.05),
+                    inset 0 2px 8px rgba(0,0,0,0.12);
+            display: flex;
+            flex-direction: column;
+        }
+        .iphone-screen::before {
+            content: '';
+            position: absolute; inset: 0;
+            border-radius: 45px;
+            background:
+                    linear-gradient(132deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.09) 23%, transparent 44%),
+                    linear-gradient(310deg, transparent 58%, rgba(0,0,0,0.05) 100%);
+            pointer-events: none;
+            z-index: 100;
+        }
+        /* Лента навигации внизу экрана — как у iPhone */
+        .iphone-screen::after {
+            content: '';
+            position: absolute;
+            bottom: 6px; left: 50%;
+            transform: translateX(-50%);
+            width: 100px; height: 4px;
+            border-radius: 2px;
+            background: rgba(0,0,0,0.22);
+            z-index: 101;
+            pointer-events: none;
+        }
+        .ip-dynamic-island {
+            position: absolute;
+            top: 13px; left: 50%;
+            transform: translateX(-50%);
+            width: 70px; height: 22px;
+            background: #111;
+            border-radius: 16px;
+            z-index: 50;
+        }
+        .ip-status {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 54px 22px 0;
+            font-size: 10.5px; font-weight: 660;
+            color: #111; letter-spacing: -0.2px;
+            flex-shrink: 0;
+        }
+        .ip-status-right { display:flex; align-items:center; gap:4px; }
+        .ip-content {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center;
+            padding: 5px 16px 10px;
+            overflow: hidden;
+        }
+        .ip-names {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 25px; font-weight: 600;
+            color: #1a1a1a; text-align: center;
+            letter-spacing: 0.2px; margin-top: 4px;
+        }
+        .ip-names .amp { color: #b08a48; font-style: italic; font-weight: 500; padding: 0 4px; }
+        .ip-date {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic; font-size: 11.5px;
+            color: #b08a48; text-align: center;
+            margin-top: 2px; letter-spacing: 0.5px;
+        }
+        .ip-photo-wrap {
+            position: relative; width: 150px; height: 150px;
+            margin-top: 4px; flex-shrink: 0;
+        }
+        .ip-photo-circle {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 114px; height: 114px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f5e8d8 0%, #ece0cc 100%);
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 0 0 4px #faf6f0, 0 4px 18px rgba(0,0,0,0.09);
+            z-index: 2;
+        }
+        .ip-photo-circle svg { opacity: 0.38; }
+        .ip-leaves { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+        .ip-countdown {
+            display: flex; align-items: flex-start; justify-content: center;
+            margin-top: 6px; flex-shrink: 0;
+        }
+        .ip-cd-block { text-align: center; padding: 0 5px; }
+        .ip-cd-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 26px; font-weight: 600;
+            color: #1a1a1a; line-height: 1;
+        }
+        .ip-cd-lbl { font-size: 8px; color: #9ca3af; letter-spacing: 0.3px; margin-top: 2px; display: block; }
+        .ip-cd-sep {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 22px; color: #c8a878;
+            padding-top: 1px; user-select: none;
+        }
+        .ip-rsvp {
+            margin-top: 10px; width: 100%;
+            background: linear-gradient(135deg, #c8a060 0%, #a87e40 100%);
+            color: #fff; text-align: center;
+            padding: 12px 0; border-radius: 999px;
+            font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
+            box-shadow: 0 6px 20px rgba(185,150,80,0.36);
+            flex-shrink: 0;
+        }
+        .ip-skip { text-align: center; font-size: 11px; color: #aaa; margin-top: 8px; flex-shrink: 0; }
+
+        /* ── Stats card ── */
+        .stats-card {
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+        }
+
+        /* ── White cards ── */
+        .card-white {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+        }
+
+        /* ── Step number ── */
+        .step-num {
+            width: 40px; height: 40px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        /* ── Template cards ── */
+        .tpl-card {
+            border-radius: 20px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 220ms ease, box-shadow 220ms ease;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            aspect-ratio: 3/4;
+            display: flex; align-items: flex-end; padding: 14px;
+        }
+        .tpl-card:hover { transform: translateY(-5px); box-shadow: 0 14px 32px rgba(249,59,122,0.15); }
+
+        /* ── Pricing ── */
+        .price-card {
+            border-radius: 22px;
+            background: #fff;
+            border: 2px solid #F3F4F6;
+        }
+        .price-card.featured {
+            background: linear-gradient(160deg, #FFF0F6, #FFFAF8);
+            border-color: #F93B7A;
+        }
+
+        /* ── FAQ ── */
+        .faq-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 300ms ease;
+        }
+        .faq-body.open { max-height: 300px; }
+        .faq-chevron { transition: transform 250ms ease; }
+
+        /* ── Mobile menu ── */
+        .mob-menu {
+            position: fixed;
+            top: 64px; left: 0; right: 0;
+            background: #fff;
+            z-index: 800;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 280ms cubic-bezier(0.33,1,0.68,1);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+        .mob-menu.open { max-height: 320px; }
+        .mob-menu a {
+            display: block;
+            padding: 14px 24px;
+            font-size: 16px;
+            color: #374151;
+            font-weight: 500;
+            border-bottom: 1px solid #F9FAFB;
+        }
+
+        /* ── Auth bottom sheet ── */
+        .auth-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.42);
+            z-index: 9000;
+            opacity: 0; pointer-events: none;
+            transition: opacity 260ms ease;
+        }
+        .auth-backdrop.open { opacity: 1; pointer-events: auto; }
+
+        .auth-sheet {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: #fff;
+            border-radius: 24px 24px 0 0;
+            padding: 24px 24px 32px;
+            padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 24px));
+            z-index: 9100;
+            transform: translateY(100%);
+            transition: transform 320ms cubic-bezier(0.32,0,0.67,0);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .auth-sheet.open {
+            transform: translateY(0);
+            transition-timing-function: cubic-bezier(0.33,1,0.68,1);
+        }
+
+        .auth-handle {
+            width: 36px; height: 4px;
+            background: #E5E7EB;
+            border-radius: 999px;
+            margin: 0 auto 22px;
+        }
+
+        .phone-input {
+            width: 100%;
+            height: 52px;
+            border: 1.5px solid #E5E7EB;
+            border-radius: 14px;
+            padding: 0 16px;
+            font-size: 16px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 200ms, box-shadow 200ms;
+        }
+        .phone-input:focus {
+            border-color: #F93B7A;
+            box-shadow: 0 0 0 3px rgba(249,59,122,0.10);
+        }
+
+        /* ── Fade-up animation ── */
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        .fu   { animation: fadeUp 0.5s ease both; }
+        .fu-1 { animation-delay: 0.08s; }
+        .fu-2 { animation-delay: 0.17s; }
+        .fu-3 { animation-delay: 0.26s; }
+        .fu-4 { animation-delay: 0.35s; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fu { animation: none; }
+            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
+    </style>
 </head>
 
-<body>
+<body class="">
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  TOP NAV (desktop)                                          -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <header class="top-nav fixed top-0 left-0 right-0 z-40 desktop-only">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-      <a href="/" class="flex items-center gap-2">
-        <span class="font-cormorant text-[26px] font-semibold italic text-ink">ToiLink</span>
-      </a>
-      <nav class="flex items-center gap-8">
-        <a href="#how" class="nav-link">Как работает</a>
-        <a href="#templates" class="nav-link">Шаблоны</a>
-        <a href="#pricing" class="nav-link">Цены</a>
-        <a href="#faq" class="nav-link">Вопросы</a>
-      </nav>
-      <div class="flex items-center gap-2">
-        <a href="#" onclick="openAuth();return false;" class="btn-ghost">Войти</a>
-        <button onclick="openAuth()" class="btn-primary" style="padding:12px 22px">
-          Создать приглашение
-        </button>
-      </div>
-    </div>
-  </header>
+<!-- ═══════════════════════════════════════
+     HEADER
+═══════════════════════════════════════ -->
+<header class="sticky top-0 z-50 bg-transparent" style="height:64px;">
+    <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between gap-4">
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  HERO                                                       -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section id="hero" class="hero-bg relative overflow-hidden pt-8 md:pt-28">
+        <!-- Logo -->
+        <a href="/" class="flex items-center gap-2 flex-shrink-0" aria-label="ToiLink — главная">
+            <img src="/images/logo.png" alt="" width="30" height="30" style="display:block; object-fit:contain;" />
+            <span class="font-bold text-[17px] text-gray-900 tracking-tight">ToiLink</span>
+        </a>
 
-    <!-- Decorative blobs -->
-    <div class="blob"
-      style="top:-80px; right:-60px; width:340px; height:340px; background:radial-gradient(circle,#E5D0A1,transparent 70%);">
-    </div>
-    <div class="blob"
-      style="bottom:-120px; left:-80px; width:360px; height:360px; background:radial-gradient(circle,#E6D5B8,transparent 70%); animation-delay:-4s;">
-    </div>
-    <div class="blob"
-      style="top:40%; left:50%; transform:translate(-50%,-50%); width:600px; height:600px; background:radial-gradient(circle,rgba(61,107,69,0.05),transparent 70%); pointer-events:none; z-index:0;">
-    </div>
-    <div class="hero-grain"></div>
+        <!-- Desktop nav -->
+        <nav class="hidden md:flex items-center gap-7" aria-label="Основная навигация">
+            <a href="#how"       class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Как работает</a>
+            <a href="#templates" class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Шаблоны</a>
+            <a href="#pricing"   class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Цены</a>
+            <a href="#faq"       class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Вопросы</a>
+        </nav>
 
-    <!-- Mobile logo -->
-    <div class="px-6 mobile-only" style="animation: fadeIn .5s ease both">
-      <span class="font-cormorant text-[28px] font-semibold italic text-ink">ToiLink</span>
+        <div class="flex items-center gap-3">
+            <button onclick="openAuth()" class="btn-pink text-sm px-5 py-2.5 hidden sm:block">
+                Создать приглашение
+            </button>
+            <!-- Burger -->
+            <button id="mobileMenuButton" onclick="toggleMobileMenu(event)"
+                    aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileMenuPanel"
+                    class="md:hidden flex flex-col gap-[5px] p-2 cursor-pointer">
+                <span class="block w-[22px] h-[2px] bg-gray-700 rounded-full"></span>
+                <span class="block w-[22px] h-[2px] bg-gray-700 rounded-full"></span>
+                <span class="block w-[22px] h-[2px] bg-gray-700 rounded-full"></span>
+            </button>
+        </div>
     </div>
 
-    <div class="max-w-6xl mx-auto px-6 pb-10 md:pb-20 hero-grid relative">
+    <!-- Mobile menu panel -->
+    <div id="mobileMenuPanel" class="mob-menu" role="navigation" aria-label="Мобильное меню">
+        <a href="#how"       onclick="closeMobileMenu()">Как работает</a>
+        <a href="#templates" onclick="closeMobileMenu()">Шаблоны</a>
+        <a href="#pricing"   onclick="closeMobileMenu()">Цены</a>
+        <a href="#faq"       onclick="closeMobileMenu()">Вопросы</a>
+        <div class="px-5 py-4">
+            <button onclick="openAuth(); closeMobileMenu();" class="btn-pink text-sm w-full py-3">
+                Создать приглашение
+            </button>
+        </div>
+    </div>
+</header>
 
-      <!-- Top stage: badge + heading (left) -->
-      <div class="hero-stage">
 
-        <!-- Badge -->
-        <div class="ha-badge mt-5 md:mt-0" style="animation: fadeUp .6s ease .05s both">
-          <span class="badge">
-            <span class="w-1.5 h-1.5 bg-gold rounded-full"></span>
-            Приглашения нового поколения
-          </span>
+<!-- ═══════════════════════════════════════
+     HERO
+═══════════════════════════════════════ -->
+<section class="pt-2 pb-8 px-5 text-center">
+    <div class="max-w-sm mx-auto">
+
+        <div class="flex justify-center mb-4 fu">
+      <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(249,59,122,0.10);color:#111;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 2C10 5.5 7 8 7 12C7 15.3 9.2 18 12 18C14.8 18 17 15.3 17 12C17 8 14 5.5 12 2Z" fill="#F97316"/>
+          <path d="M12 10C11 11.5 10 12.5 10 14C10 15.1 10.9 16 12 16C13.1 16 14 15.1 14 14C14 12.5 13 11.5 12 10Z" fill="#FBBF24"/>
+        </svg>
+        №1 в Кыргызстане
+      </span>
         </div>
 
-        <!-- Heading -->
-        <h1 class="ha-heading font-cormorant md:mt-4 leading-[1.05] font-semibold text-ink tracking-tight"
-          style="animation: fadeUp .7s ease .12s both">
-          <span class="block mb-2 text-gold text-[14px] md:text-[18px] uppercase tracking-[0.3em] font-bold opacity-80"
-            style="font-family: var(--font-inter)">ToiLink — это</span>
-          Создавайте изящные<br />
-          <span class="text-gold italic px-2">приглашения</span><br />
-          в пару кликов
+        <h1 class="text-[32px] font-semibold leading-[1.15] tracking-tight fu fu-1">
+            <span class="text-gray-900">Приглашение на той</span><br/>
+            <span style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">за 5 минут</span>
         </h1>
 
-      </div><!-- /hero-stage -->
+        <p class="mt-3 text-[13px] text-gray-500 leading-relaxed fu fu-2">
+            Ссылка, RSVP и список гостей —<br/>всё в одном месте
+        </p>
 
-      <!-- Description -->
-      <p class="ha-desc md:mt-2 text-[16px] md:text-[21px] text-muted leading-relaxed max-w-2xl mx-auto"
-        style="animation: fadeUp .7s ease .2s both">
-        Элегантные онлайн-приглашения на ваше событие. Гости подтверждают участие в один клик, а вы видите список гостей
-        в реальном времени.
-      </p>
-
-      <!-- CTAs -->
-      <div class="ha-ctas md:mt-6 flex flex-col sm:flex-row justify-center gap-4"
-        style="animation: fadeUp .7s ease .28s both">
-        <button onclick="openAuth()"
-          class="btn-primary w-full sm:w-auto px-6 py-4 md:px-10 md:py-5 text-[15px] md:text-[17px]">
-          Начать бесплатно
+        <button onclick="openAuth()" class="btn-pink mt-6 px-8 py-[13px] text-[14px] inline-flex items-center justify-center gap-2 fu fu-3" style="border-radius:14px; font-weight:400;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+            Создать приглашение бесплатно
         </button>
-        <a href="#how" class="btn-secondary w-full sm:w-auto px-6 py-4 md:px-10 md:py-5 text-[15px] md:text-[17px]">
-          Как это работает
-        </a>
-      </div>
+    </div>
+</section>
 
-      <!-- Trust / social proof -->
-      <div class="ha-social md:mt-12 flex flex-col items-center gap-4" style="animation: fadeUp .7s ease .44s both">
-        <div class="flex items-center gap-3">
-          <div class="flex -space-x-3">
-            <div class="avatar border-2 border-white"
-              style="background:#E6D5B8; color:#C9A86C; width:36px; height:36px; font-weight:600;">А</div>
-            <div class="avatar border-2 border-white"
-              style="background:#E5D0A1; color:#1A1A1A; width:36px; height:36px; font-weight:600;">Б</div>
-            <div class="avatar border-2 border-white"
-              style="background:#D8C8E0; color:#4B2E6B; width:36px; height:36px; font-weight:600;">Н</div>
-            <div class="avatar border-2 border-white"
-              style="background:#1A1A1A; color:#E5D0A1; width:36px; height:36px; font-size:12px; font-weight:600;">+1k
-            </div>
-          </div>
-          <div class="h-4 w-[1px] bg-ink/10"></div>
-          <div class="flex items-center gap-1.5">
-            <div class="flex items-center">
-              <svg class="w-3.5 h-3.5 text-[#C9A86C]" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-            <span class="text-[13px] font-bold text-ink/80">4.9/5</span>
-          </div>
+
+<!-- ═══════════════════════════════════════
+     FEATURES — 3 icons
+═══════════════════════════════════════ -->
+<div class="px-5 pb-3 flex justify-center gap-8">
+    <div class="flex flex-col items-center gap-1.5">
+        <div class="feat-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/>
+                <path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/>
+            </svg>
         </div>
-        <p class="text-[12px] text-muted tracking-wide uppercase font-semibold">Доверяют более 1200+ пар ежемесячно</p>
-      </div>
-
-      <!-- Feature chips -->
-      <div class="ha-chips md:mt-6 flex items-center gap-2 md:gap-2.5 flex-wrap"
-        style="animation: fadeUp .7s ease .52s both">
-        <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd" />
-          </svg>
-          Без приложения
-        </span>
-        <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd" />
-          </svg>
-          RSVP онлайн
-        </span>
-        <span class="badge-outline">
-          <svg class="w-3.5 h-3.5 text-gold" fill="currentColor" viewBox="0 0 20 20">
-            <path fill-rule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-              clip-rule="evenodd" />
-          </svg>
-          Экспорт гостей
-        </span>
-      </div>
+        <span class="text-[11px] text-gray-700 font-medium leading-snug text-center">Отправьте<br/>ссылку гостям</span>
     </div>
 
-    <!-- Scroll hint (mobile) -->
-    <div class="pb-6 flex justify-center mobile-only" style="animation: fadeIn 1s ease 1.2s both">
-      <div class="scroll-indicator"></div>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  MARQUEE — social proof names                               -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-8 md:py-10 border-y border-line bg-cream">
-    <div class="marquee">
-      <div class="marquee-track">
-        <span class="marquee-item">Айбек & Айгуль</span>
-        <span class="marquee-item">Нурланбек & Бермет</span>
-        <span class="marquee-item">Азамат & Динара</span>
-        <span class="marquee-item">Той Алтынай</span>
-        <span class="marquee-item">Юбилей Мирбека</span>
-        <span class="marquee-item">Бакыт & Жылдыз</span>
-        <span class="marquee-item">Асылбек & Айжан</span>
-        <span class="marquee-item">Узатуу Жаннат</span>
-        <!-- дубль для бесшовной прокрутки -->
-        <span class="marquee-item">Айбек & Айгуль</span>
-        <span class="marquee-item">Нурланбек & Бермет</span>
-        <span class="marquee-item">Азамат & Динара</span>
-        <span class="marquee-item">Той Алтынай</span>
-        <span class="marquee-item">Юбилей Мирбека</span>
-        <span class="marquee-item">Бакыт & Жылдыз</span>
-        <span class="marquee-item">Асылбек & Айжан</span>
-        <span class="marquee-item">Узатуу Жаннат</span>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  STATS                                                      -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-14 md:py-20 px-6 bg-cream3">
-    <div class="max-w-5xl mx-auto grid grid-cols-3 gap-4 md:gap-12 text-center">
-      <div class="reveal">
-        <div class="stat-num"><span data-count="1200">0</span><span class="text-gold">+</span></div>
-        <div class="text-[11px] md:text-[13px] text-muted font-medium mt-2 leading-tight">событий<br />создано</div>
-      </div>
-      <div class="reveal reveal-delay-1 border-x border-line">
-        <div class="stat-num"><span data-count="48000">0</span></div>
-        <div class="text-[11px] md:text-[13px] text-muted font-medium mt-2 leading-tight">гостей<br />получили
-          приглашения</div>
-      </div>
-      <div class="reveal reveal-delay-2">
-        <div class="stat-num">4.9<span class="text-gold">★</span></div>
-        <div class="text-[11px] md:text-[13px] text-muted font-medium mt-2 leading-tight">средняя<br />оценка</div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  USE CASES                                                  -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-16 md:py-24 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-10 md:mb-14">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Для любого события</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">
-          Подойдёт для <em class="text-gold">вашего</em> праздника
-        </h2>
-        <div class="section-divider"></div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="reveal flex gap-2.5 overflow-x-auto pb-2 md:justify-center" id="ucTabs">
-        <button class="uc-tab active" data-uc="wedding">Свадьба</button>
-        <button class="uc-tab" data-uc="toi">Той</button>
-        <button class="uc-tab" data-uc="birthday">День рождения</button>
-        <button class="uc-tab" data-uc="anniversary">Юбилей</button>
-        <button class="uc-tab" data-uc="uzatuu">Узатуу</button>
-        <button class="uc-tab" data-uc="corporate">Корпоратив</button>
-      </div>
-
-      <!-- Panel -->
-      <div class="reveal reveal-delay-1 mt-6 md:mt-10 grid md:grid-cols-2 gap-8 md:gap-14 items-center">
-        <div id="ucImage"
-          class="relative rounded-3xl overflow-hidden aspect-[4/3] md:aspect-[5/4] border border-line shadow-xl"
-          style="background: linear-gradient(160deg,#1A1A1A 0%,#1A1A1A 100%);">
-          <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-            <div id="ucTitle" class="font-cormorant text-white/90 text-[13px] md:text-[16px] italic mb-2">Приглашение
-            </div>
-            <div id="ucNames"
-              class="font-cormorant text-white text-[32px] md:text-[52px] font-semibold italic leading-tight">
-              Айбек<br />&amp; Айгуль</div>
-            <div class="w-12 h-px bg-white/30 my-4"></div>
-            <div id="ucDate" class="text-white/70 text-[11px] md:text-[13px] font-cormorant italic">23 мая 2026</div>
-          </div>
-          <div class="absolute -top-10 -right-10 w-32 h-32 border border-white/10 rounded-full"></div>
-          <div class="absolute -bottom-8 -left-8 w-28 h-28 border border-white/10 rounded-full"></div>
+    <div class="flex flex-col items-center gap-1.5">
+        <div class="feat-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FF6D45" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                <path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
         </div>
+        <span class="text-[11px] text-gray-700 font-medium leading-snug text-center">Узнайте кто<br/>придёт (RSVP)</span>
+    </div>
 
-        <div>
-          <h3 id="ucHeading" class="font-cormorant text-[28px] md:text-[40px] font-semibold leading-tight">
-            Свадьба вашей мечты — в&nbsp;одной ссылке
-          </h3>
-          <p id="ucText" class="mt-4 text-[14px] md:text-[16px] text-muted leading-relaxed">
-            Элегантные шаблоны, таймер обратного отсчёта, карта венчания, расписание дня, подарочный список. Гости
-            подтверждают участие за секунду.
-          </p>
-          <ul id="ucBullets" class="mt-6 space-y-3">
-            <li class="check-item">
-              <div class="check-icon bg-champagne">
-                <svg class="w-3 h-3 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+    <div class="flex flex-col items-center gap-1.5">
+        <div class="feat-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="8" y1="6"  x2="21" y2="6"/>
+                <line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6"  x2="3.01" y2="6"/>
+                <line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+        </div>
+        <span class="text-[11px] text-gray-700 font-medium leading-snug text-center">Соберите<br/>список гостей</span>
+    </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     iPHONE 17 PRO MOCKUP
+═══════════════════════════════════════ -->
+<section class="pb-6 overflow-hidden" style="position: relative; z-index: 50;">
+    <div class="iphone-scene-wrap">
+        <div class="iphone-scene">
+
+            <div class="ip-badge ip-badge-heart">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
                 </svg>
-              </div>
-              <span class="text-[13px] md:text-[15px]">Имена пары, история знакомства, таймлайн</span>
-            </li>
-            <li class="check-item">
-              <div class="check-icon bg-champagne">
-                <svg class="w-3 h-3 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
+            </div>
+
+            <div class="ip-badge ip-badge-people">
+                <svg width="42" height="42" viewBox="0 0 24 24" fill="white">
+                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
                 </svg>
-              </div>
-              <span class="text-[13px] md:text-[15px]">Карта с маршрутом и контакты организаторов</span>
-            </li>
-            <li class="check-item">
-              <div class="check-icon bg-champagne">
-                <svg class="w-3 h-3 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              <span class="text-[13px] md:text-[15px]">Таймер обратного отсчёта и RSVP блок</span>
-            </li>
-          </ul>
-          <button onclick="openAuth()" class="btn-primary mt-8">
-            Начать создавать
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  HOW IT WORKS                                               -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-
-  <section id="how" class="py-16 md:py-24 bg-cream relative overflow-hidden">
-      <!-- Background Elements -->
-      <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-champagne/10 blur-[100px] rounded-full pointer-events-none -translate-y-1/2 translate-x-1/4"></div>
-      <div class="absolute bottom-0 left-0 w-[400px] h-[400px] bg-champagne/5 blur-[80px] rounded-full pointer-events-none translate-y-1/3 -translate-x-1/4"></div>
-
-      <div class="max-w-7xl mx-auto px-4 md:px-6 relative z-10">
-
-          <!-- Header -->
-          <div class="text-center mb-10 md:mb-20 max-w-2xl mx-auto">
-              <span class="inline-block py-1 px-3 rounded-full bg-gold/10 text-gold text-[10px] md:text-xs font-bold tracking-widest uppercase mb-4 border border-gold/10">Процесс</span>
-              <h2 class="font-cormorant text-[32px] md:text-[56px] font-semibold leading-[1.1] text-ink mb-4">
-                  Три шага <br class="md:hidden"/><em class="text-gold italic">к идеальному событию</em>
-              </h2>
-              <p class="text-muted text-sm md:text-base max-w-md mx-auto md:max-w-none">
-                  Создайте приглашение за 5 минут и забудьте о бумажной рутине.
-              </p>
-          </div>
-
-          <!-- Mobile Horizontal Scroll Container / Desktop Grid -->
-          <!-- На мобильном: flex + overflow-x (свайп) -->
-          <!-- На десктопе: grid-cols-3 -->
-          <div class="flex md:grid md:grid-cols-3 gap-6 md:gap-10 overflow-x-auto md:overflow-visible pb-8 md:pb-0 snap-x snap-mandatory hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-
-              <!-- Step 1 -->
-              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
-                  <!-- Card Body -->
-                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
-
-                      <!-- Visual Area (Mockup) -->
-                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-gray-50 to-[#F5F5F4] rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
-                          <!-- Decorative Circle behind -->
-                          <div class="absolute w-32 h-32 bg-gold/10 rounded-full blur-2xl"></div>
-
-                          <!-- Mockup UI: Form -->
-                          <div class="relative w-40 md:w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-3 transform group-hover:-translate-y-2 transition-transform duration-500">
-                              <div class="flex items-center gap-2 mb-3 border-b border-gray-50 pb-2">
-                                  <div class="w-2 h-2 rounded-full bg-red-400"></div>
-                                  <div class="w-2 h-2 rounded-full bg-yellow-400"></div>
-                                  <div class="w-2 h-2 rounded-full bg-green-400"></div>
-                              </div>
-                              <div class="space-y-2">
-                                  <div class="h-6 w-full bg-gray-50 rounded border border-gray-100"></div>
-                                  <div class="h-6 w-3/4 bg-gray-50 rounded border border-gray-100"></div>
-                                  <div class="h-8 w-full bg-ink rounded mt-2 flex items-center justify-center">
-                                      <div class="w-12 h-1 bg-white/30 rounded-full"></div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-
-                      <!-- Text Content -->
-                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
-                          <div class="flex items-center gap-3 mb-3">
-                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">1</div>
-                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Создайте</h3>
-                          </div>
-                          <p class="text-sm text-muted leading-relaxed">
-                              Выберите шаблон, добавьте фото и детали события. Конструктор простой и понятный.
-                          </p>
-                      </div>
-                  </div>
-              </div>
-
-              <!-- Step 2 -->
-              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
-                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
-
-                      <!-- Visual Area (Mockup) -->
-                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-[#E4F2E6]/30 to-[#F0FDF4] rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
-                          <div class="absolute w-32 h-32 bg-green-200/20 rounded-full blur-2xl"></div>
-
-                          <!-- Mockup UI: Chat Bubble -->
-                          <div class="relative w-44 md:w-52 transform group-hover:-translate-y-2 transition-transform duration-500">
-                              <!-- Incoming Mesgold -->
-                              <div class="bg-white p-3 rounded-2xl rounded-tl-none shadow-md border border-gray-100 mb-3 ml-4">
-                                  <div class="text-[10px] text-gray-400 mb-1">Анна</div>
-                                  <div class="h-2 w-24 bg-gray-200 rounded-full mb-1"></div>
-                                  <div class="h-2 w-16 bg-gray-200 rounded-full"></div>
-                              </div>
-                              <!-- Outgoing Link -->
-                              <div class="bg-ink p-3 rounded-2xl rounded-tr-none shadow-lg shadow-ink/20 mr-4 flex items-center gap-3">
-                                  <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-xs font-bold">W</div>
-                                  <div class="flex-1">
-                                      <div class="h-2 w-16 bg-white/40 rounded-full mb-1"></div>
-                                      <div class="h-1.5 w-10 bg-white/20 rounded-full"></div>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
-
-                      <!-- Text Content -->
-                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
-                          <div class="flex items-center gap-3 mb-3">
-                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">2</div>
-                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Отправьте</h3>
-                          </div>
-                          <p class="text-sm text-muted leading-relaxed">
-                              Скопируйте ссылку и отправьте гостям в WhatsApp или Telegram. Без приложений.
-                          </p>
-                      </div>
-                  </div>
-              </div>
-
-              <!-- Step 3 -->
-              <div class="snap-center shrink-0 w-[85%] md:w-auto group">
-                  <div class="bg-white rounded-[24px] p-1 shadow-sm border border-line/40 h-full hover:shadow-xl hover:border-gold/30 transition-all duration-500 flex flex-col">
-
-                      <!-- Visual Area (Mockup) -->
-                      <div class="h-[180px] md:h-[240px] bg-gradient-to-br from-blue-50 to-white rounded-[20px] mb-4 relative overflow-hidden flex items-center justify-center">
-                          <div class="absolute w-32 h-32 bg-blue-200/20 rounded-full blur-2xl"></div>
-
-                          <!-- Mockup UI: Dashboard/List -->
-                          <div class="relative w-40 md:w-48 bg-white rounded-xl shadow-lg border border-gray-100 p-3 transform group-hover:-translate-y-2 transition-transform duration-500">
-                              <div class="flex justify-between items-center mb-3">
-                                  <div class="h-2 w-12 bg-gray-200 rounded-full"></div>
-                                  <div class="h-4 w-4 bg-green-100 rounded-full flex items-center justify-center">
-                                      <div class="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
-                                  </div>
-                              </div>
-                              <div class="space-y-2">
-                                  <!-- List Item 1 -->
-                                  <div class="flex items-center gap-2">
-                                      <div class="w-5 h-5 rounded-full bg-gray-100"></div>
-                                      <div class="h-1.5 w-20 bg-gray-100 rounded-full"></div>
-                                      <div class="ml-auto h-3 w-8 bg-green-50 rounded text-[6px] text-green-600 flex items-center justify-center">Да</div>
-                                  </div>
-                                  <!-- List Item 2 -->
-                                  <div class="flex items-center gap-2">
-                                      <div class="w-5 h-5 rounded-full bg-gray-100"></div>
-                                      <div class="h-1.5 w-16 bg-gray-100 rounded-full"></div>
-                                      <div class="ml-auto h-3 w-8 bg-red-50 rounded text-[6px] text-red-500 flex items-center justify-center">Нет</div>
-                                  </div>
-                              </div>
-                              <!-- Chart visual at bottom -->
-                              <div class="mt-3 pt-2 border-t border-gray-50 flex gap-1 items-end h-8">
-                                  <div class="w-1/3 h-full bg-gold/20 rounded-t"></div>
-                                  <div class="w-1/3 h-1/2 bg-gold/40 rounded-t"></div>
-                                  <div class="w-1/3 h-3/4 bg-gold rounded-t"></div>
-                              </div>
-                          </div>
-                      </div>
-
-                      <!-- Text Content -->
-                      <div class="px-4 pb-6 pt-1 flex-1 flex flex-col">
-                          <div class="flex items-center gap-3 mb-3">
-                              <div class="w-8 h-8 rounded-full bg-ink text-cream flex items-center justify-center font-cormorant font-bold text-lg shadow-md">3</div>
-                              <h3 class="font-cormorant text-xl md:text-2xl font-semibold text-ink leading-tight">Следите</h3>
-                          </div>
-                          <p class="text-sm text-muted leading-relaxed">
-                              Ответы гостей приходят мгновенно. Скачайте готовый список в Excel перед банкетом.
-                          </p>
-                      </div>
-                  </div>
-              </div>
-
-          </div>
-
-          <!-- CTA Button -->
-          <div class="text-center mt-8 md:mt-16">
-              <button onclick="openAuth()" class="btn-primary inline-flex items-center justify-center px-8 py-4 text-base font-medium text-cream bg-ink rounded-full shadow-lg shadow-ink/20 hover:shadow-xl hover:shadow-gold/20 hover:-translate-y-1 transition-all duration-300">
-                  Создать приглашение
-                  <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
-              </button>
-          </div>
-
-      </div>
-
-      <!-- Helper style to hide scrollbar but keep functionality -->
-      <style>
-          .hide-scrollbar::-webkit-scrollbar {
-              display: none;
-          }
-          .hide-scrollbar {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-          }
-      </style>
-  </section>
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  FEATURES                                                   -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-16 md:py-24 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-10 md:mb-14">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Возможности</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Всё&nbsp;что&nbsp;<em
-            class="text-gold">нужно</em></h2>
-        <div class="section-divider"></div>
-        <p class="text-[13px] md:text-[16px] text-muted mt-4 leading-relaxed max-w-xl mx-auto">Никаких дополнительных
-          программ. Всё работает прямо в браузере телефона или компьютера.</p>
-      </div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-5">
-
-        <div class="reveal reveal-delay-1 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">12 шаблонов</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Премиальные дизайны для любого события</p>
-        </div>
-
-        <div class="reveal reveal-delay-2 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">RSVP онлайн</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Гости подтверждают одним нажатием</p>
-        </div>
-
-        <div class="reveal reveal-delay-3 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">Список гостей</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Управляйте гостями в реальном времени</p>
-        </div>
-
-        <div class="reveal reveal-delay-4 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">Красивая ссылка</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Делитесь одной ссылкой в любом мессенджере
-          </p>
-        </div>
-
-        <div class="reveal reveal-delay-1 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">Уведомления</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Мгновенно узнавайте о новых подтверждениях
-          </p>
-        </div>
-
-        <div class="reveal reveal-delay-2 feature-card">
-          <div class="w-11 h-11 bg-champagne rounded-2xl flex items-center justify-center mb-4">
-            <svg class="w-5 h-5 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h4" />
-            </svg>
-          </div>
-          <h3 class="font-semibold text-[14px] md:text-[16px] mb-1.5">Экспорт Excel</h3>
-          <p class="text-[12px] md:text-[14px] text-muted leading-relaxed">Скачайте список гостей для рассадки</p>
-        </div>
-
-        <!-- Big showcase -->
-        <div class="reveal reveal-delay-3 feature-card col-span-2 md:col-span-3"
-          style="background: linear-gradient(135deg,#1A1A1A 0%,#1A1A1A 100%); color:white; border:none;">
-          <div class="flex flex-col md:flex-row items-start md:items-center gap-5">
-            <div
-              class="w-12 h-12 md:w-14 md:h-14 bg-champagne/15 border border-champagne/20 rounded-2xl flex items-center justify-center flex-shrink-0">
-              <svg class="w-6 h-6 md:w-7 md:h-7 text-champagne" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
             </div>
-            <div class="flex-1">
-              <h3 class="font-cormorant font-semibold text-[20px] md:text-[30px] italic leading-tight mb-2">Работает
-                прямо в браузере</h3>
-              <p class="text-white/70 text-[13px] md:text-[15px] leading-relaxed max-w-2xl">Гостям не нужно скачивать
-                приложение, регистрироваться или запоминать логины. Открыли ссылку — увидели красивое приглашение. На
-                любом телефоне, в любом мессенджере.</p>
-            </div>
-            <button onclick="openAuth()" class="mt-2 md:mt-0 btn-primary !bg-champagne !text-[#1A1A1A] flex-shrink-0">
-              Попробовать
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
-          </div>
-        </div>
 
-      </div>
-    </div>
-  </section>
+            <div class="ip-gem" style="width:12px;height:12px;background:#f9a8c9;top:78px; left:148px;"></div>
+            <div class="ip-gem" style="width:11px;height:11px;background:#fcd34d;top:86px; right:112px;"></div>
+            <div class="ip-gem" style="width:10px;height:10px;background:#86efac;bottom:195px;left:98px;"></div>
+            <div class="ip-gem" style="width:10px;height:10px;background:#f9a8c9;bottom:115px;right:76px;"></div>
+            <div class="ip-gem" style="width:11px;height:11px;background:#fcd34d;bottom:85px; left:166px;"></div>
+            <div class="ip-gem" style="width:10px;height:10px;background:#86efac;top:198px; left:70px;"></div>
+            <div class="ip-gem" style="width:9px; height:9px; background:#c7d2fe;top:316px; right:56px;"></div>
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  TEMPLATES                                                  -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section id="templates" class="py-16 md:py-24 bg-cream3">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-8 md:mb-14 px-6">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Галерея</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Наши <em
-            class="text-gold">шаблоны</em></h2>
-        <div class="section-divider"></div>
-        <p class="text-[13px] md:text-[16px] text-muted mt-4">Выберите стиль для вашего события</p>
-      </div>
+            <div class="iphone-shell">
+                <span class="ip-btn ip-btn-power"></span>
 
-      <!-- Mobile slider + desktop grid -->
-      <div class="template-slider md:!hidden reveal">
-        <!-- Template 1 -->
-        <div class="template-card" onclick="openAuth()">
-          <div class="h-56 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#1A1A1A 0%,#1A1A1A 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-              <div class="font-cormorant text-white text-[13px] italic mb-1">Приглашение</div>
-              <div class="w-10 h-px bg-white/30 mb-2"></div>
-              <div class="font-cormorant text-white text-[20px] font-semibold leading-tight">Айбек<br />&amp; Айгуль
-              </div>
-              <div class="font-cormorant text-white/60 text-[11px] mt-2 italic">23 мая 2026</div>
-              <div class="mt-4 px-5 py-2 bg-white/10 backdrop-blur rounded-full text-white text-[10px] font-medium">
-                Подтвердить</div>
-            </div>
-            <div class="absolute -top-8 -right-8 w-24 h-24 border border-white/10 rounded-full"></div>
-            <div class="absolute -bottom-6 -left-6 w-20 h-20 border border-white/10 rounded-full"></div>
-          </div>
-          <div class="p-4 flex items-center justify-between">
-            <div>
-              <div class="font-semibold text-[13px]">Классика</div>
-              <div class="text-[11px] text-muted mt-0.5">Тёмный элегантный</div>
-            </div>
-            <span class="badge text-[10px]">Популярный</span>
-          </div>
-        </div>
+                <div class="iphone-screen">
+                    <div class="ip-dynamic-island"></div>
 
-        <div class="template-card" onclick="openAuth()">
-          <div class="h-56 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#F5F0EA 0%,#EDE5D8 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-              <div class="text-[10px] tracking-widest text-muted uppercase mb-2">You are invited</div>
-              <div class="font-cormorant text-ink text-[24px] font-semibold italic leading-tight">Свадебный<br />той
-              </div>
-              <div class="w-8 h-0.5 bg-champagne mx-auto my-3 rounded"></div>
-              <div class="text-[10px] text-muted">Venue Bishkek · 19:00</div>
-              <div class="mt-5 px-5 py-2 bg-ink rounded-full text-white text-[10px] font-medium">Подтвердить →</div>
-            </div>
-          </div>
-          <div class="p-4">
-            <div class="font-semibold text-[13px]">Минимализм</div>
-            <div class="text-[11px] text-muted mt-0.5">Кремовый нежный</div>
-          </div>
-        </div>
+                    <div class="ip-status">
+                        <span>9:41</span>
+                        <div class="ip-status-right">
+                            <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
+                                <rect x="0"    y="8"   width="2.5" height="3"   rx="0.7" fill="#111"/>
+                                <rect x="3.5"  y="5.5" width="2.5" height="5.5" rx="0.7" fill="#111"/>
+                                <rect x="7"    y="3"   width="2.5" height="8"   rx="0.7" fill="#111"/>
+                                <rect x="10.5" y="0"   width="2.5" height="11"  rx="0.7" fill="#111"/>
+                            </svg>
+                            <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
+                                <path d="M7 3.5c1.9 0 3.6.7 4.9 1.9l1.4-1.5C11.6 2.2 9.4 1.2 7 1.2S2.4 2.2.7 3.9L2.1 5.4C3.4 4.2 5.1 3.5 7 3.5Z" fill="#111"/>
+                                <path d="M7 6.2c1.2 0 2.3.5 3.1 1.3l1.3-1.3C10.2 5 8.7 4.2 7 4.2S3.8 5 2.6 6.2L3.9 7.5C4.7 6.7 5.8 6.2 7 6.2Z" fill="#111"/>
+                                <circle cx="7" cy="10" r="1.3" fill="#111"/>
+                            </svg>
+                            <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
+                                <rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="#111" stroke-opacity="0.35"/>
+                                <rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/>
+                                <path d="M21.5 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.38"/>
+                            </svg>
+                        </div>
+                    </div>
 
-        <div class="template-card" onclick="openAuth()">
-          <div class="h-56 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#1A0A2E 0%,#2D1B4E 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-              <div class="absolute inset-0 opacity-40"
-                style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 20px 20px;">
-              </div>
-              <div class="relative z-10">
-                <div class="font-cormorant text-[#C9A86C] text-[13px] italic mb-2">Сердечно приглашаем</div>
-                <div class="font-cormorant text-white text-[22px] font-semibold leading-tight">Нурланбек<br />&amp;
-                  Бермет</div>
-                <div class="font-cormorant text-[#C9A86C]/80 text-[11px] mt-2">12 июня 2026</div>
-                <div class="mt-4 px-5 py-1.5 border border-[#C9A86C]/50 rounded-full text-[#C9A86C] text-[10px]">RSVP →
+                    <div class="ip-content">
+                        <div class="ip-names">Асет <span class="amp">&amp;</span> Малика</div>
+                        <div class="ip-date">20 июля 2025</div>
+
+                        <div class="ip-photo-wrap">
+                            <svg class="ip-leaves" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g opacity="0.6">
+                                    <path d="M62 30 Q46 16 26 22" stroke="#a0b468" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                                    <path d="M54 24 Q40 12 22 18" stroke="#a8bc70" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+                                    <ellipse cx="30" cy="19" rx="12" ry="5.5" fill="#c4d890" opacity="0.52" transform="rotate(-32 30 19)"/>
+                                    <ellipse cx="22" cy="28" rx="11" ry="5"   fill="#b8cc80" opacity="0.48" transform="rotate(-18 22 28)"/>
+                                    <ellipse cx="40" cy="14" rx="9"  ry="4.5" fill="#d0dca0" opacity="0.44" transform="rotate(-50 40 14)"/>
+                                    <ellipse cx="48" cy="22" rx="10" ry="4.5" fill="#c0d088" opacity="0.42" transform="rotate(-38 48 22)"/>
+                                </g>
+                                <g opacity="0.6">
+                                    <path d="M88 30 Q104 16 124 22" stroke="#a0b468" stroke-width="1.3" fill="none" stroke-linecap="round"/>
+                                    <path d="M96 24 Q110 12 128 18" stroke="#a8bc70" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+                                    <ellipse cx="120" cy="19" rx="12" ry="5.5" fill="#c4d890" opacity="0.52" transform="rotate(32 120 19)"/>
+                                    <ellipse cx="128" cy="28" rx="11" ry="5"   fill="#b8cc80" opacity="0.48" transform="rotate(18 128 28)"/>
+                                    <ellipse cx="110" cy="14" rx="9"  ry="4.5" fill="#d0dca0" opacity="0.44" transform="rotate(50 110 14)"/>
+                                    <ellipse cx="102" cy="22" rx="10" ry="4.5" fill="#c0d088" opacity="0.42" transform="rotate(38 102 22)"/>
+                                </g>
+                                <g opacity="0.52">
+                                    <path d="M50 112 Q30 120 18 112" stroke="#a0b468" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                                    <ellipse cx="26" cy="116" rx="11" ry="5"   fill="#c4d890" opacity="0.50" transform="rotate(18 26 116)"/>
+                                    <ellipse cx="38" cy="124" rx="10" ry="4.5" fill="#b8cc80" opacity="0.44" transform="rotate(34 38 124)"/>
+                                </g>
+                                <g opacity="0.52">
+                                    <path d="M100 112 Q120 120 132 112" stroke="#a0b468" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+                                    <ellipse cx="124" cy="116" rx="11" ry="5"   fill="#c4d890" opacity="0.50" transform="rotate(-18 124 116)"/>
+                                    <ellipse cx="112" cy="124" rx="10" ry="4.5" fill="#b8cc80" opacity="0.44" transform="rotate(-34 112 124)"/>
+                                </g>
+                            </svg>
+                            <div class="ip-photo-circle">
+                                <svg width="60" height="60" viewBox="0 0 64 64" fill="none"
+                                     stroke="#c4b090" stroke-width="1.4"
+                                     stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="24" cy="18" r="8"/>
+                                    <path d="M8 52c0-8 7-13 16-13s16 5 16 13"/>
+                                    <circle cx="44" cy="20" r="7"/>
+                                    <path d="M34 52c0-6 4-10 10-10s10 4 10 10"/>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="ip-countdown">
+                            <div class="ip-cd-block"><div class="ip-cd-num">12</div><span class="ip-cd-lbl">дней</span></div>
+                            <div class="ip-cd-sep">·</div>
+                            <div class="ip-cd-block"><div class="ip-cd-num">08</div><span class="ip-cd-lbl">часов</span></div>
+                            <div class="ip-cd-sep">·</div>
+                            <div class="ip-cd-block"><div class="ip-cd-num">26</div><span class="ip-cd-lbl">минут</span></div>
+                            <div class="ip-cd-sep">·</div>
+                            <div class="ip-cd-block"><div class="ip-cd-num">15</div><span class="ip-cd-lbl">секунд</span></div>
+                        </div>
+
+                        <div class="ip-rsvp">Я пойду!</div>
+                        <div class="ip-skip">Не пойду</div>
+                    </div>
                 </div>
-              </div>
             </div>
-          </div>
-          <div class="p-4">
-            <div class="font-semibold text-[13px]">Роскошь</div>
-            <div class="text-[11px] text-muted mt-0.5">Ночь и золото</div>
-          </div>
-        </div>
 
-        <div class="template-card" onclick="openAuth()">
-          <div class="h-56 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#FDF6F0 0%,#F9EDE0 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center">
-              <div class="text-[28px] mb-1">🌸</div>
-              <div class="font-cormorant text-[#C9A86C] text-[22px] font-semibold italic leading-tight">
-                Айгерим<br />Асанова</div>
-              <div class="text-[10px] text-muted mt-1">25 лет</div>
-              <div class="w-8 h-0.5 bg-[#E8B4A0] mx-auto my-3 rounded"></div>
-              <div class="text-[10px] text-muted">Flora · 18:00</div>
-              <div class="mt-4 px-5 py-2 bg-[#C9A86C] rounded-full text-white text-[10px] font-medium">Буду!</div>
-            </div>
-          </div>
-          <div class="p-4">
-            <div class="font-semibold text-[13px]">Цветочный</div>
-            <div class="text-[11px] text-muted mt-0.5">День рождения</div>
-          </div>
         </div>
-      </div>
+    </div>
+</section>
 
-      <!-- Desktop grid -->
-      <div class="hidden md:grid grid-cols-3 gap-6 px-6 reveal">
-        <!-- Карточка 1 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#1A1A1A 0%,#1A1A1A 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="font-cormorant text-white text-[14px] italic mb-2">Приглашение</div>
-              <div class="w-12 h-px bg-white/30 mb-3"></div>
-              <div class="font-cormorant text-white text-[32px] font-semibold leading-tight">Айбек<br />&amp; Айгуль
-              </div>
-              <div class="font-cormorant text-white/60 text-[13px] mt-3 italic">23 мая 2026</div>
-              <div class="mt-5 px-6 py-2.5 bg-white/10 backdrop-blur rounded-full text-white text-[12px] font-medium">
-                Подтвердить участие</div>
-            </div>
-            <div class="absolute -top-10 -right-10 w-32 h-32 border border-white/10 rounded-full"></div>
-            <div class="absolute -bottom-8 -left-8 w-28 h-28 border border-white/10 rounded-full"></div>
-          </div>
-          <div class="p-5 flex items-center justify-between">
+
+<!-- ═══════════════════════════════════════
+     STATS CARD
+═══════════════════════════════════════ -->
+<section class="px-5 pb-14" style="background: transparent; margin-top: -320px; position: relative; z-index: 60;">
+    <div class="max-w-sm mx-auto">
+        <div class="stats-card p-6 grid grid-cols-3 gap-3 text-center">
+
             <div>
-              <div class="font-semibold text-[15px]">Классика</div>
-              <div class="text-[12px] text-muted mt-0.5">Тёмный элегантный</div>
-            </div>
-            <span class="badge text-[11px]">Популярный</span>
-          </div>
-        </div>
-
-        <!-- Карточка 2 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#F5F0EA 0%,#EDE5D8 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="text-[11px] tracking-widest text-muted uppercase mb-3">You are invited</div>
-              <div class="font-cormorant text-ink text-[32px] font-semibold italic leading-tight">Свадебный<br />той
-              </div>
-              <div class="w-10 h-0.5 bg-champagne mx-auto my-4 rounded"></div>
-              <div class="text-[12px] text-muted">Venue Bishkek · 19:00</div>
-              <div class="mt-6 px-6 py-2.5 bg-ink rounded-full text-white text-[12px] font-medium">Подтвердить →</div>
-            </div>
-          </div>
-          <div class="p-5">
-            <div class="font-semibold text-[15px]">Минимализм</div>
-            <div class="text-[12px] text-muted mt-0.5">Кремовый нежный</div>
-          </div>
-        </div>
-
-        <!-- Карточка 3 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#1A0A2E 0%,#2D1B4E 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="absolute inset-0 opacity-40"
-                style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 24px 24px;">
-              </div>
-              <div class="relative z-10">
-                <div class="font-cormorant text-[#C9A86C] text-[14px] italic mb-3">Сердечно приглашаем</div>
-                <div class="font-cormorant text-white text-[32px] font-semibold leading-tight">Нурланбек<br />&amp;
-                  Бермет</div>
-                <div class="font-cormorant text-[#C9A86C]/80 text-[13px] mt-3">12 июня 2026</div>
-                <div class="mt-5 px-6 py-2 border border-[#C9A86C]/50 rounded-full text-[#C9A86C] text-[12px]">RSVP →
+                <div class="flex justify-center mb-2" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
                 </div>
-              </div>
+                <div class="text-lg font-extrabold" style="color:#F93B7A;">10 000+</div>
+                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">приглашений<br/>создано</div>
             </div>
-          </div>
-          <div class="p-5">
-            <div class="font-semibold text-[15px]">Роскошь</div>
-            <div class="text-[12px] text-muted mt-0.5">Ночь и золото</div>
-          </div>
-        </div>
 
-        <!-- Карточка 4 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#FDF6F0 0%,#F9EDE0 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="text-[36px] mb-2">🌸</div>
-              <div class="font-cormorant text-[#C9A86C] text-[30px] font-semibold italic leading-tight">
-                Айгерим<br />Асанова</div>
-              <div class="text-[11px] text-muted mt-2">25 лет</div>
-              <div class="w-10 h-0.5 bg-[#E8B4A0] mx-auto my-3 rounded"></div>
-              <div class="text-[12px] text-muted">Flora · 18:00</div>
-              <div class="mt-5 px-6 py-2.5 bg-[#C9A86C] rounded-full text-white text-[12px] font-medium">Буду!</div>
-            </div>
-          </div>
-          <div class="p-5">
-            <div class="font-semibold text-[15px]">Цветочный</div>
-            <div class="text-[12px] text-muted mt-0.5">День рождения</div>
-          </div>
-        </div>
-
-        <!-- Карточка 5 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden"
-            style="background: linear-gradient(160deg,#0F1F3A 0%,#1E3A5F 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="text-[11px] tracking-widest text-[#C9A055] uppercase mb-3">Wedding day</div>
-              <div class="font-cormorant text-white text-[32px] font-semibold italic leading-tight">Асылбек<br />&amp;
-                Айжан</div>
-              <div class="w-10 h-0.5 bg-[#C9A055] mx-auto my-4 rounded"></div>
-              <div class="text-[12px] text-white/60">Иссык-Куль · 18:00</div>
-              <div class="mt-6 px-6 py-2.5 bg-[#C9A055] rounded-full text-[#0F1F3A] text-[12px] font-semibold">RSVP
-              </div>
-            </div>
-          </div>
-          <div class="p-5 flex items-center justify-between">
             <div>
-              <div class="font-semibold text-[15px]">Морской</div>
-              <div class="text-[12px] text-muted mt-0.5">Глубокий синий</div>
+                <div class="flex justify-center mb-2" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        <polyline points="9 12 11 14 15 10"/>
+                    </svg>
+                </div>
+                <div class="text-lg font-extrabold text-emerald-500">100%</div>
+                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">надежно<br/>и безопасно</div>
             </div>
-            <span class="badge text-[11px]" style="background:#E6D5B8; color:#C9A86C;">Новый</span>
-          </div>
-        </div>
 
-        <!-- Карточка 6 -->
-        <div class="template-card tilt" onclick="openAuth()">
-          <div class="h-80 relative overflow-hidden" style="background: linear-gradient(160deg,#FFF 0%,#F5F0EA 100%)">
-            <div class="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-              <div class="w-14 h-14 border-2 border-[#C9A86C] rounded-full flex items-center justify-center mb-3">
-                <span class="font-cormorant italic font-semibold text-[#C9A86C] text-[20px]">Б&amp;Ж</span>
-              </div>
-              <div class="font-cormorant text-ink text-[28px] font-semibold italic leading-tight">Бакыт<br />&amp;
-                Жылдыз</div>
-              <div class="text-[11px] text-muted mt-3">Той · 05.09.2026</div>
-              <div class="mt-5 px-6 py-2.5 bg-ink rounded-full text-white text-[12px] font-medium">Узнать детали</div>
-            </div>
-          </div>
-          <div class="p-5">
-            <div class="font-semibold text-[15px]">Монограмма</div>
-            <div class="text-[12px] text-muted mt-0.5">Светлый премиум</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="reveal px-6 mt-6 md:mt-12 text-center">
-        <button onclick="openAuth()" class="btn-secondary">
-          Смотреть все 12 шаблонов
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  TESTIMONIALS                                               -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-16 md:py-24 px-6">
-    <div class="max-w-6xl mx-auto">
-      <div class="reveal text-center mb-10 md:mb-14">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Отзывы</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">
-          Что <em class="text-gold">говорят</em> пары
-        </h2>
-        <div class="section-divider"></div>
-      </div>
-
-      <div class="grid md:grid-cols-3 gap-4 md:gap-6">
-
-        <div class="reveal reveal-delay-1 tm-card">
-          <div class="flex items-center gap-1 text-[#C9A86C] mb-3">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-          <p class="text-[14px] md:text-[15px] leading-relaxed text-ink">
-            «Сделала приглашение за вечер — получилось красивее, чем у свадебного дизайнера. Все родственники были в
-            восторге, а я экономнула кучу денег на печати.»
-          </p>
-          <div class="mt-5 pt-4 border-t border-line flex items-center gap-3">
-            <div class="avatar" style="background:#E5D0A1; color:#1A1A1A;">А</div>
             <div>
-              <div class="font-semibold text-[13px]">Айгуль Сатарова</div>
-              <div class="text-[11px] text-muted">Свадьба · 320 гостей</div>
+                <div class="flex justify-center mb-2" aria-hidden="true">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                </div>
+                <div class="text-lg font-extrabold text-gray-900">4.9/5</div>
+                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">средняя оценка<br/>пользователей</div>
             </div>
-          </div>
-        </div>
 
-        <div class="reveal reveal-delay-2 tm-card">
-          <div class="flex items-center gap-1 text-[#C9A86C] mb-3">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-          <p class="text-[14px] md:text-[15px] leading-relaxed text-ink">
-            «Не надо обзванивать 200 человек — все сами отметились кто идёт, кто нет. Организатор банкета был в
-            восторге: точное число за неделю до тоя.»
-          </p>
-          <div class="mt-5 pt-4 border-t border-line flex items-center gap-3">
-            <div class="avatar" style="background:#E6D5B8; color:#C9A86C;">Н</div>
-            <div>
-              <div class="font-semibold text-[13px]">Нурланбек Омуралиев</div>
-              <div class="text-[11px] text-muted">Той · 450 гостей</div>
-            </div>
-          </div>
         </div>
-
-        <div class="reveal reveal-delay-3 tm-card">
-          <div class="flex items-center gap-1 text-[#C9A86C] mb-3">
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-          </div>
-          <p class="text-[14px] md:text-[15px] leading-relaxed text-ink">
-            «Думала будет сложно — оказалось проще чем сторис в Instagram. 15 минут и ссылка готова. Бабушке показала —
-            она тоже всё поняла и нажала «приду».»
-          </p>
-          <div class="mt-5 pt-4 border-t border-line flex items-center gap-3">
-            <div class="avatar" style="background:#D8C8E0; color:#4B2E6B;">Б</div>
-            <div>
-              <div class="font-semibold text-[13px]">Бермет Асанова</div>
-              <div class="text-[11px] text-muted">Юбилей мамы · 120 гостей</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
-  </section>
+</section>
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  PRICING                                                    -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section id="pricing" class="py-16 md:py-24 px-6 bg-cream3">
-    <div class="max-w-5xl mx-auto">
-      <div class="reveal text-center mb-10 md:mb-14">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">Цены</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Прозрачно и&nbsp;<em
-            class="text-gold">честно</em></h2>
-        <div class="section-divider"></div>
-        <p class="text-[13px] md:text-[16px] text-muted mt-4">Оплата один раз за мероприятие — никаких подписок</p>
-      </div>
 
-      <div class="grid md:grid-cols-2 gap-4 md:gap-6 max-w-3xl mx-auto">
+<!-- ═══════════════════════════════════════
+     HOW IT WORKS
+═══════════════════════════════════════ -->
+<section id="how" class="py-14 px-5" style="background: #FFF5F8;">
+    <div class="max-w-lg mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Как это работает</h2>
+        <div class="space-y-4">
 
-        <div class="reveal price-card">
-          <div class="flex items-start justify-between mb-5">
-            <div>
-              <div class="text-[12px] font-semibold text-muted uppercase tracking-wider mb-1">Бесплатно</div>
-              <div class="font-cormorant text-[48px] md:text-[56px] font-semibold leading-none">0 <span
-                  class="text-[22px] text-muted font-normal">сом</span></div>
+            <div class="card-white p-5 flex items-start gap-4">
+                <div class="step-num" aria-hidden="true">1</div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 text-[15px]">Выберите шаблон</h3>
+                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">10+ красивых шаблонов для свадьбы, тоя, юбилея и других событий.</p>
+                </div>
             </div>
-            <div class="w-11 h-11 bg-cream3 rounded-2xl flex items-center justify-center">
-              <svg class="w-5 h-5 text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+
+            <div class="card-white p-5 flex items-start gap-4">
+                <div class="step-num" aria-hidden="true">2</div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 text-[15px]">Заполните данные</h3>
+                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">Имена, дата, место и фото — за 5 минут, без дизайнера.</p>
+                </div>
             </div>
-          </div>
-          <div class="space-y-2.5 mb-6">
-            <div class="check-item">
-              <div class="check-icon bg-cream3"><svg class="w-3 h-3 text-muted" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-muted">1 приглашение</span>
+
+            <div class="card-white p-5 flex items-start gap-4">
+                <div class="step-num" aria-hidden="true">3</div>
+                <div>
+                    <h3 class="font-semibold text-gray-900 text-[15px]">Отправьте ссылку</h3>
+                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">Поделитесь в WhatsApp — гости открывают и подтверждают участие онлайн.</p>
+                </div>
             </div>
-            <div class="check-item">
-              <div class="check-icon bg-cream3"><svg class="w-3 h-3 text-muted" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-muted">До 50 гостей</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-cream3"><svg class="w-3 h-3 text-muted" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-muted">2 базовых шаблона</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-cream3"><svg class="w-3 h-3 text-muted" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-muted">RSVP и список гостей</span>
-            </div>
-          </div>
-          <button onclick="openAuth()" class="btn-secondary w-full">Начать бесплатно</button>
+
         </div>
-
-        <div class="reveal reveal-delay-1 price-card featured relative">
-          <div
-            class="absolute -top-3 left-1/2 -translate-x-1/2 bg-champagne text-[#1A1A1A] text-[10px] font-bold tracking-wider uppercase px-4 py-1.5 rounded-full shadow-lg">
-            ★ Хит</div>
-          <div class="flex items-start justify-between mb-5">
-            <div>
-              <div class="text-[12px] font-semibold text-champagne uppercase tracking-wider mb-1">Премиум</div>
-              <div class="font-cormorant text-[48px] md:text-[56px] font-semibold leading-none text-white">1 490 <span
-                  class="text-[22px] text-white/60 font-normal">сом</span></div>
-              <div class="text-[11px] md:text-[12px] text-white/40 mt-1">за одно мероприятие</div>
-            </div>
-            <div class="w-11 h-11 bg-white/10 rounded-2xl flex items-center justify-center">
-              <svg class="w-5 h-5 text-champagne" fill="currentColor" viewBox="0 0 20 20">
-                <path
-                  d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-              </svg>
-            </div>
-          </div>
-          <div class="space-y-2.5 mb-6">
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Неограниченно гостей</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Все 12 шаблонов</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Кастомизация цветов и текста</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Без водяного знака</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Экспорт списка гостей (Excel)</span>
-            </div>
-            <div class="check-item">
-              <div class="check-icon bg-champagne/20"><svg class="w-3 h-3 text-champagne" fill="none" stroke="currentColor"
-                  viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" />
-                </svg></div>
-              <span class="text-[13px] md:text-[14px] text-white/85">Приоритетная поддержка</span>
-            </div>
-          </div>
-          <button onclick="openAuth()" class="btn-primary w-full !bg-champagne !text-[#1A1A1A]">
-            Получить Премиум
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-        </div>
-
-      </div>
-
-      <p class="reveal text-center text-[11px] md:text-[13px] text-muted mt-6 md:mt-8 leading-relaxed">
-        Оплата через Mbank, O!Dengi или банковскую карту · Доступ открывается моментально
-      </p>
+        <button onclick="openAuth()" class="btn-pink mt-8 w-full py-3.5 text-[14px]">Попробовать бесплатно</button>
     </div>
-  </section>
+</section>
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  FAQ                                                        -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section id="faq" class="py-16 md:py-24 px-6">
-    <div class="max-w-4xl mx-auto">
-      <div class="reveal text-center mb-10 md:mb-14">
-        <div class="text-[11px] md:text-[12px] tracking-[0.25em] uppercase text-muted mb-2">FAQ</div>
-        <h2 class="font-cormorant text-[36px] md:text-[56px] font-semibold leading-tight">Частые <em
-            class="text-gold">вопросы</em></h2>
-        <div class="section-divider"></div>
-      </div>
 
-      <div class="reveal flex flex-col">
+<!-- ═══════════════════════════════════════
+     TEMPLATES
+═══════════════════════════════════════ -->
+<section id="templates" class="py-14 px-5">
+    <div class="max-w-lg mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-1">Шаблоны</h2>
+        <p class="text-sm text-gray-400 text-center mb-8">Выберите стиль для вашего события</p>
 
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Нужно ли гостям скачивать
-              приложение?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              Нет. Гость получает ссылку, открывает её в браузере и видит красивое приглашение. Никаких скачиваний,
-              регистраций и лишних шагов.
-            </p>
-          </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="tpl-card" style="background: linear-gradient(145deg, #FCE7F3, #FECDD3);" onclick="openAuth()" role="button" tabindex="0">
+                <span class="text-sm font-semibold text-rose-700">Свадьба</span>
+            </div>
+            <div class="tpl-card" style="background: linear-gradient(145deg, #FEF3C7, #FDE68A);" onclick="openAuth()" role="button" tabindex="0">
+                <span class="text-sm font-semibold text-amber-700">Той</span>
+            </div>
+            <div class="tpl-card" style="background: linear-gradient(145deg, #EDE9FE, #DDD6FE);" onclick="openAuth()" role="button" tabindex="0">
+                <span class="text-sm font-semibold text-violet-700">День рождения</span>
+            </div>
+            <div class="tpl-card" style="background: linear-gradient(145deg, #D1FAE5, #A7F3D0);" onclick="openAuth()" role="button" tabindex="0">
+                <span class="text-sm font-semibold text-emerald-700">Юбилей</span>
+            </div>
         </div>
 
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Как гости подтверждают
-              участие?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              На странице приглашения есть кнопки «Буду» и «Не смогу». Гость нажимает, и вы сразу видите ответ в личном
-              кабинете. Можно также указать количество сопровождающих.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Можно ли изменить приглашение после
-              публикации?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              Да. Вы можете редактировать текст, дату и место в любое время. Все уже отправленные ссылки автоматически
-              покажут обновлённую информацию — ссылку заново рассылать не нужно.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Сколько гостей можно добавить?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              На бесплатном тарифе — до 50 гостей. На Премиум — неограниченно. Для большого тоя рекомендуем Премиум —
-              там нет ограничений.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Как выглядит ссылка для
-              гостей?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              Ссылка выглядит красиво: <span class="font-mono text-ink">toilink.kg/e/айбек-айгуль</span>. При отправке в
-              WhatsApp или Telegram автоматически показывается превью-карточка с деталями события.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item py-4 md:py-5">
-          <button class="faq-btn flex items-center justify-between w-full text-left" onclick="toggleFaq(this)">
-            <span class="font-medium text-[14px] md:text-[16px] pr-4 leading-snug">Как оплатить Премиум?</span>
-            <svg class="faq-chevron w-5 h-5 text-muted flex-shrink-0" fill="none" stroke="currentColor"
-              viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-            </svg>
-          </button>
-          <div class="faq-answer">
-            <p class="text-[13px] md:text-[15px] text-muted leading-relaxed pt-3 pb-1">
-              Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается моментально после
-              подтверждения платежа.
-            </p>
-          </div>
-        </div>
-
-      </div>
+        <button onclick="openAuth()" class="btn-outline-pink mt-6 w-full py-3.5 text-[14px]">Все шаблоны</button>
     </div>
-  </section>
+</section>
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  FINAL CTA                                                  -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <section class="py-14 md:py-20 px-6">
-    <div class="max-w-5xl mx-auto">
-      <div class="reveal glass-card p-8 md:p-16 text-center relative overflow-hidden"
-        style="background: linear-gradient(160deg,#1A1A1A 0%,#1A1A1A 100%); border-color: transparent;">
-        <!-- Decorative -->
-        <div class="absolute -top-20 -right-20 w-56 h-56 rounded-full border border-white/10"></div>
-        <div class="absolute -bottom-24 -left-24 w-64 h-64 rounded-full border border-white/10"></div>
-        <div class="absolute inset-0 opacity-20"
-          style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 32px 32px; mask-image: radial-gradient(ellipse at center, #000, transparent 70%);">
+
+<!-- ═══════════════════════════════════════
+     PRICING
+═══════════════════════════════════════ -->
+<section id="pricing" class="py-14 px-5" style="background: #FFF5F8;">
+    <div class="max-w-md mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-1">Цены</h2>
+        <p class="text-sm text-gray-400 text-center mb-8">Без скрытых платежей</p>
+
+        <div class="space-y-4">
+
+            <div class="price-card p-6">
+                <div class="text-base font-bold text-gray-900 mb-1">Бесплатно</div>
+                <div class="text-3xl font-extrabold text-gray-900 mb-5">0 <span class="text-base font-normal text-gray-400">сом</span></div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>1 приглашение</li>
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>RSVP онлайн</li>
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Базовые шаблоны</li>
+                </ul>
+                <button onclick="openAuth()" class="btn-outline-pink w-full py-3 text-sm">Начать бесплатно</button>
+            </div>
+
+            <div class="price-card featured p-6">
+                <div class="flex items-center justify-between mb-1">
+                    <div class="text-base font-bold text-gray-900">Про</div>
+                    <span class="text-xs font-semibold" style="color:#F93B7A; background: rgba(249,59,122,0.10); padding: 3px 10px; border-radius:999px;">Популярный</span>
+                </div>
+                <div class="text-3xl font-extrabold text-gray-900 mb-5">490 <span class="text-base font-normal text-gray-400">сом</span></div>
+                <ul class="space-y-3 mb-6">
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Неограничено приглашений</li>
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Все премиальные шаблоны</li>
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Список гостей и аналитика</li>
+                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Без рекламы и брендинга</li>
+                </ul>
+                <button onclick="openAuth()" class="btn-pink w-full py-3 text-sm">Выбрать Про</button>
+            </div>
+
         </div>
-
-        <div class="relative z-10">
-          <div
-            class="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/15 px-4 py-1.5 rounded-full text-[11px] md:text-[12px] text-white/90 font-medium tracking-wider uppercase mb-6">
-            <span class="w-1.5 h-1.5 bg-champagne rounded-full animate-pulse"></span>
-            Бесплатно · Без регистрации с длинными формами
-          </div>
-
-          <h2
-            class="font-cormorant text-[36px] md:text-[60px] font-semibold italic text-white leading-tight mb-4 md:mb-6">
-            Ваш той заслуживает<br />
-            <span class="text-champagne">красивого</span> приглашения
-          </h2>
-          <p class="text-white/60 text-[14px] md:text-[18px] leading-relaxed mb-8 md:mb-10 max-w-xl mx-auto">
-            Создайте первое приглашение прямо сейчас. 1&nbsp;200+ семей уже выбрали ToiLink.
-          </p>
-
-          <div class="flex flex-col sm:flex-row gap-3 justify-center">
-            <button onclick="openAuth()" class="btn-primary !bg-champagne !text-[#1A1A1A] w-full sm:w-auto">
-              Создать приглашение
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-              </svg>
-            </button>
-            <a href="#templates" class="btn-secondary w-full sm:w-auto"
-              style="border-color:rgba(255,255,255,.2); color:white;">
-              Посмотреть шаблоны
-            </a>
-          </div>
-          <p class="text-white/30 text-[11px] md:text-[12px] mt-5 md:mt-6">Запуск за 5 минут · Работает на любом
-            устройстве</p>
-        </div>
-      </div>
     </div>
-  </section>
+</section>
 
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  FOOTER                                                     -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <footer class="py-10 md:py-16 px-6 border-t border-line pb-32 md:pb-16">
-    <div class="max-w-6xl mx-auto">
-      <div class="grid md:grid-cols-4 gap-8 md:gap-10">
-        <div class="md:col-span-2">
-          <span class="font-cormorant text-[28px] md:text-[32px] italic font-semibold text-ink">ToiLink</span>
-          <p class="text-[12px] md:text-[14px] text-muted mt-3 leading-relaxed max-w-sm">Цифровые приглашения для особых
-            моментов вашей жизни — свадьба, той, юбилей, день рождения.</p>
-          <div class="mt-5 flex items-center gap-3">
-            <a href="#"
-              class="w-9 h-9 rounded-full border border-line flex items-center justify-center text-muted hover:text-ink hover:border-ink transition-colors"
-              aria-label="Instagram">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z" />
-              </svg>
-            </a>
-            <a href="#"
-              class="w-9 h-9 rounded-full border border-line flex items-center justify-center text-muted hover:text-ink hover:border-ink transition-colors"
-              aria-label="WhatsApp">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.123-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-              </svg>
-            </a>
-            <a href="#"
-              class="w-9 h-9 rounded-full border border-line flex items-center justify-center text-muted hover:text-ink hover:border-ink transition-colors"
-              aria-label="Telegram">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path
-                  d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
-              </svg>
-            </a>
-          </div>
-        </div>
 
-        <div>
-          <div class="text-[11px] tracking-wider uppercase text-muted font-semibold mb-4">Продукт</div>
-          <ul class="space-y-2.5">
-            <li><a href="#templates" class="text-[13px] text-ink hover:text-gold transition-colors">Шаблоны</a></li>
-            <li><a href="#pricing" class="text-[13px] text-ink hover:text-gold transition-colors">Цены</a></li>
-            <li><a href="#how" class="text-[13px] text-ink hover:text-gold transition-colors">Как работает</a></li>
-            <li><a href="#faq" class="text-[13px] text-ink hover:text-gold transition-colors">Частые вопросы</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <div class="text-[11px] tracking-wider uppercase text-muted font-semibold mb-4">Контакты</div>
-          <ul class="space-y-2.5">
-            <li class="text-[13px] text-ink">+996 700 000 000</li>
-            <li class="text-[13px] text-ink">hello@toilink.kg</li>
-            <li class="text-[13px] text-muted">Бишкек, Кыргызстан</li>
-          </ul>
-        </div>
-      </div>
-
-      <div
-        class="mt-10 md:mt-14 pt-6 border-t border-line flex flex-col md:flex-row items-center justify-between gap-3">
-        <p class="text-[11px] md:text-[12px] text-muted/70">© 2026 ToiLink. Все права защищены.</p>
-        <div class="flex items-center gap-5 text-[11px] md:text-[12px] text-muted">
-          <a href="#" class="hover:text-ink transition-colors">Условия использования</a>
-          <a href="#" class="hover:text-ink transition-colors">Политика конфиденциальности</a>
-        </div>
-      </div>
-    </div>
-  </footer>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  AUTH BOTTOM SHEET / MODAL                                  -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <div id="authBackdrop" onclick="closeAuth()"></div>
-  <div id="authSheet">
-    <div class="sheet-inner">
-      <div class="drag-pill flex justify-center pt-3 pb-1">
-        <div class="w-10 h-1 bg-[#1A1A1A]/10 rounded-full"></div>
-      </div>
-      <div class="px-6 md:px-0 pt-4 md:pt-0 pb-2">
-        <div class="text-center mb-6">
-          <div class="font-cormorant text-[32px] md:text-[36px] italic font-semibold text-ink mb-1">ToiLink</div>
-          <p class="text-[12px] text-muted tracking-wider uppercase">Введите номер для входа</p>
-        </div>
-
+<!-- ═══════════════════════════════════════
+     FAQ
+═══════════════════════════════════════ -->
+<section id="faq" class="py-14 px-5">
+    <div class="max-w-md mx-auto">
+        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Вопросы и ответы</h2>
         <div class="space-y-3">
-          <div>
-            <label class="block text-[10px] font-bold uppercase tracking-widest text-[#1A1A1A]/40 mb-2 ml-1">Номер
-              телефона</label>
-            <input type="tel" id="phoneInput" placeholder="+996 700 000 000" class="phone-input"
-              oninput="formatPhone(this)" onkeydown="if(event.key==='Enter') handleLogin()" />
-          </div>
-          <button onclick="handleLogin()" id="loginBtn" class="btn-primary w-full">
-            Войти и создать приглашение
-          </button>
-          <p class="text-[10px] text-[#1A1A1A]/30 text-center leading-relaxed px-2">
-            Продолжая, вы соглашаетесь с условиями использования сервиса
-          </p>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Нужно ли скачивать приложение?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Нет. Всё работает через браузер — гости открывают ссылку и сразу видят приглашение без скачиваний.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Как гости подтверждают участие?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Нажимают «Я пойду» прямо в приглашении. Вы видите список подтвердивших в личном кабинете.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Можно изменить приглашение после отправки?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Да. Изменения сразу видны по той же ссылке — гостям не нужно ничего перезагружать.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Сколько времени занимает создание?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">От 3 до 5 минут. Выбираете шаблон, вводите данные — и ваша ссылка готова к отправке.</p>
+                </div>
+            </div>
+
         </div>
-      </div>
     </div>
-  </div>
-
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <!--  JAVASCRIPT                                                 -->
-  <!-- ─────────────────────────────────────────────────────────── -->
-  <script>
-    /* ── Auth sheet ── */
-    function openAuth() {
-      document.getElementById('authSheet').classList.add('open');
-      document.getElementById('authBackdrop').classList.add('open');
-      setTimeout(() => document.getElementById('phoneInput').focus(), 400);
-    }
-    function closeAuth() {
-      document.getElementById('authSheet').classList.remove('open');
-      document.getElementById('authBackdrop').classList.remove('open');
-    }
-    // ESC closes
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeAuth();
-    });
-
-    /* ── Phone format ── */
-    function formatPhone(el) {
-      let v = el.value.replace(/\D/g, '');
-      if (!v.startsWith('996') && v.length > 0) {
-        if (v.startsWith('0')) v = '996' + v.slice(1);
-      }
-      if (v.length > 12) v = v.slice(0, 12);
-      if (v.length === 0) { el.value = ''; return; }
-      let formatted = '+' + v;
-      if (v.length > 3) formatted = '+' + v.slice(0, 3) + ' ' + v.slice(3);
-      if (v.length > 6) formatted = '+' + v.slice(0, 3) + ' ' + v.slice(3, 6) + ' ' + v.slice(6);
-      if (v.length > 9) formatted = '+' + v.slice(0, 3) + ' ' + v.slice(3, 6) + ' ' + v.slice(6, 9) + ' ' + v.slice(9);
-      el.value = formatted;
-    }
-
-    /* ── Login ── */
-    function handleLogin() {
-      const raw = document.getElementById('phoneInput').value.replace(/\D/g, '');
-      if (raw.length < 7) {
-        shake(document.getElementById('phoneInput'));
-        return;
-      }
-      const phone = '+' + raw;
-      localStorage.setItem('tl_phone', phone);
-      closeAuth();
-      const btn = document.getElementById('loginBtn');
-      btn.innerHTML = '✓ Входим...';
-      btn.disabled = true;
-      setTimeout(() => { location.href = '/'; }, 700);
-    }
-
-    function shake(el) {
-      el.style.borderColor = '#E05050';
-      el.style.boxShadow = '0 0 0 3px rgba(224,80,80,.12)';
-      el.animate(
-        [{ transform: 'translateX(0)' }, { transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(-4px)' }, { transform: 'translateX(0)' }],
-        { duration: 320, easing: 'ease-out' }
-      );
-      setTimeout(() => {
-        el.style.borderColor = '';
-        el.style.boxShadow = '';
-      }, 1200);
-    }
-
-    /* ── FAQ accordion ── */
-    function toggleFaq(btn) {
-      const answer = btn.nextElementSibling;
-      const chevron = btn.querySelector('.faq-chevron');
-      const isOpen = answer.classList.contains('open');
-
-      document.querySelectorAll('.faq-answer.open').forEach(el => el.classList.remove('open'));
-      document.querySelectorAll('.faq-chevron.open').forEach(el => el.classList.remove('open'));
-
-      if (!isOpen) {
-        answer.classList.add('open');
-        chevron.classList.add('open');
-      }
-    }
-
-    /* ── Scroll reveal ── */
-    const revealObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          revealObs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-
-    /* ── Counter animation ── */
-    function animateCounter(el, target) {
-      const duration = 1800;
-      const start = performance.now();
-      const format = n => n >= 1000 ? (n / 1000).toFixed(n % 1000 === 0 ? 0 : 1) + 'k' : String(n);
-
-      function step(now) {
-        const progress = Math.min((now - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - progress, 3);
-        el.textContent = format(Math.round(eased * target));
-        if (progress < 1) requestAnimationFrame(step);
-      }
-      requestAnimationFrame(step);
-    }
-
-    const counterObs = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          animateCounter(e.target, +e.target.dataset.count);
-          counterObs.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.5 });
-    document.querySelectorAll('[data-count]').forEach(el => counterObs.observe(el));
-
-    /* ── Swipe down to close auth sheet (mobile) ── */
-    const sheet = document.getElementById('authSheet');
-    let touchStart = 0;
-    sheet.addEventListener('touchstart', e => {
-      touchStart = e.touches[0].clientY;
-    }, { passive: true });
-    sheet.addEventListener('touchmove', e => {
-      const dy = e.touches[0].clientY - touchStart;
-      if (dy > 60) closeAuth();
-    }, { passive: true });
+</section>
 
 
-    /* ── Hero phone scroll-rotate (desktop only) ── */
-    const heroPhone = document.getElementById('heroPhone');
-    const heroSection = document.getElementById('hero');
-    if (heroPhone && heroSection && window.matchMedia('(min-width:768px)').matches) {
-      const lerp = (a, b, t) => a + (b - a) * Math.min(Math.max(t, 0), 1);
-      let rafPending = false;
-      const updateHeroRotate = () => {
-        rafPending = false;
-        const rect = heroSection.getBoundingClientRect();
-        const progress = Math.min(Math.max(-rect.top / (heroSection.offsetHeight * 0.6), 0), 1);
-        const ry = lerp(-14, -7, progress);
-        const rx = lerp(6, 2, progress);
-        const rz = lerp(2, 0.5, progress);
-        heroPhone.style.transform = `rotateY(${ry}deg) rotateX(${rx}deg) rotateZ(${rz}deg)`;
-      };
-      window.addEventListener('scroll', () => {
-        if (!rafPending) { rafPending = true; requestAnimationFrame(updateHeroRotate); }
-      }, { passive: true });
-      updateHeroRotate();
-    }
-
-    /* ── Steps phone scroll-reveal rotate ── */
-    const stepsPhone = document.getElementById('stepsPhone');
-    if (stepsPhone) {
-      const stepsObs = new IntersectionObserver((entries) => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            stepsPhone.classList.add('in-view');
-            stepsObs.unobserve(stepsPhone);
-          }
-        });
-      }, { threshold: 0.3 });
-      stepsObs.observe(stepsPhone);
-    }
-
-    /* ── Use-case tabs ── */
-    const UC_DATA = {
-      wedding: {
-        title: 'Приглашение',
-        names: 'Айбек<br/>&amp; Айгуль',
-        date: '23 мая 2026',
-        heading: 'Свадьба вашей мечты — в&nbsp;одной ссылке',
-        text: 'Элегантные шаблоны, таймер обратного отсчёта, карта венчания, расписание дня, подарочный список. Гости подтверждают участие за секунду.',
-        bullets: [
-          'Имена пары, история знакомства, таймлайн',
-          'Карта с маршрутом и контакты организаторов',
-          'Таймер обратного отсчёта и RSVP блок'
-        ],
-        bg: 'linear-gradient(160deg,#1A1A1A 0%,#1A1A1A 100%)'
-      },
-      toi: {
-        title: 'Той',
-        names: 'Мирбек<br/>Асанов',
-        date: '15 августа 2026',
-        heading: 'Большой той с&nbsp;<em class="text-gold">удобным</em> RSVP',
-        text: 'Для многолюдных тоев важно точно знать количество гостей. ToiLink показывает ответы в реальном времени и помогает согласовать с рестораном.',
-        bullets: [
-          'Неограниченное количество гостей',
-          'Точный подсчёт для рассадки и банкета',
-          'Экспорт списка в Excel одной кнопкой'
-        ],
-        bg: 'linear-gradient(160deg,#1A0A2E 0%,#2D1B4E 100%)'
-      },
-      birthday: {
-        title: 'День рождения',
-        names: 'Айгерим<br/>Асанова',
-        date: '7 июля · 25 лет',
-        heading: 'Праздник в&nbsp;<em class="text-gold">вашем</em> стиле',
-        text: 'Цветочные, минималистичные, игривые и элегантные темы. Удобные блоки для дресс-кода, подарков и плейлиста пожеланий.',
-        bullets: [
-          'Выбор цветов и акцентов под ваше настроение',
-          'Блок «Дресс-код» и подарочный список',
-          'Карта места с таксоподсказкой'
-        ],
-        bg: 'linear-gradient(160deg,#FDF6F0 0%,#F9EDE0 100%)',
-        dark: false
-      },
-      anniversary: {
-        title: 'Юбилей',
-        names: 'Мирбек<br/>Осмонов',
-        date: '60 лет',
-        heading: 'Юбилей, <em class="text-gold">достойный</em> воспоминаний',
-        text: 'Подчеркните значимость события: тёплые слова, фото через годы, семейное древо гостей, видеоприветствия.',
-        bullets: [
-          'Галерея памятных фотографий',
-          'Семейная карта родственников',
-          'Видеопоздравления от гостей'
-        ],
-        bg: 'linear-gradient(160deg,#0F1F3A 0%,#1E3A5F 100%)'
-      },
-      uzatuu: {
-        title: 'Узатуу',
-        names: 'Жаннат<br/>Омурова',
-        date: '10 июня 2026',
-        heading: 'Нежное <em class="text-gold">узатуу</em> с памятью навсегда',
-        text: 'Специальные шаблоны в традициях кыргызской свадьбы. Мягкие пастельные тона, пожелания девичнику, карта места.',
-        bullets: [
-          'Шаблоны в национальном стиле',
-          'Дресс-код и программа вечера',
-          'Пожелания и RSVP от подружек'
-        ],
-        bg: 'linear-gradient(160deg,#F5F0EA 0%,#EDE5D8 100%)'
-      },
-      corporate: {
-        title: 'Корпоратив',
-        names: 'Новый год<br/>2027',
-        date: '28 декабря · 19:00',
-        heading: 'Корпоратив — <em class="text-gold">красиво</em> и&nbsp;чётко',
-        text: 'Идеально для HR и офис-менеджеров. RSVP от всех сотрудников за день, без бесконечных Excel-опросов.',
-        bullets: [
-          'Одна ссылка на всю компанию',
-          'Трекинг ответов по отделам',
-          'Фирменные цвета и лого'
-        ],
-        bg: 'linear-gradient(160deg,#1A1A1A 0%,#C9A86C 100%)'
-      }
-    };
-
-    function applyUC(key) {
-      const d = UC_DATA[key];
-      if (!d) return;
-      document.getElementById('ucTitle').innerHTML = d.title;
-      document.getElementById('ucNames').innerHTML = d.names;
-      document.getElementById('ucDate').innerHTML = d.date;
-      document.getElementById('ucHeading').innerHTML = d.heading;
-      document.getElementById('ucText').innerHTML = d.text;
-
-      const image = document.getElementById('ucImage');
-      image.style.background = d.bg;
-      const dark = d.dark !== false;
-      image.querySelectorAll('[id^="uc"]').forEach(el => {
-        if (el.id === 'ucNames') el.style.color = dark ? '#fff' : '#1A1A1A';
-        if (el.id === 'ucTitle') el.style.color = dark ? 'rgba(255,255,255,.8)' : '#6B6860';
-        if (el.id === 'ucDate') el.style.color = dark ? 'rgba(255,255,255,.7)' : '#6B6860';
-      });
-
-      const ul = document.getElementById('ucBullets');
-      ul.innerHTML = d.bullets.map(b => `
-      <li class="check-item">
-        <div class="check-icon bg-champagne">
-          <svg class="w-3 h-3 text-[#1A1A1A]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+<!-- ═══════════════════════════════════════
+     FOOTER CTA
+═══════════════════════════════════════ -->
+<section class="px-5 pb-16">
+    <div class="max-w-md mx-auto">
+        <div class="rounded-3xl p-6 flex items-center justify-between gap-4"
+             style="background: linear-gradient(140deg, #FFF0F6 0%, #FFF5F0 100%);">
+            <p class="font-bold text-gray-900 text-[15px] leading-snug">
+                Всё, что нужно<br/>для вашего тоя
+            </p>
+            <a href="/templates/template-1/index.html"
+               class="btn-outline-pink px-5 py-2.5 text-sm flex items-center gap-1.5 flex-shrink-0">
+                Смотреть пример
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </a>
         </div>
-        <span class="text-[13px] md:text-[15px]">${b}</span>
-      </li>`).join('');
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     AUTH BOTTOM SHEET
+═══════════════════════════════════════ -->
+<div id="authBackdrop" class="auth-backdrop" onclick="closeAuth()" aria-hidden="true"></div>
+
+<div id="authSheet" class="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+    <div class="auth-handle" aria-hidden="true"></div>
+    <h2 id="authTitle" class="text-xl font-bold text-gray-900 mb-1">Создать приглашение</h2>
+    <p class="text-sm text-gray-400 mb-6">Введите номер телефона для входа</p>
+    <label for="phoneInput" class="block text-sm font-medium text-gray-700 mb-2">Номер телефона</label>
+    <input id="phoneInput" type="tel" class="phone-input" placeholder="+996 700 000 000"
+           autocomplete="tel" inputmode="tel" oninput="formatPhone(this)" />
+    <button id="loginBtn" onclick="handleLogin()" class="btn-pink w-full py-3.5 mt-4 text-[15px]">Войти</button>
+    <p class="text-xs text-gray-400 text-center mt-4">
+        Нажимая «Войти», вы принимаете <a href="#" class="underline text-gray-500">условия использования</a>
+    </p>
+</div>
+
+
+<!-- ═══════════════════════════════════════
+     SCRIPTS
+═══════════════════════════════════════ -->
+<script>
+    const mobileMenuPanel  = document.getElementById('mobileMenuPanel');
+    const mobileMenuButton = document.getElementById('mobileMenuButton');
+
+    function toggleMobileMenu(e) {
+        if (e) e.stopPropagation();
+        const willOpen = !mobileMenuPanel.classList.contains('open');
+        mobileMenuPanel.classList.toggle('open', willOpen);
+        mobileMenuButton.setAttribute('aria-expanded', String(willOpen));
     }
 
-    document.getElementById('ucTabs').addEventListener('click', (e) => {
-      const btn = e.target.closest('.uc-tab');
-      if (!btn) return;
-      document.querySelectorAll('.uc-tab').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      applyUC(btn.dataset.uc);
-    });
-  </script>
-</body>
+    function closeMobileMenu() {
+        mobileMenuPanel.classList.remove('open');
+        mobileMenuButton.setAttribute('aria-expanded', 'false');
+    }
 
+    document.addEventListener('click', (e) => {
+        if (!mobileMenuPanel.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+            closeMobileMenu();
+        }
+    });
+
+    window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMobileMenu(); });
+
+    function openAuth() {
+        closeMobileMenu();
+        document.getElementById('authSheet').classList.add('open');
+        document.getElementById('authBackdrop').classList.add('open');
+        setTimeout(() => document.getElementById('phoneInput').focus(), 320);
+    }
+
+    function closeAuth() {
+        document.getElementById('authSheet').classList.remove('open');
+        document.getElementById('authBackdrop').classList.remove('open');
+    }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { closeMobileMenu(); closeAuth(); }
+    });
+
+    function formatPhone(el) {
+        let v = el.value.replace(/\D/g, '');
+        if (v.length > 0 && !v.startsWith('996')) {
+            if (v.startsWith('0')) v = '996' + v.slice(1);
+        }
+        if (v.length > 12) v = v.slice(0, 12);
+        if (!v.length) { el.value = ''; return; }
+        let f = '+' + v;
+        if (v.length > 3) f = '+' + v.slice(0,3) + ' ' + v.slice(3);
+        if (v.length > 6) f = '+' + v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6);
+        if (v.length > 9) f = '+' + v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6,9) + ' ' + v.slice(9);
+        el.value = f;
+    }
+
+    function handleLogin() {
+        const raw = document.getElementById('phoneInput').value.replace(/\D/g, '');
+        if (raw.length < 7) {
+            const el = document.getElementById('phoneInput');
+            el.style.borderColor = '#EF4444';
+            el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,.10)';
+            el.animate(
+                [{ transform:'translateX(0)' },{ transform:'translateX(-6px)' },{ transform:'translateX(6px)' },{ transform:'translateX(0)' }],
+                { duration: 280, easing:'ease-out' }
+            );
+            setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1200);
+            return;
+        }
+        localStorage.setItem('tl_phone', '+' + raw);
+        closeAuth();
+        const btn = document.getElementById('loginBtn');
+        btn.textContent = '✓ Входим...';
+        btn.disabled = true;
+        setTimeout(() => { location.href = '/'; }, 700);
+    }
+
+    function toggleFaq(btn) {
+        const body    = btn.nextElementSibling;
+        const chevron = btn.querySelector('.faq-chevron');
+        const isOpen  = body.classList.contains('open');
+
+        document.querySelectorAll('.faq-body.open').forEach(b => {
+            b.classList.remove('open');
+            b.previousElementSibling.querySelector('.faq-chevron').style.transform = '';
+        });
+
+        if (!isOpen) {
+            body.classList.add('open');
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    }
+</script>
+
+</body>
 </html>
