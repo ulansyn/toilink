@@ -1,12 +1,11 @@
-const SW_VERSION = 'toilink-app-v2';
+const SW_VERSION = 'toilink-app-v3';
 const PAGE_CACHE = `${SW_VERSION}:pages`;
 const ASSET_CACHE = `${SW_VERSION}:assets`;
 
 const PRECACHE_PAGES = [
   '/',
   '/templates.html',
-  '/guests.html',
-  '/editor.html'
+  '/guests.html'
 ];
 
 const PRECACHE_ASSETS = [
@@ -15,14 +14,10 @@ const PRECACHE_ASSETS = [
   '/js/initAuth.js',
   '/js/dashboard.js',
   '/js/guests.js',
-  '/js/editor.js',
-  '/js/editor-utils.js',
-  '/js/editor-api.js',
-  '/js/editor-fields.js',
-  '/js/editor-datepicker.js',
-  '/js/editor-picker.js',
-  '/js/editor-sheet.js',
-  '/js/editor-checklist.js',
+  '/js/mobile-editor.js',
+  '/js/wizard.js',
+  '/js/wizard-bridge.js',
+  '/js/event.js',
   '/templates/template-1/schema.json'
 ];
 

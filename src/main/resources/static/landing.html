@@ -8,12 +8,15 @@
     <meta property="og:title" content="ToiLink — Цифровые приглашения за 5 минут" />
     <meta property="og:description" content="Ссылка, RSVP и список гостей — всё в одном месте." />
     <meta property="og:type" content="website" />
+    <meta name="theme-color" content="#ffffff"/>
 
     <link rel="icon" type="image/png" href="/images/logo.png" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/tokens.css"/>
+    <link rel="stylesheet" href="/css/base.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -22,9 +25,9 @@
         ::-webkit-scrollbar { display: none; }
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: var(--font-sans);
             background: transparent;
-            color: #111827;
+            color: var(--color-text);
             overscroll-behavior-y: none;
         }
 
@@ -46,6 +49,10 @@
             cursor: pointer;
             transition: box-shadow 200ms ease, transform 200ms ease;
             box-shadow: 0 6px 24px rgba(249, 59, 122, 0.32);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .btn-pink:hover  { box-shadow: 0 10px 32px rgba(249, 59, 122, 0.42); transform: translateY(-1px); }
         .btn-pink:active { transform: translateY(0); box-shadow: 0 4px 14px rgba(249, 59, 122, 0.25); }
@@ -59,8 +66,27 @@
             cursor: pointer;
             transition: background 200ms ease;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         .btn-outline-pink:hover { background: rgba(249, 59, 122, 0.06); }
+
+        .btn-dark {
+            background: #111827;
+            color: #fff;
+            border-radius: 999px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 200ms ease, box-shadow 200ms ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border: none;
+        }
+        .btn-dark:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(17,24,39,0.18); }
 
         /* ── Badge (fire pill) ── */
         .badge-fire {
@@ -73,6 +99,20 @@
             padding: 6px 18px;
             font-size: 13px;
             font-weight: 600;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(249, 59, 122, 0.10);
+            color: #C71F5C;
+            border-radius: 999px;
+            padding: 5px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
         }
 
         /* ── Feature icon box ── */
@@ -91,6 +131,18 @@
             position: relative;
             height: 640px;
             overflow: hidden;
+        }
+        .iphone-bg-circle {
+            position: absolute;
+            width: 310px;
+            height: 310px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fdedf3 0%, #f8c8df 100%);
+            top: 31%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0;
+            opacity: 0.7;
         }
         .iphone-scene {
             position: absolute;
@@ -143,7 +195,6 @@
             padding: 5px;
             z-index: 6;
         }
-        /* Титановая боковая рамка — dark gunmetal */
         .iphone-shell::before {
             content: '';
             position: absolute;
@@ -165,7 +216,6 @@
             z-index: -1;
             pointer-events: none;
         }
-        /* Верхняя грань — отражение света */
         .iphone-shell::after {
             content: '';
             position: absolute;
@@ -242,18 +292,6 @@
             pointer-events: none;
             z-index: 100;
         }
-        /* Лента навигации внизу экрана — как у iPhone */
-        .iphone-screen::after {
-            content: '';
-            position: absolute;
-            bottom: 6px; left: 50%;
-            transform: translateX(-50%);
-            width: 100px; height: 4px;
-            border-radius: 2px;
-            background: rgba(0,0,0,0.22);
-            z-index: 101;
-            pointer-events: none;
-        }
         .ip-dynamic-island {
             position: absolute;
             top: 13px; left: 50%;
@@ -275,8 +313,10 @@
             flex: 1; display: flex; flex-direction: column;
             align-items: center;
             padding: 5px 16px 10px;
-            overflow: hidden;
+            overflow-y: auto;
+            scrollbar-width: none;
         }
+        .ip-content::-webkit-scrollbar { display: none; }
         .ip-names {
             font-family: 'Cormorant Garamond', serif;
             font-size: 25px; font-weight: 600;
@@ -334,10 +374,35 @@
         .ip-skip { text-align: center; font-size: 11px; color: #aaa; margin-top: 8px; flex-shrink: 0; }
 
         /* ── Stats card ── */
+        /* ── Liquid Glass Card ── */
         .stats-card {
-            background: #fff;
-            border-radius: 24px;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
+            /* Полупрозрачный белый с легким оттенком */
+            background: rgba(255, 255, 255, 0.4);
+
+            /* Эффект матового стекла */
+            backdrop-filter: blur(12px) saturate(160%);
+            -webkit-backdrop-filter: blur(12px) saturate(160%);
+
+            /* Скругление */
+            border-radius: 28px;
+
+            /* Тонкая «стеклянная» рамка */
+            border: 1px solid rgba(255, 255, 255, 0.5);
+
+            /* Сложная тень для объема */
+            box-shadow:
+                    0 8px 32px 0 rgba(31, 38, 135, 0.07),
+                    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        /* Убираем серые границы, делаем их стеклянными */
+        .glass-border {
+            border-color: rgba(255, 255, 255, 0.3) !important;
+        }
+
+        /* Немного освежим текст для читаемости на стекле */
+        .stats-card span.text-gray-900 {
+            color: #1a1a1a;
         }
 
         /* ── White cards ── */
@@ -358,36 +423,109 @@
             flex-shrink: 0;
         }
 
-        /* ── Template cards ── */
+        /* ── Use-case tabs ── */
+        .uc-tab {
+            padding: 9px 18px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6B7280;
+            border: 1.5px solid #E5E7EB;
+            background: #fff;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all .2s ease;
+            flex-shrink: 0;
+        }
+        .uc-tab:hover:not(.active) { border-color: #F93B7A; color: #F93B7A; }
+        .uc-tab.active {
+            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
+            color: #fff;
+            border-color: transparent;
+            box-shadow: 0 6px 18px rgba(249,59,122,0.28);
+        }
+
+        .uc-tabs-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding: 4px 0 8px;
+            scroll-snap-type: x mandatory;
+            -webkit-overflow-scrolling: touch;
+        }
+        .uc-tabs-row .uc-tab { scroll-snap-align: start; }
+
+        /* ── UC card visual ── */
+        .uc-visual {
+            position: relative;
+            border-radius: 28px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 14px 40px rgba(249,59,122,0.18);
+            transition: background 360ms ease;
+        }
+        @media (min-width: 768px) {
+            .uc-visual { aspect-ratio: 5/4; }
+        }
+        .uc-deco-circle {
+            position: absolute;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .check-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .check-mark {
+            width: 22px; height: 22px;
+            border-radius: 999px;
+            background: rgba(249,59,122,0.10);
+            color: #F93B7A;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ── Templates ── */
         .tpl-card {
-            border-radius: 20px;
+            border-radius: 22px;
             overflow: hidden;
             cursor: pointer;
             transition: transform 220ms ease, box-shadow 220ms ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
-            aspect-ratio: 3/4;
-            display: flex; align-items: flex-end; padding: 14px;
-        }
-        .tpl-card:hover { transform: translateY(-5px); box-shadow: 0 14px 32px rgba(249,59,122,0.15); }
-
-        /* ── Pricing ── */
-        .price-card {
-            border-radius: 22px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
             background: #fff;
-            border: 2px solid #F3F4F6;
+            display: flex;
+            flex-direction: column;
         }
-        .price-card.featured {
-            background: linear-gradient(160deg, #FFF0F6, #FFFAF8);
-            border-color: #F93B7A;
+        .tpl-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(249,59,122,0.18); }
+        .tpl-preview {
+            position: relative;
+            aspect-ratio: 3/4;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .tpl-meta {
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
 
         /* ── FAQ ── */
         .faq-body {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 300ms ease;
+            transition: max-height 320ms ease;
         }
-        .faq-body.open { max-height: 300px; }
+        .faq-body.open { max-height: 360px; }
         .faq-chevron { transition: transform 250ms ease; }
 
         /* ── Mobile menu ── */
@@ -401,7 +539,7 @@
             transition: max-height 280ms cubic-bezier(0.33,1,0.68,1);
             box-shadow: 0 8px 32px rgba(0,0,0,0.08);
         }
-        .mob-menu.open { max-height: 320px; }
+        .mob-menu.open { max-height: 360px; }
         .mob-menu a {
             display: block;
             padding: 14px 24px;
@@ -462,7 +600,21 @@
             box-shadow: 0 0 0 3px rgba(249,59,122,0.10);
         }
 
-        /* ── Fade-up animation ── */
+        /* ── Reveal on scroll ── */
+        .reveal {
+            opacity: 0;
+            transform: translateY(28px);
+            transition: opacity .7s ease, transform .7s ease;
+        }
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal-d1 { transition-delay: .08s; }
+        .reveal-d2 { transition-delay: .16s; }
+        .reveal-d3 { transition-delay: .24s; }
+
+        /* ── Fade-up animation (hero) ── */
         @keyframes fadeUp {
             from { opacity: 0; transform: translateY(22px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -474,27 +626,149 @@
         .fu-4 { animation-delay: 0.35s; }
 
         @media (prefers-reduced-motion: reduce) {
-            .fu { animation: none; }
+            .fu, .reveal { animation: none; transition: none; opacity: 1; transform: none; }
             *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+        }
+
+        /* ── Section header ── */
+        .sec-eyebrow {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: #C71F5C;
+        }
+        .sec-h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+        }
+        @media (min-width: 768px) {
+            .sec-h2 { font-size: 38px; }
+        }
+        .sec-sub {
+            font-size: 14px;
+            color: #6B7280;
+            line-height: 1.6;
+        }
+
+        /* ── Marquee/trust strip ── */
+        .marquee {
+            overflow: hidden;
+            position: relative;
+            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+        }
+        .marquee-track {
+            display: flex;
+            gap: 36px;
+            width: max-content;
+            animation: marqueeX 32s linear infinite;
+            padding: 6px 0;
+        }
+        @keyframes marqueeX {
+            from { transform: translateX(0); }
+            to   { transform: translateX(-50%); }
+        }
+        .marquee-item {
+            font-size: 13px;
+            color: #9CA3AF;
+            font-weight: 600;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .marquee-item::after {
+            content: '✦';
+            color: #F93B7A;
+            font-size: 11px;
+            margin-left: 32px;
+        }
+
+        /* ── Avatar ── */
+        .avatar {
+            width: 40px; height: 40px;
+            border-radius: 999px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        /* ── Final CTA card ── */
+        .cta-card {
+            background: linear-gradient(140deg, #F93B7A 0%, #FF6D45 100%);
+            border-radius: 28px;
+            padding: 40px 28px;
+            color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(249,59,122,0.32);
+        }
+        @media (min-width: 768px) {
+            .cta-card { padding: 60px 56px; border-radius: 36px; }
+        }
+        .cta-card::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -80px;
+            width: 320px; height: 320px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .cta-card::after {
+            content: '';
+            position: absolute;
+            bottom: -120px; left: -100px;
+            width: 360px; height: 360px;
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        /* ── Review carousel dots ── */
+        .review-dot {
+            width: 8px; height: 8px;
+            border-radius: 999px;
+            background: #E5E7EB;
+            border: none;
+            cursor: pointer;
+            transition: background 200ms, width 200ms;
+            padding: 0;
+        }
+        .review-dot.active {
+            background: #F93B7A;
+            width: 20px;
+        }
+
+        /* ── Hero gradient text ── */
+        .grad-text {
+            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
     </style>
 </head>
 
-<body class="">
+<body class="bg-glow">
 
 <!-- ═══════════════════════════════════════
      HEADER
 ═══════════════════════════════════════ -->
-<header class="sticky top-0 z-50 bg-transparent" style="height:64px;">
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100/70" style="height:64px;">
     <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between gap-4">
 
-        <!-- Logo -->
         <a href="/" class="flex items-center gap-2 flex-shrink-0" aria-label="ToiLink — главная">
             <img src="/images/logo.png" alt="" width="30" height="30" style="display:block; object-fit:contain;" />
             <span class="font-bold text-[17px] text-gray-900 tracking-tight">ToiLink</span>
         </a>
 
-        <!-- Desktop nav -->
         <nav class="hidden md:flex items-center gap-7" aria-label="Основная навигация">
             <a href="#how"       class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Как работает</a>
             <a href="#templates" class="text-sm font-medium text-gray-500 hover:text-pink-500 transition-colors duration-150">Шаблоны</a>
@@ -503,10 +777,9 @@
         </nav>
 
         <div class="flex items-center gap-3">
-            <button onclick="openAuth()" class="btn-pink text-sm px-5 py-2.5 hidden sm:block">
+            <button onclick="openAuth()" class="btn-pink text-sm px-5 py-2.5 hidden sm:inline-flex">
                 Создать приглашение
             </button>
-            <!-- Burger -->
             <button id="mobileMenuButton" onclick="toggleMobileMenu(event)"
                     aria-label="Открыть меню" aria-expanded="false" aria-controls="mobileMenuPanel"
                     class="md:hidden flex flex-col gap-[5px] p-2 cursor-pointer">
@@ -517,7 +790,6 @@
         </div>
     </div>
 
-    <!-- Mobile menu panel -->
     <div id="mobileMenuPanel" class="mob-menu" role="navigation" aria-label="Мобильное меню">
         <a href="#how"       onclick="closeMobileMenu()">Как работает</a>
         <a href="#templates" onclick="closeMobileMenu()">Шаблоны</a>
@@ -535,34 +807,54 @@
 <!-- ═══════════════════════════════════════
      HERO
 ═══════════════════════════════════════ -->
-<section class="pt-2 pb-8 px-5 text-center">
-    <div class="max-w-sm mx-auto">
+<section class="pt-3 pb-8 px-5 text-center">
+    <div class="max-w-sm md:max-w-2xl mx-auto">
 
-        <div class="flex justify-center mb-4 fu">
-      <span style="display:inline-flex;align-items:center;gap:6px;background:rgba(249,59,122,0.10);color:#111;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:600;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M12 2C10 5.5 7 8 7 12C7 15.3 9.2 18 12 18C14.8 18 17 15.3 17 12C17 8 14 5.5 12 2Z" fill="#F97316"/>
-          <path d="M12 10C11 11.5 10 12.5 10 14C10 15.1 10.9 16 12 16C13.1 16 14 15.1 14 14C14 12.5 13 11.5 12 10Z" fill="#FBBF24"/>
-        </svg>
-        №1 в Кыргызстане
-      </span>
+        <div class="flex justify-center mb-5 fu">
+            <span style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(249,59,122,0.18);box-shadow:0 4px 14px rgba(249,59,122,0.06);color:#111;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">
+                <span style="display:inline-flex;color:#F59E0B;font-size:11px;letter-spacing:1px;">★★★★★</span>
+                <span style="color:#E5E7EB;">|</span>
+                <span>4.9 · 1 200+ семей в Бишкеке</span>
+            </span>
         </div>
 
-        <h1 class="text-[32px] font-semibold leading-[1.15] tracking-tight fu fu-1">
-            <span class="text-gray-900">Приглашение на той</span><br/>
-            <span style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">за 5 минут</span>
+        <h1 class="text-[34px] md:text-[56px] font-semibold leading-[1.05] tracking-tight fu fu-1">
+            <span class="text-gray-900">Той вашей мечты —</span><br/>
+            <span class="grad-text">в одной ссылке</span>
         </h1>
 
-        <p class="mt-3 text-[13px] text-gray-500 leading-relaxed fu fu-2">
-            Ссылка, RSVP и список гостей —<br/>всё в одном месте
+        <p class="mt-4 md:mt-5 text-[14px] md:text-[17px] text-gray-500 leading-relaxed fu fu-2 max-w-md md:max-w-lg mx-auto">
+            Красивое приглашение, RSVP и список гостей — за 5 минут.<br class="hidden md:block"/>
+            Гостям не нужно скачивать приложение или регистрироваться.
         </p>
 
-        <button onclick="openAuth()" class="btn-pink mt-6 px-8 py-[13px] text-[14px] inline-flex items-center justify-center gap-2 fu fu-3" style="border-radius:14px; font-weight:400;">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            Создать приглашение бесплатно
-        </button>
+        <div class="mt-7 flex flex-col sm:flex-row gap-3 justify-center fu fu-3">
+            <button onclick="openAuth()" class="btn-pink px-7 py-[14px] text-[14px] md:text-[15px]" style="border-radius:14px;">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                </svg>
+                Создать бесплатно
+            </button>
+            <a href="#templates" class="btn-outline-pink px-7 py-[13px] text-[14px] md:text-[15px]" style="border-radius:14px;">
+                Посмотреть шаблоны
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
+
+        <div class="mt-5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[12px] md:text-[13px] text-gray-500 fu fu-4">
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Без оплаты карты
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Готово за 5 минут
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Без приложений
+            </span>
+        </div>
     </div>
 </section>
 
@@ -614,115 +906,69 @@
 ═══════════════════════════════════════ -->
 <section class="pb-6 overflow-hidden" style="position: relative; z-index: 50;">
     <div class="iphone-scene-wrap">
+        <div class="iphone-bg-circle"></div>
         <div class="iphone-scene">
 
-            <div class="ip-badge ip-badge-heart">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="white">
-                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
-                </svg>
-            </div>
-
-            <div class="ip-badge ip-badge-people">
-                <svg width="42" height="42" viewBox="0 0 24 24" fill="white">
-                    <path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/>
-                </svg>
-            </div>
-
-            <div class="ip-gem" style="width:12px;height:12px;background:#f9a8c9;top:78px; left:148px;"></div>
-            <div class="ip-gem" style="width:11px;height:11px;background:#fcd34d;top:86px; right:112px;"></div>
-            <div class="ip-gem" style="width:10px;height:10px;background:#86efac;bottom:195px;left:98px;"></div>
-            <div class="ip-gem" style="width:10px;height:10px;background:#f9a8c9;bottom:115px;right:76px;"></div>
-            <div class="ip-gem" style="width:11px;height:11px;background:#fcd34d;bottom:85px; left:166px;"></div>
-            <div class="ip-gem" style="width:10px;height:10px;background:#86efac;top:198px; left:70px;"></div>
-            <div class="ip-gem" style="width:9px; height:9px; background:#c7d2fe;top:316px; right:56px;"></div>
-
             <div class="iphone-shell">
-                <span class="ip-btn ip-btn-power"></span>
-
                 <div class="iphone-screen">
                     <div class="ip-dynamic-island"></div>
 
                     <div class="ip-status">
                         <span>9:41</span>
                         <div class="ip-status-right">
-                            <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
-                                <rect x="0"    y="8"   width="2.5" height="3"   rx="0.7" fill="#111"/>
-                                <rect x="3.5"  y="5.5" width="2.5" height="5.5" rx="0.7" fill="#111"/>
-                                <rect x="7"    y="3"   width="2.5" height="8"   rx="0.7" fill="#111"/>
-                                <rect x="10.5" y="0"   width="2.5" height="11"  rx="0.7" fill="#111"/>
-                            </svg>
-                            <svg width="14" height="11" viewBox="0 0 14 11" fill="none">
-                                <path d="M7 3.5c1.9 0 3.6.7 4.9 1.9l1.4-1.5C11.6 2.2 9.4 1.2 7 1.2S2.4 2.2.7 3.9L2.1 5.4C3.4 4.2 5.1 3.5 7 3.5Z" fill="#111"/>
-                                <path d="M7 6.2c1.2 0 2.3.5 3.1 1.3l1.3-1.3C10.2 5 8.7 4.2 7 4.2S3.8 5 2.6 6.2L3.9 7.5C4.7 6.7 5.8 6.2 7 6.2Z" fill="#111"/>
-                                <circle cx="7" cy="10" r="1.3" fill="#111"/>
-                            </svg>
-                            <svg width="24" height="12" viewBox="0 0 24 12" fill="none">
-                                <rect x="0.5" y="0.5" width="20" height="11" rx="3" stroke="#111" stroke-opacity="0.35"/>
-                                <rect x="2" y="2" width="16" height="8" rx="1.5" fill="#111"/>
-                                <path d="M21.5 4.5v3a1.5 1.5 0 000-3z" fill="#111" fill-opacity="0.38"/>
-                            </svg>
+                            <svg width="14" height="9" viewBox="0 0 18 12" fill="currentColor"><path d="M1 9h2v3H1zM5 7h2v5H5zM9 4h2v8H9zM13 1h2v11h-2z"/></svg>
+                            <svg width="13" height="9" viewBox="0 0 18 14" fill="currentColor"><path d="M9 14a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-3.75-3.5l1.5 1.5a3.182 3.182 0 014.5 0l1.5-1.5a5.318 5.318 0 00-7.5 0zM2.25 7.75l1.5 1.5a7.455 7.455 0 0110.5 0l1.5-1.5a9.591 9.591 0 00-13.5 0zM0 5.5L1.5 7a10.605 10.605 0 0115 0L18 5.5a12.737 12.737 0 00-18 0z"/></svg>
+                            <svg width="22" height="10" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="15" height="8" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="1.5" height="4" rx="0.6" fill="currentColor"/></svg>
                         </div>
                     </div>
 
                     <div class="ip-content">
-                        <div class="ip-names">Асет <span class="amp">&amp;</span> Малика</div>
-                        <div class="ip-date">20 июля 2025</div>
+                        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#b08a48; letter-spacing:1.6px; text-transform:uppercase; margin-top:8px;">Сердечно приглашаем</div>
+
+                        <div class="ip-names">Айбек <span class="amp">&amp;</span> Айгуль</div>
+                        <div class="ip-date">— 23 мая 2026 —</div>
 
                         <div class="ip-photo-wrap">
-                            <svg class="ip-leaves" viewBox="0 0 150 150" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <g opacity="0.6">
-                                    <path d="M62 30 Q46 16 26 22" stroke="#a0b468" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                                    <path d="M54 24 Q40 12 22 18" stroke="#a8bc70" stroke-width="1.1" fill="none" stroke-linecap="round"/>
-                                    <ellipse cx="30" cy="19" rx="12" ry="5.5" fill="#c4d890" opacity="0.52" transform="rotate(-32 30 19)"/>
-                                    <ellipse cx="22" cy="28" rx="11" ry="5"   fill="#b8cc80" opacity="0.48" transform="rotate(-18 22 28)"/>
-                                    <ellipse cx="40" cy="14" rx="9"  ry="4.5" fill="#d0dca0" opacity="0.44" transform="rotate(-50 40 14)"/>
-                                    <ellipse cx="48" cy="22" rx="10" ry="4.5" fill="#c0d088" opacity="0.42" transform="rotate(-38 48 22)"/>
-                                </g>
-                                <g opacity="0.6">
-                                    <path d="M88 30 Q104 16 124 22" stroke="#a0b468" stroke-width="1.3" fill="none" stroke-linecap="round"/>
-                                    <path d="M96 24 Q110 12 128 18" stroke="#a8bc70" stroke-width="1.1" fill="none" stroke-linecap="round"/>
-                                    <ellipse cx="120" cy="19" rx="12" ry="5.5" fill="#c4d890" opacity="0.52" transform="rotate(32 120 19)"/>
-                                    <ellipse cx="128" cy="28" rx="11" ry="5"   fill="#b8cc80" opacity="0.48" transform="rotate(18 128 28)"/>
-                                    <ellipse cx="110" cy="14" rx="9"  ry="4.5" fill="#d0dca0" opacity="0.44" transform="rotate(50 110 14)"/>
-                                    <ellipse cx="102" cy="22" rx="10" ry="4.5" fill="#c0d088" opacity="0.42" transform="rotate(38 102 22)"/>
-                                </g>
-                                <g opacity="0.52">
-                                    <path d="M50 112 Q30 120 18 112" stroke="#a0b468" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-                                    <ellipse cx="26" cy="116" rx="11" ry="5"   fill="#c4d890" opacity="0.50" transform="rotate(18 26 116)"/>
-                                    <ellipse cx="38" cy="124" rx="10" ry="4.5" fill="#b8cc80" opacity="0.44" transform="rotate(34 38 124)"/>
-                                </g>
-                                <g opacity="0.52">
-                                    <path d="M100 112 Q120 120 132 112" stroke="#a0b468" stroke-width="1.2" fill="none" stroke-linecap="round"/>
-                                    <ellipse cx="124" cy="116" rx="11" ry="5"   fill="#c4d890" opacity="0.50" transform="rotate(-18 124 116)"/>
-                                    <ellipse cx="112" cy="124" rx="10" ry="4.5" fill="#b8cc80" opacity="0.44" transform="rotate(-34 112 124)"/>
-                                </g>
-                            </svg>
                             <div class="ip-photo-circle">
-                                <svg width="60" height="60" viewBox="0 0 64 64" fill="none"
-                                     stroke="#c4b090" stroke-width="1.4"
-                                     stroke-linecap="round" stroke-linejoin="round">
-                                    <circle cx="24" cy="18" r="8"/>
-                                    <path d="M8 52c0-8 7-13 16-13s16 5 16 13"/>
-                                    <circle cx="44" cy="20" r="7"/>
-                                    <path d="M34 52c0-6 4-10 10-10s10 4 10 10"/>
-                                </svg>
+                                <span style="font-family:'Cormorant Garamond',serif; font-size:40px; font-weight:600; color:#b08a48; font-style:italic; letter-spacing:0.5px;">А&amp;А</span>
                             </div>
                         </div>
 
                         <div class="ip-countdown">
-                            <div class="ip-cd-block"><div class="ip-cd-num">12</div><span class="ip-cd-lbl">дней</span></div>
-                            <div class="ip-cd-sep">·</div>
-                            <div class="ip-cd-block"><div class="ip-cd-num">08</div><span class="ip-cd-lbl">часов</span></div>
-                            <div class="ip-cd-sep">·</div>
-                            <div class="ip-cd-block"><div class="ip-cd-num">26</div><span class="ip-cd-lbl">минут</span></div>
-                            <div class="ip-cd-sep">·</div>
-                            <div class="ip-cd-block"><div class="ip-cd-num">15</div><span class="ip-cd-lbl">секунд</span></div>
+                            <div class="ip-cd-block">
+                                <div class="ip-cd-num">19</div>
+                                <span class="ip-cd-lbl">ДНЕЙ</span>
+                            </div>
+                            <div class="ip-cd-sep">•</div>
+                            <div class="ip-cd-block">
+                                <div class="ip-cd-num">14</div>
+                                <span class="ip-cd-lbl">ЧАСОВ</span>
+                            </div>
+                            <div class="ip-cd-sep">•</div>
+                            <div class="ip-cd-block">
+                                <div class="ip-cd-num">32</div>
+                                <span class="ip-cd-lbl">МИНУТ</span>
+                            </div>
                         </div>
 
-                        <div class="ip-rsvp">Я пойду!</div>
-                        <div class="ip-skip">Не пойду</div>
+                        <div class="ip-rsvp">Подтвердить участие</div>
+                        <div class="ip-skip">Не смогу прийти</div>
                     </div>
                 </div>
+            </div>
+
+            <div class="ip-badge ip-badge-heart">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/>
+                </svg>
+            </div>
+            <div class="ip-badge ip-badge-people">
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87"/>
+                    <path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
             </div>
 
         </div>
@@ -733,42 +979,131 @@
 <!-- ═══════════════════════════════════════
      STATS CARD
 ═══════════════════════════════════════ -->
-<section class="px-5 pb-14" style="background: transparent; margin-top: -320px; position: relative; z-index: 60;">
+<section class="px-5 pb-6 pt-4" style="background: transparent; position: relative; z-index: 60; margin-top: -430px;">
     <div class="max-w-sm mx-auto">
-        <div class="stats-card p-6 grid grid-cols-3 gap-3 text-center">
+        <div class="stats-card p-5"> <!-- Увеличил padding для «воздуха» -->
 
-            <div>
-                <div class="flex justify-center mb-2" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M23 21v-2a4 4 0 00-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 010 7.75"/>
-                    </svg>
+            <!-- Верхняя часть -->
+            <div class="flex items-center justify-center gap-3 pb-3 border-b glass-border">
+                <div class="flex -space-x-2">
+                    <div class="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-sm" style="background:linear-gradient(135deg,#F93B7A,#FF6D45);">А</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-sm" style="background:linear-gradient(135deg,#8B5CF6,#EC4899);">Н</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center text-white text-[10px] font-bold shadow-sm" style="background:linear-gradient(135deg,#F59E0B,#EF4444);">Б</div>
+                    <div class="w-8 h-8 rounded-full border-2 border-white/50 flex items-center justify-center text-gray-700 text-[9px] font-bold bg-white/80">+1.2k</div>
                 </div>
-                <div class="text-lg font-extrabold" style="color:#F93B7A;">10 000+</div>
-                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">приглашений<br/>создано</div>
+                <div class="text-[11px] text-gray-800 font-medium leading-tight">
+                    <span class="text-gray-900 font-bold">1 200+ пар</span> уже выбрали<br/>
+                    <span class="opacity-70">ToiLink в этом году</span>
+                </div>
             </div>
 
-            <div>
-                <div class="flex justify-center mb-2" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        <polyline points="9 12 11 14 15 10"/>
-                    </svg>
+            <!-- Сетка со статистикой -->
+            <div class="grid grid-cols-3 gap-2 text-center pt-3">
+                <div>
+                    <div class="text-[17px] font-black" style="color:#F93B7A;">10K+</div>
+                    <div class="text-[9px] uppercase tracking-wider text-gray-500 font-bold mt-0.5 leading-tight">приглашений</div>
                 </div>
-                <div class="text-lg font-extrabold text-emerald-500">100%</div>
-                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">надежно<br/>и безопасно</div>
+                <div class="border-x glass-border">
+                    <div class="text-[17px] font-black text-gray-900 inline-flex items-center gap-0.5">
+                        4.9
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#F59E0B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+                    </div>
+                    <div class="text-[9px] uppercase tracking-wider text-gray-500 font-bold mt-0.5 leading-tight">рейтинг</div>
+                </div>
+                <div>
+                    <div class="text-[17px] font-black text-emerald-500">320</div>
+                    <div class="text-[9px] uppercase tracking-wider text-gray-500 font-bold mt-0.5 leading-tight">событий</div>
+                </div>
             </div>
 
-            <div>
-                <div class="flex justify-center mb-2" aria-hidden="true">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="#F59E0B">
-                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-                    </svg>
+        </div>
+    </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     TRUST MARQUEE
+═══════════════════════════════════════ -->
+<section class="py-4 border-y border-gray-100/80" style="background: rgba(255,255,255,0.6);">
+    <div class="marquee">
+        <div class="marquee-track">
+            <span class="marquee-item">1 200+ свадеб в Бишкеке</span>
+            <span class="marquee-item">Поддержка 24/7</span>
+            <span class="marquee-item">Без водяного знака</span>
+            <span class="marquee-item">Mbank · O!Dengi · Visa</span>
+            <span class="marquee-item">RSVP в реальном времени</span>
+            <span class="marquee-item">Экспорт в Excel</span>
+            <span class="marquee-item">12 премиум-шаблонов</span>
+            <!-- duplicate for seamless loop -->
+            <span class="marquee-item">1 200+ свадеб в Бишкеке</span>
+            <span class="marquee-item">Поддержка 24/7</span>
+            <span class="marquee-item">Без водяного знака</span>
+            <span class="marquee-item">Mbank · O!Dengi · Visa</span>
+            <span class="marquee-item">RSVP в реальном времени</span>
+            <span class="marquee-item">Экспорт в Excel</span>
+            <span class="marquee-item">12 премиум-шаблонов</span>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     CATEGORIES
+═══════════════════════════════════════ -->
+<section class="py-12 md:py-16 px-5">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-8 reveal">
+            <div class="sec-eyebrow mb-2">Для любого события</div>
+            <h2 class="sec-h2">Шаблоны для <span class="grad-text">каждого праздника</span></h2>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 reveal reveal-d1">
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#FFF0F6 0%,#FFFAF8 100%); border:1px solid rgba(249,59,122,0.12);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(249,59,122,0.10);">💍</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">Свадьба</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Элегантные дизайны для особого дня</div>
                 </div>
-                <div class="text-lg font-extrabold text-gray-900">4.9/5</div>
-                <div class="text-[10px] text-gray-400 mt-0.5 leading-tight">средняя оценка<br/>пользователей</div>
+            </div>
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#F5F3FF 0%,#EDE9FE 100%); border:1px solid rgba(91,33,182,0.10);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(91,33,182,0.08);">🎊</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">Той</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Для большого праздника с сотнями гостей</div>
+                </div>
+            </div>
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#FFF7ED 0%,#FEF3C7 100%); border:1px solid rgba(245,158,11,0.12);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(245,158,11,0.08);">🎂</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">День рождения</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Яркие и нежные темы в вашем стиле</div>
+                </div>
+            </div>
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#EFF6FF 0%,#DBEAFE 100%); border:1px solid rgba(59,130,246,0.10);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(59,130,246,0.08);">🏅</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">Юбилей</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Торжественное приглашение для юбиляра</div>
+                </div>
+            </div>
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#FDF2F8 0%,#FCE7F3 100%); border:1px solid rgba(219,39,119,0.10);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(219,39,119,0.08);">🌸</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">Узатуу</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Нежные шаблоны в традиционном стиле</div>
+                </div>
+            </div>
+
+            <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#F0FDF4 0%,#DCFCE7 100%); border:1px solid rgba(16,185,129,0.10);">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(16,185,129,0.08);">🏢</div>
+                <div>
+                    <div class="font-semibold text-[14px] text-gray-900">Корпоратив</div>
+                    <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Официально, чётко и стильно</div>
+                </div>
             </div>
 
         </div>
@@ -779,37 +1114,227 @@
 <!-- ═══════════════════════════════════════
      HOW IT WORKS
 ═══════════════════════════════════════ -->
-<section id="how" class="py-14 px-5" style="background: #FFF5F8;">
-    <div class="max-w-lg mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Как это работает</h2>
-        <div class="space-y-4">
+<section id="how" class="py-14 md:py-20 px-5" style="background: #FFF5F8;">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Процесс</div>
+            <h2 class="sec-h2">Три шага <span class="grad-text">к идеальному событию</span></h2>
+            <p class="sec-sub mt-3 max-w-md mx-auto">Создайте приглашение за 5 минут и забудьте о бумажной рутине.</p>
+        </div>
 
-            <div class="card-white p-5 flex items-start gap-4">
-                <div class="step-num" aria-hidden="true">1</div>
-                <div>
-                    <h3 class="font-semibold text-gray-900 text-[15px]">Выберите шаблон</h3>
-                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">10+ красивых шаблонов для свадьбы, тоя, юбилея и других событий.</p>
+        <div class="grid md:grid-cols-3 gap-4 md:gap-6">
+
+            <div class="card-white p-5 reveal reveal-d1">
+                <div class="flex items-start gap-3">
+                    <div class="step-num">1</div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 text-[15px]">Создайте</h3>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-relaxed">Выберите шаблон, добавьте фото и детали события. Конструктор простой и понятный.</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-white p-5 flex items-start gap-4">
-                <div class="step-num" aria-hidden="true">2</div>
-                <div>
-                    <h3 class="font-semibold text-gray-900 text-[15px]">Заполните данные</h3>
-                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">Имена, дата, место и фото — за 5 минут, без дизайнера.</p>
+            <div class="card-white p-5 reveal reveal-d2">
+                <div class="flex items-start gap-3">
+                    <div class="step-num">2</div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 text-[15px]">Отправьте</h3>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-relaxed">Скопируйте ссылку и отправьте гостям в WhatsApp или Telegram. Без приложений.</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="card-white p-5 flex items-start gap-4">
-                <div class="step-num" aria-hidden="true">3</div>
-                <div>
-                    <h3 class="font-semibold text-gray-900 text-[15px]">Отправьте ссылку</h3>
-                    <p class="text-sm text-gray-400 mt-1 leading-relaxed">Поделитесь в WhatsApp — гости открывают и подтверждают участие онлайн.</p>
+            <div class="card-white p-5 reveal reveal-d3">
+                <div class="flex items-start gap-3">
+                    <div class="step-num">3</div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 text-[15px]">Следите</h3>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-relaxed">Ответы гостей приходят мгновенно. Скачайте готовый список в Excel перед банкетом.</p>
+                    </div>
                 </div>
             </div>
 
         </div>
-        <button onclick="openAuth()" class="btn-pink mt-8 w-full py-3.5 text-[14px]">Попробовать бесплатно</button>
+
+        <div class="text-center mt-10 reveal">
+            <button onclick="openAuth()" class="btn-pink px-8 py-3.5 text-[14px]">
+                Создать приглашение
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     FEATURES (capabilities)
+═══════════════════════════════════════ -->
+<section class="py-14 md:py-20 px-5">
+    <div class="max-w-5xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Почему ToiLink</div>
+            <h2 class="sec-h2">Меньше хлопот — <span class="grad-text">больше праздника</span></h2>
+            <p class="sec-sub mt-3 max-w-md mx-auto">Забудьте про ручной обзвон, бумажные открытки и Excel-таблицы. Всё уже сделано за вас.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+
+            <div class="card-white p-5 reveal reveal-d1">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Не повторитесь</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">12 уникальных дизайнов. Ваше приглашение точно никто не пришлёт повторно.</p>
+            </div>
+
+            <div class="card-white p-5 reveal reveal-d2">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Точное число гостей</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">Не считаете «плюс-минус» в WhatsApp — за неделю до тоя вы знаете точно.</p>
+            </div>
+
+            <div class="card-white p-5 reveal reveal-d3">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Никого не забыть</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">Все гости в одном списке: кто +1, кто едет, кто отказался. Без бумажек.</p>
+            </div>
+
+            <div class="card-white p-5 reveal reveal-d1">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Одна ссылка для всех</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">Отправляете в WhatsApp — гость открывает и сразу видит красивое приглашение.</p>
+            </div>
+
+            <div class="card-white p-5 reveal reveal-d2">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Узнаёте мгновенно</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">Не нужно ждать обзвона. Каждый ответ прилетает сразу — как сообщение.</p>
+            </div>
+
+            <div class="card-white p-5 reveal reveal-d3">
+                <div class="feat-box mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                        <path d="M9 12h6m-6 4h4"/>
+                    </svg>
+                </div>
+                <h3 class="font-semibold text-[14px] md:text-[15px] text-gray-900">Готово для тамады</h3>
+                <p class="text-[12px] md:text-[13px] text-gray-500 mt-1 leading-relaxed">Excel со списком гостей для рассадки — в один клик. Тамада скажет «спасибо».</p>
+            </div>
+
+            <div class="col-span-2 md:col-span-3 reveal">
+                <div class="rounded-3xl p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-5"
+                     style="background: linear-gradient(140deg, #FFF0F6 0%, #FFF5F0 100%); border: 1px solid rgba(249,59,122,0.12);">
+                    <div class="w-12 h-12 md:w-14 md:h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
+                         style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); box-shadow: 0 8px 24px rgba(249,59,122,0.35);">
+                        <svg class="w-6 h-6 md:w-7 md:h-7 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-[18px] md:text-[22px] text-gray-900 leading-tight mb-1.5">Работает прямо в браузере</h3>
+                        <p class="text-[13px] md:text-[14px] text-gray-600 leading-relaxed max-w-2xl">Гостям не нужно скачивать приложение, регистрироваться или запоминать логины. Открыли ссылку — увидели красивое приглашение. На любом телефоне, в любом мессенджере.</p>
+                    </div>
+                    <button onclick="openAuth()" class="btn-pink px-5 py-2.5 text-[13px] flex-shrink-0 mt-2 md:mt-0">
+                        Попробовать
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════
+     COMPARISON
+═══════════════════════════════════════ -->
+<section class="py-14 md:py-20 px-5">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Сравнение</div>
+            <h2 class="sec-h2">Почему не <span class="grad-text">WhatsApp</span></h2>
+            <p class="sec-sub mt-3 max-w-md mx-auto">Не считайте гостей вручную. Не теряйте кто +1, кто едет, кто отказался.</p>
+        </div>
+
+        <div class="card-white overflow-hidden reveal reveal-d1">
+            <div class="grid grid-cols-[1.3fr_1fr_1fr] md:grid-cols-[1.5fr_1fr_1fr]">
+
+                <div class="p-3 md:p-5 border-b border-r border-gray-100"></div>
+                <div class="p-3 md:p-5 border-b border-r border-gray-100 text-center">
+                    <div class="text-[22px] md:text-[26px] mb-1">💬</div>
+                    <div class="text-[11px] md:text-[14px] font-semibold text-gray-600">WhatsApp</div>
+                </div>
+                <div class="p-3 md:p-5 border-b border-gray-100 text-center" style="background:linear-gradient(135deg,rgba(249,59,122,0.08) 0%,rgba(255,109,69,0.08) 100%);">
+                    <div class="text-[22px] md:text-[26px] mb-1">✨</div>
+                    <div class="text-[11px] md:text-[14px] font-bold" style="color:#C71F5C;">ToiLink</div>
+                </div>
+
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Сколько занимает</div>
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-center text-[11px] md:text-[13px] text-gray-500">Часы переписки</div>
+                <div class="p-3 md:p-4 border-b border-gray-100 text-center text-[12px] md:text-[14px] font-bold text-emerald-600" style="background:rgba(249,59,122,0.04);">5 минут</div>
+
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Точное число гостей</div>
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-center">
+                    <svg class="mx-auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <div class="p-3 md:p-4 border-b border-gray-100 text-center" style="background:rgba(249,59,122,0.04);">
+                    <svg class="mx-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Список +1 / детей</div>
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-center">
+                    <svg class="mx-auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <div class="p-3 md:p-4 border-b border-gray-100 text-center" style="background:rgba(249,59,122,0.04);">
+                    <svg class="mx-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Изменить дату или место</div>
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-center text-[11px] md:text-[13px] text-gray-500">Писать всем заново</div>
+                <div class="p-3 md:p-4 border-b border-gray-100 text-center" style="background:rgba(249,59,122,0.04);">
+                    <svg class="mx-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Список для тамады</div>
+                <div class="p-3 md:p-4 border-b border-r border-gray-100 text-center text-[11px] md:text-[13px] text-gray-500">Вручную</div>
+                <div class="p-3 md:p-4 border-b border-gray-100 text-center text-[12px] md:text-[14px] font-bold text-emerald-600" style="background:rgba(249,59,122,0.04);">Excel в 1 клик</div>
+
+                <div class="p-3 md:p-4 border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">Premium-вид</div>
+                <div class="p-3 md:p-4 border-r border-gray-100 text-center">
+                    <svg class="mx-auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <div class="p-3 md:p-4 text-center" style="background:rgba(249,59,122,0.04);">
+                    <svg class="mx-auto" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mt-8 reveal">
+            <button onclick="openAuth()" class="btn-pink px-8 py-3.5 text-[14px]">
+                Создать в ToiLink за 5 минут
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+        </div>
     </div>
 </section>
 
@@ -817,67 +1342,323 @@
 <!-- ═══════════════════════════════════════
      TEMPLATES
 ═══════════════════════════════════════ -->
-<section id="templates" class="py-14 px-5">
-    <div class="max-w-lg mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-1">Шаблоны</h2>
-        <p class="text-sm text-gray-400 text-center mb-8">Выберите стиль для вашего события</p>
+<section id="templates" class="py-14 md:py-20 px-5" style="background: #FFF5F8;">
+    <div class="max-w-6xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Галерея</div>
+            <h2 class="sec-h2">Наши <span class="grad-text">шаблоны</span></h2>
+            <p class="sec-sub mt-3">Выберите стиль для вашего события</p>
+        </div>
 
-        <div class="grid grid-cols-2 gap-4">
-            <div class="tpl-card" style="background: linear-gradient(145deg, #FCE7F3, #FECDD3);" onclick="openAuth()" role="button" tabindex="0">
-                <span class="text-sm font-semibold text-rose-700">Свадьба</span>
+        <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 reveal reveal-d1">
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#1A1A1A 0%,#2D1B2E 100%);">
+                    <div class="absolute -top-8 -right-8 w-24 h-24 border border-white/10 rounded-full"></div>
+                    <div class="absolute -bottom-8 -left-8 w-28 h-28 border border-white/10 rounded-full"></div>
+                    <div class="text-center px-4">
+                        <div class="text-white/85 text-[11px] italic mb-2" style="font-family:'Cormorant Garamond',serif;">Приглашение</div>
+                        <div class="w-10 h-px bg-white/30 mx-auto mb-3"></div>
+                        <div class="text-white text-[20px] md:text-[24px] font-semibold leading-tight" style="font-family:'Cormorant Garamond',serif;">Айбек<br/>&amp; Айгуль</div>
+                        <div class="text-white/60 text-[11px] mt-2 italic" style="font-family:'Cormorant Garamond',serif;">23 мая 2026</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block bg-white/15 backdrop-blur rounded-full text-white text-[10px] font-medium">Подтвердить</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Классика</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Тёмный элегантный</div>
+                    </div>
+                    <span class="pill" style="font-size:10px;padding:3px 10px;">Хит</span>
+                </div>
             </div>
-            <div class="tpl-card" style="background: linear-gradient(145deg, #FEF3C7, #FDE68A);" onclick="openAuth()" role="button" tabindex="0">
-                <span class="text-sm font-semibold text-amber-700">Той</span>
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#FCE7F3 0%,#FBCFE8 100%);">
+                    <div class="text-center px-4">
+                        <div class="text-rose-700/70 text-[10px] tracking-widest uppercase mb-2 font-semibold">You are invited</div>
+                        <div class="text-rose-900 text-[22px] md:text-[26px] font-semibold italic leading-tight" style="font-family:'Cormorant Garamond',serif;">Свадебный<br/>той</div>
+                        <div class="w-10 h-0.5 bg-rose-400 mx-auto my-3 rounded"></div>
+                        <div class="text-rose-700/70 text-[11px]">Venue Bishkek · 19:00</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block bg-rose-700 rounded-full text-white text-[10px] font-medium">Подтвердить →</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Розовый минимализм</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Нежный пастель</div>
+                    </div>
+                </div>
             </div>
-            <div class="tpl-card" style="background: linear-gradient(145deg, #EDE9FE, #DDD6FE);" onclick="openAuth()" role="button" tabindex="0">
-                <span class="text-sm font-semibold text-violet-700">День рождения</span>
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#1A0A2E 0%,#3D1B5E 100%);">
+                    <div class="absolute inset-0 opacity-40" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 22px 22px;"></div>
+                    <div class="relative z-10 text-center px-4">
+                        <div class="text-amber-300 text-[12px] italic mb-2" style="font-family:'Cormorant Garamond',serif;">Сердечно приглашаем</div>
+                        <div class="text-white text-[20px] md:text-[24px] font-semibold leading-tight" style="font-family:'Cormorant Garamond',serif;">Нурланбек<br/>&amp; Бермет</div>
+                        <div class="text-amber-300/80 text-[11px] mt-2" style="font-family:'Cormorant Garamond',serif;">12 июня 2026</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block border border-amber-300/60 rounded-full text-amber-300 text-[10px]">RSVP →</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Роскошь</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Ночь и золото</div>
+                    </div>
+                </div>
             </div>
-            <div class="tpl-card" style="background: linear-gradient(145deg, #D1FAE5, #A7F3D0);" onclick="openAuth()" role="button" tabindex="0">
-                <span class="text-sm font-semibold text-emerald-700">Юбилей</span>
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#FDF6F0 0%,#FBE5D6 100%);">
+                    <div class="text-center px-4">
+                        <div class="text-[28px] mb-1">🌸</div>
+                        <div class="text-orange-700 text-[20px] md:text-[24px] font-semibold italic leading-tight" style="font-family:'Cormorant Garamond',serif;">Айгерим<br/>Асанова</div>
+                        <div class="text-orange-600/70 text-[10px] mt-1">25 лет</div>
+                        <div class="w-10 h-0.5 bg-orange-300 mx-auto my-3 rounded"></div>
+                        <div class="text-orange-700/70 text-[11px]">Flora · 18:00</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block bg-orange-500 rounded-full text-white text-[10px] font-medium">Буду!</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Цветочный</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">День рождения</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#0F1F3A 0%,#1E3A5F 100%);">
+                    <div class="text-center px-4">
+                        <div class="text-amber-200 text-[10px] tracking-widest uppercase mb-2 font-semibold">Wedding day</div>
+                        <div class="text-white text-[20px] md:text-[24px] font-semibold italic leading-tight" style="font-family:'Cormorant Garamond',serif;">Асылбек<br/>&amp; Айжан</div>
+                        <div class="w-10 h-0.5 bg-amber-300 mx-auto my-3 rounded"></div>
+                        <div class="text-white/60 text-[11px]">Иссык-Куль · 18:00</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block bg-amber-300 rounded-full text-blue-900 text-[10px] font-bold">RSVP</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Морской</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Глубокий синий</div>
+                    </div>
+                    <span class="pill" style="font-size:10px;padding:3px 10px;background:rgba(245,158,11,0.12);color:#B45309;">Новый</span>
+                </div>
+            </div>
+
+            <div class="tpl-card" onclick="openAuth()" role="button" tabindex="0">
+                <div class="tpl-preview" style="background: linear-gradient(160deg,#FFFFFF 0%,#F5F0EA 100%);">
+                    <div class="text-center px-4">
+                        <div class="w-12 h-12 border-2 border-amber-500 rounded-full flex items-center justify-center mb-2 mx-auto">
+                            <span class="italic font-semibold text-amber-600 text-[16px]" style="font-family:'Cormorant Garamond',serif;">Б&amp;Ж</span>
+                        </div>
+                        <div class="text-gray-900 text-[20px] md:text-[24px] font-semibold italic leading-tight" style="font-family:'Cormorant Garamond',serif;">Бакыт<br/>&amp; Жылдыз</div>
+                        <div class="text-gray-500 text-[10px] mt-2">Той · 05.09.2026</div>
+                        <div class="mt-4 px-4 py-1.5 inline-block bg-gray-900 rounded-full text-white text-[10px] font-medium">Узнать детали</div>
+                    </div>
+                </div>
+                <div class="tpl-meta">
+                    <div>
+                        <div class="font-semibold text-[13px] text-gray-900">Монограмма</div>
+                        <div class="text-[11px] text-gray-400 mt-0.5">Светлый премиум</div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <button onclick="openAuth()" class="btn-outline-pink mt-6 w-full py-3.5 text-[14px]">Все шаблоны</button>
+        <div class="text-center mt-10 reveal">
+            <a href="/templates/template-1/index.html" class="btn-outline-pink px-7 py-3 text-[14px]">
+                Смотреть все 12 шаблонов
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+        </div>
     </div>
 </section>
 
 
 <!-- ═══════════════════════════════════════
+     TESTIMONIALS — carousel
+═══════════════════════════════════════ -->
+<section class="py-14 md:py-20 px-5">
+    <div class="max-w-xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Отзывы</div>
+            <h2 class="sec-h2">Что <span class="grad-text">говорят</span> пары</h2>
+        </div>
+
+        <div class="reveal reveal-d1" style="position:relative;">
+            <div id="reviewTrack" style="overflow:hidden;">
+                <div id="reviewSlides" style="display:flex; transition:transform 400ms ease;">
+
+                    <div class="review-slide card-white p-5 md:p-6" style="min-width:100%; box-sizing:border-box;">
+                        <div class="flex items-center gap-1 mb-3" style="color:#F59E0B;">★★★★★</div>
+                        <p class="text-[14px] md:text-[15px] leading-relaxed text-gray-800">«Сделала приглашение за вечер — получилось красивее, чем у свадебного дизайнера. Все родственники были в восторге, а я экономнула кучу денег на печати.»</p>
+                        <div class="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
+                            <div class="avatar" style="background:#FCE7F3; color:#9D174D;">А</div>
+                            <div>
+                                <div class="font-semibold text-[13px] text-gray-900">Айгуль Сатарова</div>
+                                <div class="text-[11px] text-gray-500">Свадьба · 320 гостей</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-slide card-white p-5 md:p-6" style="min-width:100%; box-sizing:border-box;">
+                        <div class="flex items-center gap-1 mb-3" style="color:#F59E0B;">★★★★★</div>
+                        <p class="text-[14px] md:text-[15px] leading-relaxed text-gray-800">«Не надо обзванивать 200 человек — все сами отметились кто идёт, кто нет. Организатор банкета был в восторге: точное число за неделю до тоя.»</p>
+                        <div class="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
+                            <div class="avatar" style="background:#FEF3C7; color:#92400E;">Н</div>
+                            <div>
+                                <div class="font-semibold text-[13px] text-gray-900">Нурланбек Омуралиев</div>
+                                <div class="text-[11px] text-gray-500">Той · 450 гостей</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="review-slide card-white p-5 md:p-6" style="min-width:100%; box-sizing:border-box;">
+                        <div class="flex items-center gap-1 mb-3" style="color:#F59E0B;">★★★★★</div>
+                        <p class="text-[14px] md:text-[15px] leading-relaxed text-gray-800">«Думала будет сложно — оказалось проще чем сторис в Instagram. 15 минут и ссылка готова. Бабушке показала — она тоже всё поняла и нажала «приду».»</p>
+                        <div class="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
+                            <div class="avatar" style="background:#EDE9FE; color:#5B21B6;">Б</div>
+                            <div>
+                                <div class="font-semibold text-[13px] text-gray-900">Бермет Асанова</div>
+                                <div class="text-[11px] text-gray-500">Юбилей мамы · 120 гостей</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="reviewDots" class="flex justify-center gap-2 mt-5">
+                <button onclick="reviewGoTo(0)" class="review-dot" aria-label="Отзыв 1"></button>
+                <button onclick="reviewGoTo(1)" class="review-dot" aria-label="Отзыв 2"></button>
+                <button onclick="reviewGoTo(2)" class="review-dot" aria-label="Отзыв 3"></button>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+
+
+<!-- ═══════════════════════════════════════
      PRICING
 ═══════════════════════════════════════ -->
-<section id="pricing" class="py-14 px-5" style="background: #FFF5F8;">
-    <div class="max-w-md mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-1">Цены</h2>
-        <p class="text-sm text-gray-400 text-center mb-8">Без скрытых платежей</p>
+<section id="pricing" class="py-14 md:py-20 px-5" style="background: #FFF5F8;">
+    <div class="max-w-4xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">Тарифы</div>
+            <h2 class="sec-h2">Простые <span class="grad-text">и честные</span> цены</h2>
+            <p class="sec-sub mt-3">Начните бесплатно. Премиум — один раз для одного события, без подписок.</p>
+        </div>
 
-        <div class="space-y-4">
+        <div class="grid md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
 
-            <div class="price-card p-6">
-                <div class="text-base font-bold text-gray-900 mb-1">Бесплатно</div>
-                <div class="text-3xl font-extrabold text-gray-900 mb-5">0 <span class="text-base font-normal text-gray-400">сом</span></div>
-                <ul class="space-y-3 mb-6">
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>1 приглашение</li>
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>RSVP онлайн</li>
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Базовые шаблоны</li>
-                </ul>
-                <button onclick="openAuth()" class="btn-outline-pink w-full py-3 text-sm">Начать бесплатно</button>
-            </div>
-
-            <div class="price-card featured p-6">
-                <div class="flex items-center justify-between mb-1">
-                    <div class="text-base font-bold text-gray-900">Про</div>
-                    <span class="text-xs font-semibold" style="color:#F93B7A; background: rgba(249,59,122,0.10); padding: 3px 10px; border-radius:999px;">Популярный</span>
+            <div class="card-white p-6 md:p-8 reveal reveal-d1 flex flex-col">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h3 class="text-[18px] font-bold text-gray-900">Старт</h3>
+                    <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">бесплатно</span>
                 </div>
-                <div class="text-3xl font-extrabold text-gray-900 mb-5">490 <span class="text-base font-normal text-gray-400">сом</span></div>
-                <ul class="space-y-3 mb-6">
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Неограничено приглашений</li>
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Все премиальные шаблоны</li>
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Список гостей и аналитика</li>
-                    <li class="flex items-center gap-2.5 text-sm text-gray-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>Без рекламы и брендинга</li>
+                <p class="text-[13px] text-gray-500 mb-6">Попробовать без риска</p>
+
+                <div class="flex items-baseline gap-1 mb-1">
+                    <span class="text-[40px] font-extrabold text-gray-900 leading-none">0</span>
+                    <span class="text-[14px] font-medium text-gray-400">сом</span>
+                </div>
+                <div class="text-[12px] text-gray-400 mb-6">навсегда · без карты</div>
+
+                <ul class="space-y-3 mb-7 flex-1">
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        До 50 гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        RSVP-кнопки и список гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        3 базовых шаблона
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-400">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Маленький логотип ToiLink
+                    </li>
                 </ul>
-                <button onclick="openAuth()" class="btn-pink w-full py-3 text-sm">Выбрать Про</button>
+
+                <button onclick="openAuth()" class="btn-outline-pink w-full py-3 text-[14px]" style="border-radius:14px;">
+                    Начать бесплатно
+                </button>
             </div>
 
+            <div class="reveal reveal-d2 relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:#111827;letter-spacing:0.12em;">
+                    ★ выбирают 87%
+                </div>
+                <div class="bg-white p-6 md:p-8 flex flex-col h-full" style="border-radius:18px;">
+                    <div class="flex items-baseline justify-between mb-1">
+                        <h3 class="text-[18px] font-bold text-gray-900">Премиум</h3>
+                        <span class="text-[11px] uppercase tracking-wider font-bold" style="color:#C71F5C;">для тоя</span>
+                    </div>
+                    <p class="text-[13px] text-gray-500 mb-6">Идеально для большого события</p>
+
+                    <div class="flex items-baseline gap-2 mb-1">
+                        <span class="text-[40px] font-extrabold text-gray-900 leading-none">990</span>
+                        <span class="text-[14px] font-medium text-gray-400">сом</span>
+                        <span class="text-[14px] text-gray-400 line-through ml-1">1 990</span>
+                    </div>
+                    <div class="text-[12px] mb-6" style="color:#C71F5C;font-weight:600;">разово за всё событие · скидка 50%</div>
+
+                    <ul class="space-y-3 mb-7 flex-1">
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-900 font-semibold">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Гостей — без ограничений
+                        </li>
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Все 12 премиум-шаблонов
+                        </li>
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Без водяного знака
+                        </li>
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Экспорт списка гостей в Excel
+                        </li>
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Уведомления о новых RSVP
+                        </li>
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                            Поддержка 24/7 в WhatsApp
+                        </li>
+                    </ul>
+
+                    <button onclick="openAuth()" class="btn-pink w-full py-3.5 text-[14px]" style="border-radius:14px;">
+                        Создать приглашение
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                    <p class="text-[11px] text-center text-gray-400 mt-3">Mbank · O!Dengi · Visa · MasterCard</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-8 text-[12px] text-gray-500 reveal">
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                Гарантия возврата 7 дней
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                Доступ — мгновенно
+            </span>
+            <span class="inline-flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"/></svg>
+                Поддержка на русском и кыргызском
+            </span>
         </div>
     </div>
 </section>
@@ -886,18 +1667,21 @@
 <!-- ═══════════════════════════════════════
      FAQ
 ═══════════════════════════════════════ -->
-<section id="faq" class="py-14 px-5">
-    <div class="max-w-md mx-auto">
-        <h2 class="text-2xl font-bold text-gray-900 text-center mb-8">Вопросы и ответы</h2>
-        <div class="space-y-3">
+<section id="faq" class="py-14 md:py-20 px-5">
+    <div class="max-w-3xl mx-auto">
+        <div class="text-center mb-10 reveal">
+            <div class="sec-eyebrow mb-2">FAQ</div>
+            <h2 class="sec-h2">Частые <span class="grad-text">вопросы</span></h2>
+        </div>
+        <div class="space-y-3 reveal reveal-d1">
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Нужно ли скачивать приложение?
+                    Нужно ли гостям скачивать приложение?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Нет. Всё работает через браузер — гости открывают ссылку и сразу видят приглашение без скачиваний.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Нет. Гость получает ссылку, открывает её в браузере и видит красивое приглашение. Никаких скачиваний, регистраций и лишних шагов.</p>
                 </div>
             </div>
 
@@ -907,27 +1691,47 @@
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Нажимают «Я пойду» прямо в приглашении. Вы видите список подтвердивших в личном кабинете.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На странице приглашения есть кнопки «Буду» и «Не смогу». Гость нажимает, и вы сразу видите ответ в личном кабинете. Можно также указать количество сопровождающих.</p>
                 </div>
             </div>
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Можно изменить приглашение после отправки?
+                    Можно ли изменить приглашение после публикации?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">Да. Изменения сразу видны по той же ссылке — гостям не нужно ничего перезагружать.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Вы можете редактировать текст, дату и место в любое время. Все уже отправленные ссылки автоматически покажут обновлённую информацию — ссылку заново рассылать не нужно.</p>
                 </div>
             </div>
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Сколько времени занимает создание?
+                    Сколько гостей можно добавить?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-sm text-gray-500 leading-relaxed">От 3 до 5 минут. Выбираете шаблон, вводите данные — и ваша ссылка готова к отправке.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На бесплатном тарифе — до 50 гостей. На Премиум — неограниченно. Для большого тоя рекомендуем Премиум — там нет ограничений.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Как выглядит ссылка для гостей?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Ссылка выглядит красиво: <span class="font-mono text-gray-900">toilink.kg/e/айбек-айгуль</span>. При отправке в WhatsApp или Telegram автоматически показывается превью-карточка с деталями события.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Как оплатить Премиум?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается моментально после подтверждения платежа.</p>
                 </div>
             </div>
 
@@ -937,48 +1741,123 @@
 
 
 <!-- ═══════════════════════════════════════
-     FOOTER CTA
+     FINAL CTA
 ═══════════════════════════════════════ -->
-<section class="px-5 pb-16">
-    <div class="max-w-md mx-auto">
-        <div class="rounded-3xl p-6 flex items-center justify-between gap-4"
-             style="background: linear-gradient(140deg, #FFF0F6 0%, #FFF5F0 100%);">
-            <p class="font-bold text-gray-900 text-[15px] leading-snug">
-                Всё, что нужно<br/>для вашего тоя
-            </p>
-            <a href="/templates/template-1/index.html"
-               class="btn-outline-pink px-5 py-2.5 text-sm flex items-center gap-1.5 flex-shrink-0">
-                Смотреть пример
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            </a>
+<section class="px-5 pb-14 md:pb-20">
+    <div class="max-w-4xl mx-auto reveal">
+        <div class="cta-card text-center">
+            <div class="relative z-10">
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold tracking-wider uppercase mb-6"
+                     style="background: rgba(255,255,255,0.18); color:#fff; backdrop-filter: blur(8px);">
+                    <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                    +12 пар выбрали ToiLink сегодня
+                </div>
+
+                <h2 class="text-[30px] md:text-[48px] font-bold text-white leading-[1.05] mb-4 md:mb-5">
+                    Ваш той заслуживает<br/>
+                    <em style="font-family:'Cormorant Garamond',serif; font-style: italic; font-weight: 600;">красивого</em> приглашения
+                </h2>
+                <p class="text-white/85 text-[15px] md:text-[18px] leading-relaxed mb-8 max-w-md mx-auto">
+                    Сделайте первое приглашение бесплатно прямо сейчас.<br class="hidden md:block"/>
+                    Без оплаты карты — посмотрите как получится, потом решите.
+                </p>
+
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="openAuth()" class="bg-white text-pink-600 hover:bg-gray-50 font-semibold rounded-full px-8 py-4 text-[15px] inline-flex items-center justify-center gap-2 transition-colors shadow-lg">
+                        Создать бесплатно
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                    <a href="#pricing" class="border-2 border-white/40 text-white hover:bg-white/10 font-medium rounded-full px-7 py-3.5 text-[15px] inline-flex items-center justify-center gap-2 transition-colors">
+                        Посмотреть тарифы
+                    </a>
+                </div>
+
+                <div class="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 mt-7 text-[12px] md:text-[13px] text-white/80">
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Без оплаты карты
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Готово за 5 минут
+                    </span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                        Гарантия возврата 7 дней
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
 </section>
+
+
+<!-- ═══════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════ -->
+<footer class="px-5 py-10 md:py-14 border-t border-gray-100 bg-white/70">
+    <div class="max-w-6xl mx-auto">
+        <div class="grid md:grid-cols-4 gap-8">
+            <div class="md:col-span-2">
+                <div class="flex items-center gap-2 mb-3">
+                    <img src="/images/logo.png" alt="" width="28" height="28" style="display:block; object-fit:contain;" />
+                    <span class="font-bold text-[18px] text-gray-900">ToiLink</span>
+                </div>
+                <p class="text-[13px] text-gray-500 leading-relaxed max-w-sm">Цифровые приглашения для особых моментов вашей жизни — свадьба, той, юбилей, день рождения.</p>
+                <div class="mt-5 flex items-center gap-3">
+                    <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-300 transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.849.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.849.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                    </a>
+                    <a href="#" aria-label="WhatsApp" class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-300 transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414-.074-.123-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+                    </a>
+                    <a href="#" aria-label="Telegram" class="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center text-gray-400 hover:text-pink-500 hover:border-pink-300 transition-colors">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 000 12a12 12 0 0012 12 12 12 0 0012-12A12 12 0 0012 0a12 12 0 00-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 01.171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                    </a>
+                </div>
+            </div>
+
+            <div>
+                <div class="text-[11px] tracking-wider uppercase text-gray-400 font-bold mb-4">Продукт</div>
+                <ul class="space-y-2.5">
+                    <li><a href="#templates" class="text-[13px] text-gray-700 hover:text-pink-500 transition-colors">Шаблоны</a></li>
+                    <li><a href="#how" class="text-[13px] text-gray-700 hover:text-pink-500 transition-colors">Как работает</a></li>
+                    <li><a href="#pricing" class="text-[13px] text-gray-700 hover:text-pink-500 transition-colors">Цены</a></li>
+                    <li><a href="#faq" class="text-[13px] text-gray-700 hover:text-pink-500 transition-colors">Вопросы</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <div class="text-[11px] tracking-wider uppercase text-gray-400 font-bold mb-4">Контакты</div>
+                <ul class="space-y-2.5">
+                    <li class="text-[13px] text-gray-700">+996 700 000 000</li>
+                    <li class="text-[13px] text-gray-700">hello@toilink.kg</li>
+                    <li class="text-[13px] text-gray-400">Бишкек, Кыргызстан</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-3">
+            <p class="text-[12px] text-gray-400">© 2026 ToiLink. Все права защищены.</p>
+            <div class="flex items-center gap-5 text-[12px] text-gray-500">
+                <a href="#" class="hover:text-gray-900 transition-colors">Условия использования</a>
+                <a href="#" class="hover:text-gray-900 transition-colors">Политика конфиденциальности</a>
+            </div>
+        </div>
+    </div>
+</footer>
 
 
 <!-- ═══════════════════════════════════════
      AUTH BOTTOM SHEET
 ═══════════════════════════════════════ -->
-<div id="authBackdrop" class="auth-backdrop" onclick="closeAuth()" aria-hidden="true"></div>
-
-<div id="authSheet" class="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="authTitle">
-    <div class="auth-handle" aria-hidden="true"></div>
-    <h2 id="authTitle" class="text-xl font-bold text-gray-900 mb-1">Создать приглашение</h2>
-    <p class="text-sm text-gray-400 mb-6">Введите номер телефона для входа</p>
-    <label for="phoneInput" class="block text-sm font-medium text-gray-700 mb-2">Номер телефона</label>
-    <input id="phoneInput" type="tel" class="phone-input" placeholder="+996 700 000 000"
-           autocomplete="tel" inputmode="tel" oninput="formatPhone(this)" />
-    <button id="loginBtn" onclick="handleLogin()" class="btn-pink w-full py-3.5 mt-4 text-[15px]">Войти</button>
-    <p class="text-xs text-gray-400 text-center mt-4">
-        Нажимая «Войти», вы принимаете <a href="#" class="underline text-gray-500">условия использования</a>
-    </p>
-</div>
 
 
 <!-- ═══════════════════════════════════════
      SCRIPTS
 ═══════════════════════════════════════ -->
 <script>
+    /* ── Mobile menu ── */
     const mobileMenuPanel  = document.getElementById('mobileMenuPanel');
     const mobileMenuButton = document.getElementById('mobileMenuButton');
 
@@ -1002,57 +1881,17 @@
 
     window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMobileMenu(); });
 
+    /* ── Auth sheet ── */
     function openAuth() {
         closeMobileMenu();
-        document.getElementById('authSheet').classList.add('open');
-        document.getElementById('authBackdrop').classList.add('open');
-        setTimeout(() => document.getElementById('phoneInput').focus(), 320);
-    }
-
-    function closeAuth() {
-        document.getElementById('authSheet').classList.remove('open');
-        document.getElementById('authBackdrop').classList.remove('open');
+        location.href = '/wizard.html';
     }
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { closeMobileMenu(); closeAuth(); }
+        if (e.key === 'Escape') { closeMobileMenu(); }
     });
 
-    function formatPhone(el) {
-        let v = el.value.replace(/\D/g, '');
-        if (v.length > 0 && !v.startsWith('996')) {
-            if (v.startsWith('0')) v = '996' + v.slice(1);
-        }
-        if (v.length > 12) v = v.slice(0, 12);
-        if (!v.length) { el.value = ''; return; }
-        let f = '+' + v;
-        if (v.length > 3) f = '+' + v.slice(0,3) + ' ' + v.slice(3);
-        if (v.length > 6) f = '+' + v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6);
-        if (v.length > 9) f = '+' + v.slice(0,3) + ' ' + v.slice(3,6) + ' ' + v.slice(6,9) + ' ' + v.slice(9);
-        el.value = f;
-    }
-
-    function handleLogin() {
-        const raw = document.getElementById('phoneInput').value.replace(/\D/g, '');
-        if (raw.length < 7) {
-            const el = document.getElementById('phoneInput');
-            el.style.borderColor = '#EF4444';
-            el.style.boxShadow   = '0 0 0 3px rgba(239,68,68,.10)';
-            el.animate(
-                [{ transform:'translateX(0)' },{ transform:'translateX(-6px)' },{ transform:'translateX(6px)' },{ transform:'translateX(0)' }],
-                { duration: 280, easing:'ease-out' }
-            );
-            setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1200);
-            return;
-        }
-        localStorage.setItem('tl_phone', '+' + raw);
-        closeAuth();
-        const btn = document.getElementById('loginBtn');
-        btn.textContent = '✓ Входим...';
-        btn.disabled = true;
-        setTimeout(() => { location.href = '/'; }, 700);
-    }
-
+    /* ── FAQ accordion ── */
     function toggleFaq(btn) {
         const body    = btn.nextElementSibling;
         const chevron = btn.querySelector('.faq-chevron');
@@ -1068,6 +1907,50 @@
             chevron.style.transform = 'rotate(180deg)';
         }
     }
+
+    /* ── Reveal on scroll ── */
+    const revealObs = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('visible');
+                revealObs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+    /* ── Reviews carousel ── */
+    (function () {
+        const slides = document.getElementById('reviewSlides');
+        const dots   = document.querySelectorAll('.review-dot');
+        let current  = 0;
+        let timer    = null;
+
+        function goTo(i) {
+            current = (i + dots.length) % dots.length;
+            slides.style.transform = 'translateX(-' + (current * 100) + '%)';
+            dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
+        }
+
+        window.reviewGoTo = goTo;
+        goTo(0);
+
+        function next() { goTo(current + 1); }
+        function startTimer() { timer = setInterval(next, 4000); }
+        function stopTimer()  { clearInterval(timer); }
+
+        startTimer();
+        document.getElementById('reviewTrack').addEventListener('mouseenter', stopTimer);
+        document.getElementById('reviewTrack').addEventListener('mouseleave', startTimer);
+
+        let tx = 0;
+        document.getElementById('reviewTrack').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+        document.getElementById('reviewTrack').addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].clientX - tx;
+            if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
+        }, { passive: true });
+    })();
+
 </script>
 
 </body>
