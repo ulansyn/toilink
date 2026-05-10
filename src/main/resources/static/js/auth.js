@@ -84,7 +84,7 @@ export function openAuthSheet({ onSuccess, onClose, returnToDashboard = false } 
         </button>
       </div>
 
-      <p class="text-secondary text-small mb-6">Введите номер телефона для входа</p>
+      <p class="text-secondary text-small mb-6">Введите номер и пароль</p>
 
       <form id="auth-form" class="flex flex-col gap-4">
         <div class="input-group">
@@ -98,9 +98,19 @@ export function openAuthSheet({ onSuccess, onClose, returnToDashboard = false } 
           />
           <label for="auth-phone" class="input-label">+996</label>
         </div>
+        <div class="input-group">
+          <input
+            type="password"
+            id="auth-password"
+            class="input"
+            placeholder=" "
+            autocomplete="current-password"
+          />
+          <label for="auth-password" class="input-label">Пароль</label>
+        </div>
 
         <button type="submit" class="btn btn-gold btn-full" id="auth-submit">
-          Продолжить
+          Войти
         </button>
 
         <p class="text-caption text-muted text-center">
@@ -115,6 +125,7 @@ export function openAuthSheet({ onSuccess, onClose, returnToDashboard = false } 
   // Get elements
   const form = sheet.querySelector('#auth-form');
   const phoneInput = sheet.querySelector('#auth-phone');
+  const passwordInput = sheet.querySelector('#auth-password');
   const closeBtn = sheet.querySelector('#auth-close-btn');
   const submitBtn = sheet.querySelector('#auth-submit');
 
@@ -143,43 +154,57 @@ export function openAuthSheet({ onSuccess, onClose, returnToDashboard = false } 
     e.preventDefault();
 
     const rawPhone = phoneInput.value.replace(/\D/g, '');
-
     if (rawPhone.length < 7) {
       phoneInput.style.borderColor = 'var(--color-error)';
       phoneInput.focus();
       return;
     }
 
-    // Build full phone with +
+    const password = passwordInput.value;
+    if (password.length < 4) {
+      passwordInput.style.borderColor = 'var(--color-error)';
+      passwordInput.focus();
+      return;
+    }
+
     const phone = '+' + rawPhone;
 
-    // Show loading
     submitBtn.disabled = true;
     submitBtn.textContent = '...';
 
-    // Simulate brief delay for UX
-    await new Promise(r => setTimeout(r, 300));
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password }),
+        credentials: 'include',
+      });
 
-    // Save auth
-    savePhone(phone);
-
-    // Close sheet
-    sheet.classList.remove('visible');
-    backdrop.classList.remove('visible');
-
-    setTimeout(() => {
-      backdrop.remove();
-      sheet.remove();
-
-      // Call success
-      onSuccess?.(phone);
-
-      // Redirect if needed
-      if (returnToDashboard) {
-        const returnUrl = getReturnUrl();
-        location.href = returnUrl;
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        phoneInput.style.borderColor = 'var(--color-error)';
+        submitBtn.disabled = false;
+        submitBtn.textContent = err.message || 'Неверный пароль';
+        return;
       }
-    }, 300);
+
+      savePhone(phone);
+
+      sheet.classList.remove('visible');
+      backdrop.classList.remove('visible');
+
+      setTimeout(() => {
+        backdrop.remove();
+        sheet.remove();
+        onSuccess?.(phone);
+        if (returnToDashboard) {
+          location.href = getReturnUrl();
+        }
+      }, 300);
+    } catch (_) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Ошибка, попробуйте ещё раз';
+    }
   });
 
   // Animate in

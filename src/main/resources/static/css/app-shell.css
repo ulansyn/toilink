@@ -1,10 +1,6 @@
-:root {
-  --app-shell-bg: #FAFAF8;
-}
-
 html,
 body {
-  background: var(--app-shell-bg);
+  background: var(--color-bg, #FAFAF8);
 }
 
 body[data-app-page] {

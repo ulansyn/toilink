@@ -14,7 +14,9 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=block" rel="stylesheet"/>
+  <link rel="stylesheet" href="/css/tokens.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
   <link rel="stylesheet" href="/css/app-shell.css?v=app2"/>
   <script src="/js/app-shell.js?v=app2"></script>
 
@@ -36,15 +38,9 @@
   </script>
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    * { -ms-overflow-style: none; scrollbar-width: none; }
-    ::-webkit-scrollbar { display: none; }
-    html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: #FAFAF8; color: #1E2820; overscroll-behavior-y: none; }
     .font-cormorant { font-family: 'Cormorant Garamond', serif; }
 
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes shimmer { 0% { background-position: -400px 0 } 100% { background-position: 400px 0 } }
     @keyframes shine {
       0% { transform: translateX(-120%) skewX(-20deg) }
       100% { transform: translateX(260%) skewX(-20deg) }
@@ -370,7 +366,7 @@
       position: fixed; inset: 0;
       background: rgba(30,40,32,.45);
       backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-      z-index: 59; opacity: 0; pointer-events: none;
+      z-index: 50; opacity: 0; pointer-events: none;
       transition: opacity .3s ease;
     }
     .bs-backdrop.open { opacity: 1; pointer-events: auto; }
@@ -464,6 +460,63 @@
       background-size: 600px 100%; animation: shimmer 1.6s infinite linear;
       border-radius: 24px;
     }
+
+    body {
+      background:
+        radial-gradient(900px 420px at 50% -180px, rgba(255, 15, 115, .13), transparent 68%),
+        #FFF8FB;
+    }
+    .top-nav,
+    .mobile-header,
+    .nav-bar,
+    .bs-sheet .sheet-inner {
+      background: rgba(255, 248, 251, .9);
+      border-color: rgba(255, 208, 226, .72);
+    }
+    .btn-primary,
+    .fab,
+    .filter-clear {
+      background: linear-gradient(135deg, #FF0F73, #FF3B35) !important;
+      box-shadow: 0 14px 30px rgba(255, 15, 115, .2);
+    }
+    .btn-primary:hover,
+    .fab:hover {
+      background: linear-gradient(135deg, #F00668, #FF302D) !important;
+    }
+    .btn-secondary {
+      border-color: #FFC9DC;
+      color: #FF0F73;
+      background: #fff;
+    }
+    .nav-link.active,
+    .nav-link:hover,
+    .nav-item.active,
+    .text-sage {
+      color: #FF0F73 !important;
+    }
+    .nav-link.active::before,
+    .section-divider {
+      background: linear-gradient(90deg, #FF0F73, #FF3B35);
+    }
+    .hero-soft {
+      background:
+        radial-gradient(60% 40% at 80% 0%, rgba(255, 15, 115, .11) 0%, transparent 70%),
+        radial-gradient(50% 35% at 0% 0%, rgba(255, 180, 110, .12) 0%, transparent 70%);
+    }
+    .guest-row,
+    .stat-card,
+    .input-wrap .field {
+      border-color: #FFE0EA;
+      box-shadow: 0 8px 24px rgba(255,15,115,.05);
+    }
+    .guest-row:hover,
+    .stat-card:hover {
+      border-color: #FFC1D8;
+      box-shadow: 0 16px 36px rgba(255,15,115,.1);
+    }
+    .stat-card.accent-mint { background: #E9FFF1 !important; }
+    .stat-card.accent-rose { background: #FFF0F6 !important; }
+    .stat-card.accent-gold { background: #FFF7E8 !important; }
   </style>
 </head>
 <body data-app-page="guests">

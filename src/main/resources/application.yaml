@@ -45,4 +45,4 @@ logging:
   level:
     liquibase: INFO
 server:
-  port: ${PORT:9999}
+  port: ${PORT:8888}

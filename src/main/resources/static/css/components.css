@@ -33,16 +33,27 @@
   transform: scale(0.97);
 }
 
-/* Primary gold */
+/* Primary — accent gradient */
 .btn-primary {
+  background: var(--color-accent-gradient);
+  color: var(--color-text-inverse);
+  box-shadow: 0 6px 24px var(--color-accent-glow);
+}
+.btn-primary:hover:not(:disabled) {
+  box-shadow: 0 8px 28px var(--color-accent-glow);
+  filter: brightness(0.95);
+}
+
+/* Dark — neutral primary */
+.btn-dark {
   background: var(--color-dark);
   color: var(--color-text-inverse);
 }
-.btn-primary:hover:not(:disabled) {
-  background: var(--color-gold);
+.btn-dark:hover:not(:disabled) {
+  background: var(--color-dark-secondary);
 }
 
-/* Primary gold — filled */
+/* Gold — ornamental */
 .btn-gold {
   background: var(--color-gold);
   color: var(--color-text-inverse);
@@ -51,7 +62,17 @@
   background: var(--color-gold-dark);
 }
 
-/* Secondary — outline */
+/* Outline — accent border */
+.btn-outline {
+  background: transparent;
+  color: var(--color-accent);
+  border: 1.5px solid var(--color-accent);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+}
+
+/* Secondary — neutral outline */
 .btn-secondary {
   background: transparent;
   color: var(--color-text);
@@ -163,8 +184,8 @@
 }
 
 .input:focus {
-  border-color: var(--color-gold);
-  box-shadow: 0 0 0 3px var(--color-gold-glow);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
 }
 
 .input-label {
@@ -184,7 +205,7 @@
 .input:not(:placeholder-shown) ~ .input-label {
   top: 0;
   font-size: var(--text-caption-size);
-  color: var(--color-gold);
+  color: var(--color-accent);
 }
 
 /* Textarea */
@@ -364,7 +385,7 @@
 }
 
 .bottom-nav-item.active {
-  color: var(--color-gold);
+  color: var(--color-accent);
 }
 
 .bottom-nav-item svg {
@@ -379,16 +400,16 @@
   justify-content: center;
   width: 3rem;
   height: 3rem;
-  background: var(--color-dark);
+  background: var(--color-accent-gradient);
   color: var(--color-text-inverse);
   border-radius: var(--radius-full);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--color-accent-glow);
   transform: translateY(-1rem);
   transition: all var(--duration-normal) var(--ease-out);
 }
 
 .bottom-nav-fab:hover {
-  background: var(--color-gold);
+  filter: brightness(0.95);
   transform: translateY(-1.25rem);
 }
 

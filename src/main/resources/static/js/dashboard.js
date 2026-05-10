@@ -20,42 +20,34 @@ const EVENTS_CACHE_KEY = 'tl:events:list';
 const STATS_CACHE_KEY = 'tl:events:stats';
 
 // ─── API ──────────────────────────────────────────────────────────────────────
-async function fetchEvents(phone) {
-  const res = await fetch(`${BASE_URL}/api/organizer/events`, {
-    headers: { 'X-User-Phone': phone },
-  });
+async function fetchEvents() {
+  const res = await fetch(`${BASE_URL}/api/organizer/events`, { credentials: 'include' });
   if (!res.ok) throw new Error('Ошибка загрузки');
   return res.json();
 }
 
-async function fetchDashboardSummary(phone) {
-  const res = await fetch(`${BASE_URL}/api/organizer/events/summary`, {
-    headers: { 'X-User-Phone': phone },
-  });
+async function fetchDashboardSummary() {
+  const res = await fetch(`${BASE_URL}/api/organizer/events/summary`, { credentials: 'include' });
   if (!res.ok) throw new Error('Ошибка загрузки');
   return res.json();
 }
 
-async function fetchGuests(eventId, phone) {
-  const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/guests`, {
-    headers: { 'X-User-Phone': phone },
-  });
+async function fetchGuests(eventId) {
+  const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/guests`, { credentials: 'include' });
   if (!res.ok) throw new Error('Ошибка загрузки гостей');
   return res.json();
 }
 
-async function fetchStats(eventId, phone) {
-  const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/stats`, {
-    headers: { 'X-User-Phone': phone },
-  });
+async function fetchStats(eventId) {
+  const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/stats`, { credentials: 'include' });
   if (!res.ok) throw new Error('stats');
   return res.json();
 }
 
-async function deleteEvent(eventId, phone) {
+async function deleteEvent(eventId) {
   const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}`, {
     method: 'DELETE',
-    headers: { 'X-User-Phone': phone },
+    credentials: 'include',
   });
   if (!res.ok) throw new Error('Ошибка удаления');
 }
@@ -256,24 +248,32 @@ function guestRow(g) {
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderEmpty() {
   document.getElementById('content').innerHTML = `
-    <div class="flex flex-col items-center justify-center text-center py-16 md:py-24 px-6 fade-in">
-      <div class="relative mb-7">
-        <div class="w-24 h-24 md:w-28 md:h-28 rounded-[28px] flex items-center justify-center"
-             style="background: linear-gradient(160deg, #C2E0C6 0%, #A8D2B0 100%);">
-          <svg class="w-10 h-10 md:w-12 md:h-12 text-sage2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-          </svg>
+    <div class="flex flex-col items-center justify-center text-center py-20 md:py-28 px-6 fade-in">
+      <div class="relative mb-9">
+        <div class="w-28 h-28 md:w-32 md:h-32 rounded-[32px] flex items-center justify-center"
+             style="background: linear-gradient(145deg, #FFE0EC 0%, #FECFE2 100%); box-shadow: 0 16px 48px rgba(249,59,122,0.20);">
+          <div class="w-16 h-16 rounded-2xl flex items-center justify-center"
+               style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); box-shadow: 0 8px 24px rgba(249,59,122,0.35);">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"/>
+            </svg>
+          </div>
         </div>
-        <div class="absolute -top-3 -right-3 w-11 h-11 rounded-2xl bg-white border border-line flex items-center justify-center" style="box-shadow:0 6px 18px rgba(30,40,32,.08);">
-          <svg class="w-5 h-5 text-sage" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        <div class="absolute -top-2 -right-2 w-10 h-10 rounded-2xl flex items-center justify-center"
+             style="background:#fff; box-shadow:0 8px 24px rgba(249,59,122,0.15); border:1px solid rgba(249,59,122,0.12);">
+          <svg class="w-4 h-4" style="color:#F93B7A" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        </div>
+        <div class="absolute -bottom-1 -left-3 w-9 h-9 rounded-xl flex items-center justify-center"
+             style="background:linear-gradient(145deg,#D4F0D9,#B8DCC0); box-shadow:0 6px 16px rgba(61,107,69,0.15);">
+          <svg class="w-4 h-4" style="color:#1A3D20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
         </div>
       </div>
-      <div class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-3">Начните с первого</div>
-      <h2 class="font-cormorant text-[32px] md:text-[42px] italic font-semibold text-ink leading-tight mb-3">
-        Создайте своё <em class="text-sage">первое</em> приглашение
+      <div class="text-[10px] tracking-[0.3em] uppercase font-semibold mb-3" style="color:rgba(249,59,122,0.65)">Начните прямо сейчас</div>
+      <h2 class="font-cormorant text-[34px] md:text-[44px] italic font-semibold text-ink leading-tight mb-3">
+        Ваше первое<br>приглашение
       </h2>
-      <p class="text-muted text-[14px] md:text-[15px] max-w-[340px] leading-relaxed mb-8">
-        Выберите красивый шаблон, заполните детали — и получите готовую ссылку для гостей за пару минут.
+      <p class="text-muted text-[14px] md:text-[15px] max-w-[300px] leading-relaxed mb-8">
+        Красивый сайт-приглашение с RSVP и личными ссылками — за 5 минут.
       </p>
       <div class="flex flex-col sm:flex-row gap-3">
         <a href="/templates.html" class="btn-primary">
@@ -376,10 +376,105 @@ function renderEventCard(event, stats) {
     </div>`;
 }
 
-// ─── Event Hub (single-event layout) ──────────────────────────────────────────
+// ─── Donut chart (landing-style) ──────────────────────────────────────────────
+function renderLpDonut(s) {
+  const total = s.total || 0;
+  const yes = s.attending || 0;
+  const no = s.declined || 0;
+  const maybe = s.maybe || 0;
+  const wait = Math.max(0, total - yes - no - maybe);
+  const R = 50;
+  const C = 2 * Math.PI * R;
+
+  const defs = `
+    <defs>
+      <linearGradient id="lpDonutGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#F93B7A"/>
+        <stop offset="100%" stop-color="#FF6D45"/>
+      </linearGradient>
+    </defs>`;
+
+  if (total === 0) {
+    return `
+      <svg viewBox="0 0 120 120" aria-label="Пока нет гостей">
+        ${defs}
+        <circle cx="60" cy="60" r="${R}" fill="none" stroke="#F3F4F6" stroke-width="14"/>
+        <text x="60" y="60" text-anchor="middle" dominant-baseline="central" class="lp-donut-num">0</text>
+        <text x="60" y="84" text-anchor="middle" class="lp-donut-cap">ответов</text>
+      </svg>`;
+  }
+
+  const responded = yes + no + maybe;
+  const pct = Math.round((responded / total) * 100);
+  const segLen = (v) => (v / total) * C;
+  // attending — главный pink-orange градиент. Остальные нейтральные.
+  const segs = [
+    { len: segLen(yes),   off: 0,                                stroke: 'url(#lpDonutGrad)' },
+    { len: segLen(no),    off: segLen(yes),                      stroke: '#9CA3AF' },
+    { len: segLen(maybe), off: segLen(yes + no),                 stroke: '#F59E0B' },
+    { len: segLen(wait),  off: segLen(yes + no + maybe),         stroke: '#FCE7F3' },
+  ].filter(g => g.len > 0.5);
+
+  const segHtml = segs.map((g, i) => `
+    <circle class="seg" cx="60" cy="60" r="${R}" fill="none"
+      stroke="${g.stroke}" stroke-width="14"
+      stroke-dasharray="${g.len.toFixed(2)} ${(C - g.len).toFixed(2)}"
+      stroke-dashoffset="${(-g.off).toFixed(2)}"
+      style="animation-delay: ${i * 110}ms"/>`).join('');
+
+  return `
+    <svg viewBox="0 0 120 120" aria-label="Ответы гостей">
+      ${defs}
+      <circle cx="60" cy="60" r="${R}" fill="none" stroke="#F3F4F6" stroke-width="14"/>
+      ${segHtml}
+      <text x="60" y="60" text-anchor="middle" dominant-baseline="central" class="lp-donut-num">${pct}%</text>
+      <text x="60" y="84" text-anchor="middle" class="lp-donut-cap">ответили</text>
+    </svg>`;
+}
+
+// ─── Smart CTA — pink/mint/dark карточка справа ───────────────────────────────
+function buildLpCta(event, s, eventUrl) {
+  const total = s.total || 0;
+  const responded = (s.attending || 0) + (s.declined || 0) + (s.maybe || 0);
+  const pending = Math.max(0, total - responded);
+  const isDraft = event.status === 'DRAFT';
+
+  const ICONS = {
+    lock:  `<path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`,
+    users: `<path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>`,
+    bell:  `<path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>`,
+    check: `<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>`
+  };
+
+  if (isDraft) {
+    return { tone: 'dark', eyebrow: 'Внимание', icon: ICONS.lock,
+      title: 'Сайт пока не активирован',
+      desc: 'Гости видят пустую страницу. Активируйте, чтобы они смогли подтвердить участие.',
+      cta: 'Активировать', href: '/paywall.html' };
+  }
+  if (total === 0) {
+    return { tone: 'pink', eyebrow: 'Что дальше', icon: ICONS.users,
+      title: 'Добавьте первых гостей',
+      desc: 'Каждому отправите персональную ссылку с RSVP — без приложений.',
+      cta: 'Открыть гостей', href: `/guests.html?eventId=${event.id}` };
+  }
+  if (pending > 0) {
+    return { tone: 'pink', eyebrow: 'Что дальше', icon: ICONS.bell,
+      title: `Напомните ${pending} ${pluralize(pending, ['гостю','гостям','гостям'])}`,
+      desc: 'Они ещё не ответили. Отправьте ссылку повторно — это часто помогает.',
+      cta: 'К не ответившим', href: `/guests.html?eventId=${event.id}&filter=noReply` };
+  }
+  return { tone: 'mint', eyebrow: 'Готово', icon: ICONS.check,
+    title: 'Все гости ответили',
+    desc: 'Можно подвести итоги и скачать финальный список для тамады.',
+    cta: 'Открыть список', href: `/guests.html?eventId=${event.id}` };
+}
+
+// ─── Event Hub (single-event layout, landing-style) ───────────────────────────
 function renderEventHub(event, stats) {
   const eventUrl = buildEventUrl(event) || `${location.origin}/e/${event.slug}`;
-  // hide generic hero
+  const slugPath = eventUrl.replace(location.origin, '');
+
   const genericHero = document.getElementById('genericHero');
   if (genericHero) genericHero.style.display = 'none';
 
@@ -402,13 +497,23 @@ function renderEventHub(event, stats) {
   const namesLine = event.person1
     ? `${event.person1}${event.person2 ? ' <span class="font-cormorant italic" style="opacity:.7; font-size:1.05em;"> &amp; </span> ' + event.person2 : ''}`
     : null;
-
   const heroTitle = namesLine || event.title || 'Без названия';
+
+  const cta = buildLpCta(event, s, eventUrl);
+  const donut = renderLpDonut(s);
+
+  const shareText = encodeURIComponent(`Приглашаем вас${event.title ? ' на ' + event.title : ''}`);
+  const waUrl = `https://wa.me/?text=${shareText}%20${encodeURIComponent(eventUrl)}`;
+  const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(eventUrl)}&text=${shareText}`;
+
+  const ctaBtnHtml = cta.href
+    ? `<a href="${cta.href}" class="lp-cta-btn">${cta.cta}<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg></a>`
+    : `<button onclick="${cta.onclick}" class="lp-cta-btn">${cta.cta}<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg></button>`;
 
   const content = document.getElementById('content');
   content.innerHTML = `
     <div class="fade-in">
-      <!-- HERO -->
+      <!-- HERO (с pink-orange fallback) -->
       <section class="hub-hero">
         ${cover}
         <div class="hub-overlay"></div>
@@ -416,7 +521,7 @@ function renderEventHub(event, stats) {
           <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
         </div>
 
-        <div class="hub-eyebrow">${event.person1 ? event.title : 'Ваше приглашение'}</div>
+        <div class="hub-eyebrow">${event.person1 ? (event.title || 'Приглашение') : 'Ваше приглашение'}</div>
         <h1 class="hub-title">${heroTitle}</h1>
 
         <div class="hub-subtitle">
@@ -451,95 +556,126 @@ function renderEventHub(event, stats) {
         </div>
       </section>
 
-      <!-- KPI strip -->
-      <div class="hub-section-heading">
-        <h3>RSVP</h3>
-        <span class="sub">нажмите, чтобы открыть список</span>
-      </div>
-      <div class="kpi-grid">
-        <a href="/guests.html?eventId=${event.id}" class="kpi">
-          <span class="num" data-kpi="total">${s.total}</span>
-          <span class="lbl">Всего гостей</span>
-          <span class="kpi-arrow" aria-hidden="true">→</span>
-        </a>
-        <a href="/guests.html?eventId=${event.id}&filter=attending" class="kpi accent-mint">
-          <span class="num" data-kpi="attending">${s.attending}</span>
-          <span class="lbl">Придут</span>
-          <span class="kpi-arrow" aria-hidden="true">→</span>
-        </a>
-        <a href="/guests.html?eventId=${event.id}&filter=declined" class="kpi accent-rose">
-          <span class="num" data-kpi="declined">${s.declined}</span>
-          <span class="lbl">Не смогут</span>
-          <span class="kpi-arrow" aria-hidden="true">→</span>
-        </a>
-        <a href="/guests.html?eventId=${event.id}&filter=noReply" class="kpi accent-gold">
-          <span class="num" data-kpi="pending">${pending}</span>
-          <span class="lbl">Ждём ответа</span>
-          <span class="kpi-arrow" aria-hidden="true">→</span>
-        </a>
-      </div>
-
-      <!-- Action tiles -->
-      <div class="hub-section-heading">
-        <h3>Управление</h3>
-        <span class="sub">всё необходимое в одном месте</span>
-      </div>
-      <div class="hub-tiles">
-        <a href="/guests.html?eventId=${event.id}" class="hub-tile">
-          <div class="hub-tile-icon" style="background: linear-gradient(160deg, #C2E0C6 0%, #A8D2B0 100%); color: #1A3D20;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      <!-- STATS donut + smart CTA (2 cols) -->
+      <div class="lp-grid">
+        <!-- Donut card -->
+        <div class="lp-card">
+          <div class="lp-eyebrow">RSVP</div>
+          <div class="lp-stats-body">
+            <div class="lp-donut">${donut}</div>
+            <div class="lp-legend">
+              <div class="lp-leg-row">
+                <span class="lp-leg-icon lp-leg-yes">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                </span>
+                <span class="lp-leg-label">Придут</span>
+                <span class="lp-leg-num">${s.attending || 0}</span>
+              </div>
+              <div class="lp-leg-row">
+                <span class="lp-leg-icon lp-leg-no">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </span>
+                <span class="lp-leg-label">Не смогут</span>
+                <span class="lp-leg-num">${s.declined || 0}</span>
+              </div>
+              ${s.maybe > 0 ? `
+                <div class="lp-leg-row">
+                  <span class="lp-leg-icon lp-leg-maybe">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093M12 17h.01"/></svg>
+                  </span>
+                  <span class="lp-leg-label">Возможно</span>
+                  <span class="lp-leg-num">${s.maybe}</span>
+                </div>` : ''}
+              <div class="lp-leg-row">
+                <span class="lp-leg-icon lp-leg-wait">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2m6-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                <span class="lp-leg-label">Ждут ответа</span>
+                <span class="lp-leg-num">${pending}</span>
+              </div>
+            </div>
           </div>
-          <div class="flex-1 min-w-0">
-            <div class="hub-tile-title">Список гостей</div>
-            <div class="hub-tile-desc">${s.total > 0 ? `${s.total} ${pluralize(s.total, ['человек','человека','человек'])}` : 'добавьте первого'}</div>
-          </div>
-          <div class="hub-tile-arrow">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </div>
-        </a>
-
-        <a href="/editor.html?id=${event.id}" class="hub-tile">
-          <div class="hub-tile-icon" style="background: linear-gradient(160deg, #F5EDE0 0%, #ECDCC2 100%); color: #7C5520;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="hub-tile-title">Редактировать</div>
-            <div class="hub-tile-desc">текст, фото, блоки</div>
-          </div>
-          <div class="hub-tile-arrow">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </div>
-        </a>
-
-        <button onclick="copyLink('${eventUrl}')" class="hub-tile w-full text-left">
-          <div class="hub-tile-icon" style="background: linear-gradient(160deg, #E0E8F0 0%, #CDD9E8 100%); color: #3A5080;">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="hub-tile-title">Скопировать ссылку</div>
-            <div class="hub-tile-desc">для WhatsApp, Telegram</div>
-          </div>
-          <div class="hub-tile-arrow">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
-          </div>
-        </button>
-      </div>
-
-      <!-- Footer -->
-      <div class="hub-footer">
-        <button onclick="copyLink('${eventUrl}')" class="slug-pill" title="Скопировать">
-          <svg class="w-3.5 h-3.5 text-sage" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-          ${eventUrl.replace(location.origin, '')}
-        </button>
-        <div class="flex items-center gap-2">
-          <button onclick="showCreateSheet()" class="btn-ghost" style="font-size: 12px;">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-            Ещё одно событие
-          </button>
-          <button id="del-${event.id}" onclick="handleDeleteClick(${event.id})" class="danger-link">
-            Удалить
-          </button>
         </div>
+
+        <!-- Smart CTA -->
+        <div class="lp-cta tone-${cta.tone}">
+          <div class="lp-cta-eyebrow">${cta.eyebrow}</div>
+          <div class="lp-cta-icon">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${cta.icon}</svg>
+          </div>
+          <div class="lp-cta-title">${cta.title}</div>
+          <div class="lp-cta-desc">${cta.desc}</div>
+          ${ctaBtnHtml}
+        </div>
+      </div>
+
+      <!-- 3-action grid (how-it-works style) -->
+      <div class="lp-actions">
+        <a href="/guests.html?eventId=${event.id}" class="lp-action">
+          ${s.total > 0 ? `<span class="lp-action-badge">${s.total}</span>` : ''}
+          <div class="lp-action-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+          </div>
+          <div class="lp-action-body">
+            <div class="lp-action-title">Список гостей</div>
+            <div class="lp-action-desc">${s.total > 0 ? 'управляйте RSVP' : 'добавьте первого'}</div>
+          </div>
+          <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+
+        <a href="/editor.html?id=${event.id}" class="lp-action">
+          <div class="lp-action-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </div>
+          <div class="lp-action-body">
+            <div class="lp-action-title">Редактор</div>
+            <div class="lp-action-desc">текст, фото, блоки</div>
+          </div>
+          <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+
+        <a href="${eventUrl}" target="_blank" rel="noopener" class="lp-action">
+          <div class="lp-action-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+          </div>
+          <div class="lp-action-body">
+            <div class="lp-action-title">Превью</div>
+            <div class="lp-action-desc">как видят гости</div>
+          </div>
+          <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>
+      </div>
+
+      <!-- Share strip -->
+      <div class="lp-share">
+        <div class="lp-share-eyebrow">Поделиться</div>
+        <div class="lp-share-title">Отправьте приглашение гостям</div>
+        <button onclick="copyLink('${eventUrl}')" class="lp-share-url" type="button">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+          <span class="lp-share-url-text">${slugPath}</span>
+          <span class="lp-share-url-cp">Копировать</span>
+        </button>
+        <div class="lp-share-buttons">
+          <a href="${waUrl}" target="_blank" rel="noopener" class="lp-share-btn wa">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413"/></svg>
+            WhatsApp
+          </a>
+          <a href="${tgUrl}" target="_blank" rel="noopener" class="lp-share-btn tg">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M9.78 18.65l.28-4.23 7.68-6.92c.34-.31-.07-.46-.52-.19L7.74 13.3 3.64 12c-.88-.25-.89-.86.2-1.3l15.97-6.16c.73-.27 1.4.18 1.12 1.3l-2.72 12.81c-.19.91-.74 1.13-1.5.71L12.6 16.3l-1.99 1.93c-.23.23-.42.42-.83.42z"/></svg>
+            Telegram
+          </a>
+        </div>
+      </div>
+
+      <!-- Minimal footer -->
+      <div class="lp-footer">
+        <button onclick="showCreateSheet()" class="lp-footer-add">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Ещё одно событие
+        </button>
+        <button id="del-${event.id}" onclick="handleDeleteClick(${event.id})" class="danger-link">
+          Удалить
+        </button>
       </div>
     </div>`;
   _observeFadeIn();
@@ -615,7 +751,7 @@ function removeCachedEvent(eventId) {
   } catch {}
 }
 
-function prefetchLikelyNextSteps(events, phone) {
+function prefetchLikelyNextSteps(events) {
   window.ToiAppShell?.prefetchPage('/templates.html');
   if (!events || events.length === 0) return;
 
@@ -625,15 +761,15 @@ function prefetchLikelyNextSteps(events, phone) {
   window.ToiAppShell?.prefetchPage(`/guests.html?eventId=${primary.id}`);
   window.ToiAppShell?.prefetchPage(`/editor.html?id=${primary.id}`);
 
-  if (!phone) return;
-  const headers = { 'X-User-Phone': phone };
-  window.ToiAppShell?.prefetchJSON(`tl:event:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}`, { headers }, 2 * 60_000);
-  window.ToiAppShell?.prefetchJSON(`tl:guests:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/guests`, { headers }, 2 * 60_000);
-  window.ToiAppShell?.prefetchJSON(`tl:event:stats:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/stats`, { headers }, 2 * 60_000);
+  const opts = { credentials: 'include' };
+  window.ToiAppShell?.prefetchJSON(`tl:event:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}`, opts, 2 * 60_000);
+  window.ToiAppShell?.prefetchJSON(`tl:guests:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/guests`, opts, 2 * 60_000);
+  window.ToiAppShell?.prefetchJSON(`tl:event:stats:${primary.id}`, `${BASE_URL}/api/organizer/events/${primary.id}/stats`, opts, 2 * 60_000);
 }
 
 function renderDashboardSnapshot(events, statsMap) {
   if (!events) return false;
+  updatePaymentStrip(events);
   if (events.length === 0) {
     renderEmpty();
     return true;
@@ -649,8 +785,8 @@ function renderDashboardSnapshot(events, statsMap) {
   return true;
 }
 
-async function refreshDashboard(phone) {
-  const summary = await fetchDashboardSummary(phone);
+async function refreshDashboard() {
+  const summary = await fetchDashboardSummary();
   const events = summary.map(item => item.event).filter(Boolean);
   const statsMap = summary.reduce((acc, item) => {
     if (item?.event?.id && item.stats) acc[item.event.id] = item.stats;
@@ -662,7 +798,7 @@ async function refreshDashboard(phone) {
 
   if (events.length === 0) {
     renderEmpty();
-    prefetchLikelyNextSteps(events, phone);
+    prefetchLikelyNextSteps(events);
     return;
   }
 
@@ -672,23 +808,20 @@ async function refreshDashboard(phone) {
     if (stats) cacheStats(event.id, stats);
     renderEventHub(event, stats);
     cacheSet(`tl:event:${event.id}`, event);
-    fetchGuests(event.id, phone)
+    fetchGuests(event.id)
       .then((guests) => cacheSet(`tl:guests:${event.id}`, guests))
       .catch(() => {});
-    prefetchLikelyNextSteps(events, phone);
+    prefetchLikelyNextSteps(events);
     return;
   }
 
   Object.entries(statsMap).forEach(([eventId, stats]) => cacheStats(Number(eventId), stats));
   renderEvents(events, statsMap);
-  prefetchLikelyNextSteps(events, phone);
+  prefetchLikelyNextSteps(events);
 }
 
 // ─── Handlers ─────────────────────────────────────────────────────────────────
 window.handleGuests = async function (eventId) {
-  const phone = localStorage.getItem('tl_phone');
-  if (!phone) return;
-
   const cachedEvent = cacheGet(`tl:event:${eventId}`, 5 * 60_000)
     || (cacheGet(EVENTS_CACHE_KEY, 5 * 60_000) || []).find((event) => event.id === eventId);
   const cachedGuests = cacheGet(`tl:guests:${eventId}`, 5 * 60_000);
@@ -699,8 +832,8 @@ window.handleGuests = async function (eventId) {
 
   try {
     const [events, guests] = await Promise.all([
-      fetchEvents(phone),
-      fetchGuests(eventId, phone),
+      fetchEvents(),
+      fetchGuests(eventId),
     ]);
     const event = events.find(e => e.id === eventId) || { id: eventId, title: 'Событие' };
     cacheSet(`tl:event:${eventId}`, event);
@@ -715,9 +848,6 @@ window.copyLink = copyLink;
 
 const _deleteTimers = {};
 window.handleDeleteClick = async function (eventId) {
-  const phone = localStorage.getItem('tl_phone');
-  if (!phone) return;
-
   const btn = document.getElementById('del-' + eventId);
   if (!btn) return;
 
@@ -727,7 +857,7 @@ window.handleDeleteClick = async function (eventId) {
     btn.textContent = 'Удаление...';
     btn.disabled = true;
     try {
-      await deleteEvent(eventId, phone);
+      await deleteEvent(eventId);
       removeCachedEvent(eventId);
       const card = document.getElementById('card-' + eventId);
       if (card) {
@@ -770,13 +900,13 @@ async function init() {
   const cachedStats = cacheGet(STATS_CACHE_KEY, 2 * 60_000) || {};
   if (cachedEvents) {
     renderDashboardSnapshot(cachedEvents, cachedStats);
-    prefetchLikelyNextSteps(cachedEvents, phone);
-    refreshDashboard(phone).catch(() => {});
+    prefetchLikelyNextSteps(cachedEvents);
+    refreshDashboard().catch(() => {});
     return;
   }
 
   try {
-    await refreshDashboard(phone);
+    await refreshDashboard();
   } catch {
     document.getElementById('content').innerHTML = `
       <div class="flex flex-col items-center justify-center text-center py-16 md:py-20 px-6 fade-in">
@@ -791,6 +921,13 @@ async function init() {
       </div>`;
     _observeFadeIn();
   }
+}
+
+function updatePaymentStrip(events) {
+  const strip = document.getElementById('paymentStrip');
+  if (!strip) return;
+  const hasDraft = Array.isArray(events) && events.some(e => e.status === 'DRAFT');
+  strip.style.display = hasDraft ? 'flex' : 'none';
 }
 
 init();

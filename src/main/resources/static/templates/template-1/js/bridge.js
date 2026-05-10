@@ -79,6 +79,10 @@
     if (blocks.hero) {
       const h = blocks.hero;
       if (h.coverPhoto) C.images.heroBackground = h.coverPhoto;
+      if (h.badge !== undefined) {
+        const label = document.querySelector('.hero-label');
+        if (label) label.textContent = h.badge || 'Мы женимся';
+      }
       // Timer visibility handled via DOM
       // Music
       C.music.enabled = !!h.music;
@@ -116,7 +120,7 @@
             time: e.time || '',
             title: e.title || '',
             icon: 'cocktail',
-            description: ''
+            description: e.description || ''
           }));
       }
     }
@@ -218,6 +222,10 @@
       }
       applyEditorConfig(e.data.config);
       fullRerender();
+    }
+    if (e.data?.type === 'EDITOR_SCROLL_TO') {
+      const section = document.querySelector(`[data-section="${e.data.section}"]`);
+      section?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
 

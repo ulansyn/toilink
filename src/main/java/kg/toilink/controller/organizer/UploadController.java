@@ -24,8 +24,7 @@ public class UploadController {
     private String uploadDir;
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Map<String, String> upload(@RequestParam("file") MultipartFile file,
-                                      @RequestHeader("X-User-Phone") String phone) throws IOException {
+    public Map<String, String> upload(@RequestParam("file") MultipartFile file) throws IOException {
         if (file.isEmpty()) throw new BadRequestException("Файл пустой");
 
         Path dir = Paths.get(uploadDir).toAbsolutePath();

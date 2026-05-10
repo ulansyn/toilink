@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (fromCatalog && localStorage.getItem('tl_template_selection')) {
     initWizard();
   } else {
-    showPicker();
+    goToTemplateCatalog();
   }
 
   setupPhoneInput();
@@ -251,9 +251,17 @@ function wizardNext() {
 
 function wizardBack() {
   if (W.step === 'picker') { history.back(); return; }
-  if (W.step === 0)        { showPicker(); return; }
+  if (W.step === 0)        { goToTemplateCatalog(); return; }
   if (W.step === 'preview') { showFormWizard(W.config.steps.length - 1); return; }
   transitionTo(W.step - 1);
+}
+
+function goToTemplateCatalog() {
+  if (location.protocol === 'file:') {
+    showPicker();
+    return;
+  }
+  location.replace('/templates.html');
 }
 
 function transitionTo(next) {
@@ -387,7 +395,7 @@ function showFormWizard(step) {
 
 function prefetchIframe() {
   const iframe = document.getElementById('previewIframe');
-  iframe.src = `/templates/${W.templateId}/index.html?mode=preview`;
+  iframe.src = `templates/${W.templateId}/index.html?mode=preview`;
   iframe.addEventListener('load', () => { W.iframeReady = true; sendToIframe(); });
 }
 
@@ -444,6 +452,41 @@ window.addEventListener('message', e => {
 
 // ── Registration sheet ─────────────────────────────────────────
 
+async function continueFromPreview() {
+  const btn = document.getElementById('previewContinueBtn');
+  btn?.classList.add('loading');
+  if (btn) btn.disabled = true;
+
+  try {
+    const me = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!me.ok) {
+      showRegSheet();
+      return;
+    }
+
+    const user = await me.json().catch(() => ({}));
+    if (user.phone) {
+      W.phone = user.phone;
+      localStorage.setItem('tl_phone', user.phone);
+    }
+
+    const saved = await saveEventToApi();
+    if (saved) {
+      showSuccessFlash();
+      return;
+    }
+
+    showErr('phoneErr', 'Не удалось сохранить, попробуйте ещё раз');
+    showRegSheet();
+  } catch (_) {
+    showRegSheet();
+  } finally {
+    btn?.classList.remove('loading');
+    if (btn) btn.disabled = false;
+  }
+}
+window.continueFromPreview = continueFromPreview;
+
 function showRegSheet() {
   document.getElementById('sheetBackdrop').classList.add('open');
   document.getElementById('regSheet').classList.add('open');
@@ -488,8 +531,10 @@ async function submitPhone() {
       showErr('phoneErr', err.message || 'Неверный пароль');
       return;
     }
-    await saveEventToApi();
-    showSuccessFlash();
+    localStorage.setItem('tl_phone', W.phone);
+    const saved = await saveEventToApi();
+    if (saved) showSuccessFlash();
+    else showErr('phoneErr', 'Не удалось сохранить, попробуйте ещё раз');
   } catch (_) {
     showErr('phoneErr', 'Ошибка сохранения, попробуйте ещё раз');
   } finally {
@@ -529,11 +574,13 @@ async function saveEventToApi() {
     credentials: 'include',
     body:    JSON.stringify(body),
   });
-  if (res.ok) {
-    const event = await res.json();
-    W.eventId = event.id;
-    localStorage.setItem('tl_event_id', String(event.id));
-  }
+  if (res.status === 401 || res.status === 403) return false;
+  if (!res.ok) throw new Error('Event save failed');
+
+  const event = await res.json();
+  W.eventId = event.id;
+  localStorage.setItem('tl_event_id', String(event.id));
+  return true;
 }
 
 function showSuccessFlash() {

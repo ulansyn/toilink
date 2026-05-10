@@ -28,10 +28,8 @@ function cacheGet(key, maxAge = 60_000) {
 async function api(method, path, body) {
   const res = await fetch(BASE_URL + path, {
     method,
-    headers: {
-      'X-User-Phone': phone,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
+    credentials: 'include',
+    headers: body ? { 'Content-Type': 'application/json' } : {},
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
@@ -749,7 +747,7 @@ async function init() {
   if (f && FILTERS[f]) state.filter = f;
 
   phone = await window.initAuth();
-  if (!phone) return;
+  // phone is used only for display; API calls use session cookie automatically
 
   const cachedEvent  = cacheGet(`tl:event:${eventId}`);
   const cachedGuests = cacheGet(`tl:guests:${eventId}`);

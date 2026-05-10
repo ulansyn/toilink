@@ -24,6 +24,9 @@ public class User {
     @Column(length = 100)
     private String name;
 
+    @Column(length = 60)
+    private String passwordHash;
+
     @Column(nullable = false, length = 20)
     private String role;
 

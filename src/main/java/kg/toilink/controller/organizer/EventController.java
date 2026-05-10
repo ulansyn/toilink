@@ -9,6 +9,8 @@ import kg.toilink.dto.response.EventStatsResponse;
 import kg.toilink.service.EventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,45 +23,45 @@ public class EventController {
     private final EventService eventService;
 
     @GetMapping
-    public List<EventResponse> getAll(@RequestHeader("X-User-Phone") String phone) {
-        return eventService.findAllByUser(phone);
+    public List<EventResponse> getAll(@AuthenticationPrincipal UserDetails user) {
+        return eventService.findAllByUser(user.getUsername());
     }
 
     @GetMapping("/summary")
-    public List<EventDashboardResponse> getSummary(@RequestHeader("X-User-Phone") String phone) {
-        return eventService.findDashboardByUser(phone);
+    public List<EventDashboardResponse> getSummary(@AuthenticationPrincipal UserDetails user) {
+        return eventService.findDashboardByUser(user.getUsername());
     }
 
     @GetMapping("/{id}")
     public EventResponse getById(@PathVariable Long id,
-                                 @RequestHeader("X-User-Phone") String phone) {
-        return eventService.findById(id, phone);
+                                 @AuthenticationPrincipal UserDetails user) {
+        return eventService.findById(id, user.getUsername());
     }
 
     @GetMapping("/{id}/stats")
     public EventStatsResponse getStats(@PathVariable Long id,
-                                       @RequestHeader("X-User-Phone") String phone) {
-        return eventService.getStats(id, phone);
+                                       @AuthenticationPrincipal UserDetails user) {
+        return eventService.getStats(id, user.getUsername());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public EventResponse create(@Valid @RequestBody CreateEventRequest request,
-                                @RequestHeader("X-User-Phone") String phone) {
-        return eventService.create(request, phone);
+                                @AuthenticationPrincipal UserDetails user) {
+        return eventService.create(request, user.getUsername());
     }
 
     @PutMapping("/{id}")
     public EventResponse update(@PathVariable Long id,
                                 @Valid @RequestBody UpdateEventRequest request,
-                                @RequestHeader("X-User-Phone") String phone) {
-        return eventService.update(id, request, phone);
+                                @AuthenticationPrincipal UserDetails user) {
+        return eventService.update(id, request, user.getUsername());
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id,
-                       @RequestHeader("X-User-Phone") String phone) {
-        eventService.delete(id, phone);
+                       @AuthenticationPrincipal UserDetails user) {
+        eventService.delete(id, user.getUsername());
     }
 }

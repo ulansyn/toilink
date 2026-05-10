@@ -13,7 +13,9 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=block" rel="stylesheet" />
+    <link rel="stylesheet" href="/css/tokens.css"/>
+    <link rel="stylesheet" href="/css/base.css"/>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
@@ -22,9 +24,9 @@
         ::-webkit-scrollbar { display: none; }
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: var(--font-sans);
             background: transparent;
-            color: #111827;
+            color: var(--color-text);
             overscroll-behavior-y: none;
         }
 
