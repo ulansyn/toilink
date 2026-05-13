@@ -6,11 +6,12 @@
   <title>ToiLink — Редактор приглашения</title>
   <meta name="theme-color" content="#fff8fb" />
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=block" rel="stylesheet" />
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/tokens.css" />
   <link rel="stylesheet" href="/css/base.css" />
+  <link rel="stylesheet" href="/css/date-time-picker.css" />
   <link rel="stylesheet" href="/css/mobile-editor.css" />
 </head>
 <body data-app-page="editor">
@@ -103,6 +104,7 @@
     </div>
   </main>
 
+  <script src="/js/date-time-picker.js"></script>
   <script src="/js/mobile-editor.js"></script>
 </body>
 </html>

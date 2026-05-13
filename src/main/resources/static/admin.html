@@ -1,0 +1,2899 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="theme-color" content="#1E2820"/>
+  <title>ToiLink Admin</title>
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
+  	  <style>
+    /* ===== DESIGN TOKENS ===== */
+    :root {
+      --bg-app:       #F5F5F3;
+      --bg-surface:   #FFFFFF;
+      --bg-subtle:    #FAFAF9;
+      --bg-hover:     #F3F3F1;
+      --border:       #EBEBE8;
+      --border-strong:#E0E0DC;
+      --text-primary: #141413;
+      --text-secondary:#6B6B68;
+      --text-tertiary:#9D9D99;
+      --accent:       #121212;
+      --accent-hover: #2D2D2D;
+      --green:        #139A4B;
+      --green-bg:     #EFFAF2;
+      --amber:        #C2710A;
+      --amber-bg:     #FFF9ED;
+      --red:          #D22C3C;
+      --red-bg:       #FFF4F5;
+      --blue:         #2563EB;
+      --blue-bg:      #F4F8FF;
+      --sidebar-bg:   #0C0C0B;
+      --sidebar-hover:#1C1C1A;
+      --sidebar-active:#262623;
+      --sidebar-text: #9D9D98;
+      --sidebar-text-active: #F5F5F3;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --r-sm: 6px;
+      --r-md: 8px;
+      --r-lg: 12px;
+      --r-full: 999px;
+      --shadow-xs: 0 1px 2px rgba(0,0,0,.03);
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.04), 0 1px 2px rgba(0,0,0,.03);
+      --shadow-lg: 0 12px 32px rgba(0,0,0,.06), 0 2px 4px rgba(0,0,0,.02);
+    }
+
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body {
+      margin: 0;
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    a { color: inherit; text-decoration: none; }
+
+    /* ===== LOGIN ===== */
+    #loginScreen {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: var(--bg-app);
+    }
+    .login-card {
+      width: min(100%, 400px);
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 36px 32px;
+      box-shadow: var(--shadow-lg);
+    }
+    .brand-mark {
+      width: 40px; height: 40px;
+      display: grid; place-items: center;
+      margin: 0 auto 20px;
+    }
+    .brand-mark img { width: 40px; height: 40px; object-fit: contain; display: block; }
+    .login-title {
+      text-align: center;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 28px;
+      line-height: 1.15;
+      margin: 0;
+      letter-spacing: -.01em;
+    }
+    .login-subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 14px;
+      margin: 8px 0 28px;
+    }
+    .login-error {
+      display: none;
+      border-radius: var(--r-sm);
+      background: var(--red-bg);
+      color: var(--red);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    /* ===== FORM ELEMENTS ===== */
+    .field { display: grid; gap: 6px; }
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .input, .select, .textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color .15s ease, box-shadow .15s ease;
+      font-size: 14px;
+    }
+    .input, .select { min-height: 40px; padding: 0 12px; }
+    .textarea { min-height: 100px; padding: 10px 12px; resize: vertical; }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(18,18,18,.08);
+    }
+
+    /* ===== BUTTONS ===== */
+    .primary-btn, .ghost-btn, .danger-btn {
+      border: 0;
+      border-radius: var(--r-sm);
+      min-height: 36px;
+      padding: 0 16px;
+      font-size: 13px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
+      white-space: nowrap;
+    }
+    .primary-btn { background: var(--accent); color: #fff; }
+    .primary-btn:hover { background: var(--accent-hover); }
+    .accent-btn { background: var(--accent); color: #fff; }
+    .accent-btn:hover { background: var(--accent-hover); }
+    .ghost-btn { background: var(--bg-subtle); color: var(--text-primary); border: 1px solid var(--border); }
+    .ghost-btn:hover { background: var(--bg-hover); }
+    .danger-btn { background: var(--red-bg); color: var(--red); }
+    .danger-btn:hover { background: #FFE8EC; }
+    .tiny-btn {
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      border-radius: var(--r-sm);
+      min-height: 30px;
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 600;
+      transition: background .15s ease, border-color .15s ease;
+      white-space: nowrap;
+    }
+    .tiny-btn:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+    .tiny-btn.danger { color: var(--red); background: var(--red-bg); border-color: #FDD0D8; }
+    .tiny-btn.danger:hover { background: #FFE8EC; }
+    .tiny-btn.good { color: var(--green); background: var(--green-bg); border-color: #C5EBD2; }
+    .tiny-btn.good:hover { background: #E4F7EA; }
+
+    /* ===== SHELL & SIDEBAR ===== */
+    #appScreen { display: none; min-height: 100vh; }
+    .shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: 100vh; }
+    .mobile-bar { display: none; }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      background: var(--sidebar-bg);
+      color: var(--sidebar-text);
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid rgba(255,255,255,.04);
+    }
+    .sidebar-head {
+      padding: 20px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .sidebar-logo {
+      width: 34px; height: 34px;
+      display: grid; place-items: center;
+      flex-shrink: 0;
+    }
+    .sidebar-logo img { width: 34px; height: 34px; object-fit: contain; display: block; }
+    .sidebar-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+      line-height: 1;
+      color: var(--sidebar-text-active);
+    }
+    .sidebar-note {
+      font-size: 10px;
+      color: var(--sidebar-text);
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-weight: 600;
+    }
+    .sidebar-nav { padding: 8px; flex: 1; overflow: auto; display: grid; gap: 1px; align-content: start; }
+    .nav-link {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--sidebar-text);
+      min-height: 36px;
+      border-radius: var(--r-sm);
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-align: left;
+      font-weight: 500;
+      font-size: 13px;
+      transition: color .12s ease, background .12s ease;
+    }
+    .nav-link svg { width: 16px; height: 16px; flex-shrink: 0; opacity: .65; }
+    .nav-link:hover { color: var(--sidebar-text-active); background: var(--sidebar-hover); }
+    .nav-link:hover svg { opacity: 1; }
+    .nav-link.active { color: var(--sidebar-text-active); background: var(--sidebar-active); font-weight: 600; }
+    .nav-link.active svg { opacity: 1; }
+    .sidebar-footer {
+      padding: 10px 12px 14px;
+      border-top: 1px solid rgba(255,255,255,.04);
+      display: grid;
+      gap: 8px;
+    }
+    .admin-id-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--r-sm);
+      background: var(--sidebar-hover);
+    }
+    .admin-id-avatar {
+      width: 30px; height: 30px;
+      border-radius: var(--r-full);
+      display: grid; place-items: center;
+      background: var(--text-secondary);
+      color: #fff;
+      font-weight: 600;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .admin-id-info { display: grid; min-width: 0; }
+    .admin-id-info strong { font-size: 12px; color: var(--sidebar-text-active); font-weight: 600; }
+    .admin-phone { color: var(--sidebar-text); font-size: 11px; word-break: break-word; }
+
+    /* ===== MAIN CONTENT ===== */
+    .main {
+      min-width: 0;
+      padding: 24px 28px 40px;
+      max-width: 1280px;
+      width: 100%;
+    }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ===== TOPBAR ===== */
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .eyebrow {
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    h1 {
+      margin: 4px 0 0;
+      font-family: var(--serif);
+      font-weight: 600;
+      font-size: 32px;
+      line-height: 1.1;
+      letter-spacing: -.01em;
+    }
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    /* ===== DASHBOARD ===== */
+    #section-dashboard {
+      --dash-line: rgba(0,0,0,.06);
+      --dash-shadow: var(--shadow-sm);
+    }
+    .dashboard-layout { display: grid; gap: 16px; }
+
+    .dash-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 0 0 4px;
+    }
+    .dash-kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 24px;
+      padding: 0 10px;
+      border-radius: var(--r-full);
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+    }
+    .dash-kicker::before {
+      content: "";
+      width: 6px; height: 6px;
+      border-radius: var(--r-full);
+      background: var(--green);
+    }
+    .dash-title {
+      margin: 10px 0 0;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+      font-size: 32px;
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .dash-subtitle {
+      margin: 8px 0 0;
+      max-width: 640px;
+      color: var(--text-secondary);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .dash-refresh {
+      min-width: 108px;
+      min-height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s ease, border-color .15s ease;
+    }
+    .dash-refresh:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+    .dash-board {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    /* Card base */
+    .dash-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-xs);
+      overflow: hidden;
+    }
+
+    /* Hero strip: 3 cards */
+    .hero-card {
+      grid-column: span 4;
+      padding: 24px;
+      display: grid;
+      align-content: space-between;
+      gap: 20px;
+    }
+    .hero-label {
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .hero-value {
+      margin-top: 8px;
+      font-size: 40px;
+      line-height: .95;
+      font-weight: 700;
+      letter-spacing: -.01em;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-trend {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .hero-trend.up { color: var(--green); }
+    .hero-trend.down { color: var(--red); }
+    .hero-copy {
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .hero-mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .hero-mini {
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      padding: 12px;
+      background: var(--bg-subtle);
+    }
+    .hero-mini strong {
+      display: block;
+      font-size: 20px;
+      line-height: 1;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .hero-mini span {
+      display: block;
+      margin-top: 6px;
+      color: var(--text-tertiary);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    /* Chart & activity row */
+    .growth-card {
+      grid-column: span 8;
+      padding: 20px;
+      min-height: 360px;
+    }
+    .growth-card .chart-canvas { height: 290px; }
+    .activity-card {
+      grid-column: span 4;
+      padding: 20px;
+      min-height: 360px;
+    }
+    .activity-list {
+      display: grid;
+      gap: 2px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .activity-item {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      align-items: start;
+    }
+    .activity-item:last-child { border-bottom: 0; }
+    .activity-dot {
+      width: 6px; height: 6px;
+      border-radius: var(--r-full);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+    .activity-body { min-width: 0; }
+    .activity-text { color: var(--text-primary); line-height: 1.4; }
+    .activity-time { color: var(--text-tertiary); font-size: 11px; margin-top: 2px; }
+
+    /* KPI row */
+    .kpi-row {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      padding: 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-xs);
+    }
+    .kpi-label {
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .kpi-value {
+      margin-top: 8px;
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+    .kpi-sub {
+      margin-top: 4px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* Analytics row */
+    .analytics-row {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .analytics-card {
+      padding: 20px;
+      min-height: 280px;
+    }
+    .analytics-card .chart-canvas { height: 220px; }
+
+    /* Lists row */
+    .dash-lists {
+      grid-column: span 12;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+    .dash-list-card {
+      padding: 20px;
+    }
+    .dash-list-card .mini-table { width: 100%; border-collapse: collapse; }
+    .dash-list-card .mini-table th {
+      text-align: left;
+      padding: 8px 12px;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .dash-list-card .mini-table td {
+      padding: 8px 12px;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dash-list-card .mini-table tr:last-child td { border-bottom: 0; }
+
+    /* Chart components */
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .chart-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .chart-sub {
+      color: var(--text-tertiary);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+    .chart-canvas { width: 100%; display: block; }
+    .chart-legend { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+    .chart-legend span { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+    .chart-legend i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; }
+
+    /* Funnel */
+    .funnel { display: grid; gap: 8px; }
+    .funnel-row {
+      display: grid;
+      grid-template-columns: 100px minmax(0,1fr) 48px;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+    .funnel-label { color: var(--text-secondary); font-weight: 500; }
+    .funnel-value { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+    .funnel-track { height: 8px; border-radius: var(--r-full); background: var(--bg-hover); overflow: hidden; }
+    .funnel-bar { height: 100%; border-radius: var(--r-full); transition: width .5s ease; }
+
+    /* Health */
+    .health-list { display: grid; gap: 2px; }
+    .health-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+    }
+    .health-row:last-child { border-bottom: 0; }
+    .health-label { color: var(--text-secondary); }
+    .health-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .health-dot { width: 6px; height: 6px; border-radius: var(--r-full); display: inline-block; margin-right: 6px; }
+    .health-dot.ok { background: var(--green); }
+    .health-dot.warn { background: var(--amber); }
+
+    /* ===== TABLES ===== */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .filters .input { width: 240px; }
+    .filters .select { width: 160px; min-height: 40px; }
+
+    .table-wrap {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      overflow: auto;
+      max-height: calc(100vh - 220px);
+      box-shadow: var(--shadow-xs);
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      text-align: left;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+      color: var(--text-tertiary);
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      padding: 10px 14px;
+      white-space: nowrap;
+    }
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px 14px;
+      font-size: 13px;
+      vertical-align: middle;
+      transition: background .1s ease;
+    }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover td { background: var(--bg-hover); }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; }
+    .muted { color: var(--text-secondary); }
+    .nowrap { white-space: nowrap; }
+    .row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ===== BADGES ===== */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 22px;
+      padding: 0 8px;
+      border-radius: var(--r-sm);
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      letter-spacing: .01em;
+    }
+    .badge::before { content: ""; width: 5px; height: 5px; border-radius: var(--r-full); flex-shrink: 0; }
+    .badge.green { color: #0E7A3A; background: var(--green-bg); }
+    .badge.green::before { background: var(--green); }
+    .badge.yellow { color: var(--amber); background: var(--amber-bg); }
+    .badge.yellow::before { background: var(--amber); }
+    .badge.red { color: var(--red); background: var(--red-bg); }
+    .badge.red::before { background: var(--red); }
+    .badge.blue { color: var(--blue); background: var(--blue-bg); }
+    .badge.blue::before { background: var(--blue); }
+    .badge.gray { color: var(--text-secondary); background: var(--bg-hover); }
+    .badge.gray::before { background: var(--text-tertiary); }
+    .badge.role-superadmin { color: #fff; background: var(--accent); font-weight: 700; }
+    .badge.role-superadmin::before { background: rgba(255,255,255,.7); }
+
+    /* ===== AVATAR ===== */
+    .avatar {
+      width: 28px; height: 28px;
+      border-radius: var(--r-full);
+      display: inline-grid; place-items: center;
+      color: #fff;
+      font-weight: 600;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+    .user-cell { display: inline-flex; align-items: center; gap: 8px; min-width: 0; }
+    .user-cell-name { display: grid; min-width: 0; }
+    .user-cell-name strong { font-size: 13px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .user-cell-name span { font-size: 11px; color: var(--text-secondary); }
+
+    .copy-cell {
+      cursor: pointer; user-select: none;
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 6px; margin: -2px -6px;
+      border-radius: 4px;
+      transition: background .1s ease;
+    }
+    .copy-cell:hover { background: var(--bg-hover); }
+
+    /* ===== SKELETON ===== */
+    .skeleton-row { padding: 14px; }
+    .sk-line {
+      height: 10px;
+      border-radius: 5px;
+      background: var(--bg-hover);
+      animation: sk-pulse 1.5s ease-in-out infinite;
+    }
+    .sk-line + .sk-line { margin-top: 8px; }
+    @keyframes sk-pulse { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+
+    /* ===== PAGER ===== */
+    .pager {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 12px;
+      color: var(--text-secondary);
+      font-size: 12px;
+    }
+    .empty-state {
+      padding: 40px 20px;
+      text-align: center;
+      color: var(--text-tertiary);
+    }
+    .empty-state-icon { font-size: 32px; margin-bottom: 12px; display: block; }
+    .empty-state-title { font-size: 16px; font-weight: 600; color: var(--text-primary); margin-bottom: 4px; }
+    .empty-state-text { font-size: 13px; color: var(--text-secondary); }
+
+    /* ===== MODAL ===== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(0,0,0,.3);
+      backdrop-filter: blur(2px);
+      animation: fade-in .15s ease-out;
+    }
+    @keyframes fade-in { from { opacity: 0; } }
+    @keyframes pop-in { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
+    .modal-box {
+      width: min(100%, 560px);
+      max-height: calc(100vh - 40px);
+      overflow: auto;
+      background: var(--bg-surface);
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 64px rgba(0,0,0,.16);
+      animation: pop-in .18s ease-out;
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-title {
+      font-family: var(--serif);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+    .modal-body { padding: 20px; display: grid; gap: 14px; }
+    .modal-foot {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 14px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-subtle);
+      border-radius: 0 0 var(--r-lg) var(--r-lg);
+    }
+
+    /* ===== TOAST ===== */
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      z-index: 80;
+      background: var(--accent);
+      color: #fff;
+      border-radius: var(--r-sm);
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity .2s, transform .2s;
+      pointer-events: none;
+      box-shadow: var(--shadow-md);
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    /* ===== TEMPLATE CARDS ===== */
+    .template-showcase {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .template-card {
+      overflow: hidden;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-xs);
+      transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .template-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+    .template-preview {
+      height: 140px;
+      position: relative;
+      background: var(--bg-subtle);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .template-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .template-preview-code { font-size: 12px; color: var(--text-tertiary); font-weight: 600; }
+    .template-body { padding: 14px; }
+    .template-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+    .template-name { font-size: 14px; font-weight: 700; }
+    .template-path { color: var(--text-secondary); font-size: 12px; margin-top: 2px; word-break: break-word; }
+    .template-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+    .template-empty {
+      grid-column: 1 / -1;
+      padding: 32px;
+      border: 1px dashed var(--border-strong);
+      border-radius: var(--r-md);
+      background: var(--bg-subtle);
+      color: var(--text-secondary);
+      text-align: center;
+    }
+
+    /* ===== LANDING CMS ===== */
+    .landing-grid {
+      display: grid;
+      grid-template-columns: minmax(250px, 0.55fr) minmax(420px, 1.45fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .landing-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .landing-panel h2 {
+      margin: 0 0 6px;
+      font-size: 18px;
+      font-family: var(--serif);
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+    .landing-switches { display: grid; gap: 4px; }
+    .landing-switch {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 40px;
+      padding: 8px 12px;
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      background: var(--bg-subtle);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background .12s ease, border-color .12s ease;
+    }
+    .landing-switch:hover { background: var(--bg-hover); border-color: var(--border); }
+    .landing-switch input {
+      width: 36px; height: 22px;
+      appearance: none; -webkit-appearance: none;
+      background: var(--border-strong);
+      border-radius: var(--r-full);
+      cursor: pointer;
+      position: relative;
+      transition: background .15s ease;
+      flex-shrink: 0;
+    }
+    .landing-switch input::after {
+      content: '';
+      position: absolute;
+      top: 2px; left: 2px;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform .15s ease;
+      box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    }
+    .landing-switch input:checked { background: var(--green); }
+    .landing-switch input:checked::after { transform: translateX(14px); }
+    .landing-json {
+      min-height: 620px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      white-space: pre;
+      tab-size: 2;
+      border-color: var(--border);
+    }
+    .landing-help { color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin: 0 0 18px; }
+    .landing-status {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 12px;
+      padding: 8px 12px;
+      background: var(--bg-subtle);
+      border-radius: var(--r-sm);
+      line-height: 1.4;
+    }
+    .landing-form { display: grid; gap: 16px; }
+    .landing-group {
+      border: 1px solid var(--border);
+      background: var(--bg-surface);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      box-shadow: var(--shadow-xs);
+    }
+    .landing-group-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      padding: 12px 16px;
+      background: var(--bg-subtle);
+      border-bottom: 1px solid var(--border);
+    }
+    .landing-group-title span { display: flex; align-items: center; gap: 8px; }
+    .landing-group-title span::before {
+      content: '';
+      width: 3px;
+      height: 14px;
+      border-radius: 2px;
+      background: var(--accent);
+    }
+    .landing-fields {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+    .landing-fields .wide { grid-column: 1 / -1; }
+    .landing-group .field label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .landing-group .field .input,
+    .landing-group .field .textarea {
+      border-color: var(--border);
+      border-radius: var(--r-sm);
+    }
+    .landing-group .field .input:focus,
+    .landing-group .field .textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(18,18,18,.06);
+    }
+    .landing-repeat {
+      display: grid;
+      gap: 8px;
+      padding: 0 16px 16px;
+      counter-reset: lrepeat;
+    }
+    .landing-repeat-item {
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-subtle);
+      overflow: hidden;
+      counter-increment: lrepeat;
+    }
+    .landing-repeat-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 12px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .landing-repeat-head span { display: flex; align-items: center; gap: 8px; }
+    .landing-repeat-head span::before {
+      content: counter(lrepeat);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 4px;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 600;
+    }
+    .landing-repeat-item .landing-fields { padding: 12px; }
+    .landing-repeat-item > .input { margin: 12px; width: calc(100% - 24px); }
+    .landing-repeat-item .field label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-tertiary);
+      text-transform: uppercase;
+      letter-spacing: .03em;
+    }
+    .landing-repeat-item .field .input,
+    .landing-repeat-item .field .textarea {
+      border-color: var(--border);
+      border-radius: var(--r-sm);
+    }
+    .landing-group .tiny-btn {
+      border-radius: var(--r-sm);
+      min-height: 26px;
+      padding: 0 8px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .landing-group .tiny-btn:not(.danger):not(.good) {
+      background: var(--bg-surface);
+      border-color: var(--border);
+      color: var(--text-primary);
+    }
+    .landing-group .tiny-btn:not(.danger):not(.good):hover { background: var(--bg-hover); }
+    .landing-advanced {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+    .landing-advanced summary {
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-primary);
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: var(--r-sm);
+      background: var(--bg-subtle);
+      transition: background .12s ease;
+    }
+    .landing-advanced summary:hover { background: var(--bg-hover); }
+
+    /* ===== MOBILE ===== */
+    @media (max-width: 860px) {
+      .shell { grid-template-columns: 1fr; }
+      .mobile-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        background: var(--sidebar-bg);
+        color: #fff;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+      }
+      .mobile-bar-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--serif);
+        font-size: 18px;
+        font-weight: 600;
+      }
+      .mobile-bar-title .sidebar-logo { width: 28px; height: 28px; }
+      .hamburger {
+        background: rgba(255,255,255,.08);
+        border: 0; color: #fff;
+        width: 34px; height: 34px;
+        border-radius: var(--r-sm);
+        display: grid; place-items: center;
+      }
+      .sidebar {
+        position: fixed;
+        top: 0; left: 0;
+        width: 260px;
+        height: 100vh;
+        z-index: 60;
+        transform: translateX(-100%);
+        transition: transform .22s ease;
+      }
+      .sidebar.open { transform: translateX(0); box-shadow: 0 24px 64px rgba(0,0,0,.4); }
+      .sidebar-backdrop {
+        display: none;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,.3);
+        backdrop-filter: blur(1px);
+        z-index: 50;
+      }
+      .sidebar-backdrop.show { display: block; animation: fade-in .15s ease-out; }
+      .main { padding: 16px; }
+      .dash-board, .dash-lists, .analytics-row, .kpi-row { grid-template-columns: 1fr; }
+      .dash-board > *, .dash-lists > *, .analytics-row > *, .kpi-row > * { grid-column: 1 / -1; }
+      .hero-card, .growth-card, .activity-card { min-height: 0; }
+      .hero-value { font-size: 32px; }
+      .hero-mini-grid { grid-template-columns: repeat(3, 1fr); }
+      .dash-title { font-size: 26px; }
+      .topbar { flex-direction: column; }
+      .top-actions { justify-content: flex-start; }
+      .filters .input, .filters .select { width: 100%; }
+      h1 { font-size: 26px; }
+      .landing-grid { grid-template-columns: 1fr; }
+      .template-showcase { grid-template-columns: 1fr; }
+      .table-wrap { max-height: none; }
+    }
+
+    @media (max-width: 480px) {
+      .hero-mini-grid { grid-template-columns: 1fr; }
+      .kpi-row { grid-template-columns: repeat(2, 1fr); }
+      .analytics-row { grid-template-columns: 1fr; }
+      .dash-lists { grid-template-columns: 1fr; }
+      .dashboard-layout { gap: 12px; }
+    }
+
+  </style>
+</head>
+<body>
+
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="brand-mark"><img src="/images/logo.webp" alt=""></div>
+    <h1 class="login-title">ToiLink Admin</h1>
+    <p class="login-subtitle">Вход для владельца платформы</p>
+    <form id="loginForm" style="display:grid; gap:12px;">
+      <div class="field">
+        <label for="loginPhone">Телефон</label>
+        <input class="input" id="loginPhone" type="tel" placeholder="+996..." autocomplete="tel"/>
+      </div>
+      <div class="field">
+        <label for="loginPassword">Пароль</label>
+        <input class="input" id="loginPassword" type="password" placeholder="Пароль" autocomplete="current-password"/>
+      </div>
+      <div class="login-error" id="loginError"></div>
+      <button class="primary-btn" type="submit">Войти</button>
+    </form>
+  </div>
+</div>
+
+<div id="appScreen">
+  <div class="mobile-bar">
+    <div class="mobile-bar-title">
+      <div class="sidebar-logo"><img src="/images/logo.webp" alt=""></div>
+      <span>ToiLink Admin</span>
+    </div>
+    <button class="hamburger" type="button" onclick="toggleSidebar(true)" aria-label="Меню">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+  <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <div class="sidebar-logo"><img src="/images/logo.webp" alt=""></div>
+        <div>
+          <div class="sidebar-title">ToiLink</div>
+          <div class="sidebar-note">Backoffice</div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-link active" data-section="dashboard">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+          Дашборд
+        </button>
+        <button class="nav-link" data-section="users">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Пользователи
+        </button>
+        <button class="nav-link" data-section="events">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+          События
+        </button>
+        <button class="nav-link" data-section="templates">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          Шаблоны
+        </button>
+        <button class="nav-link" data-section="landing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>
+          Лендинг
+        </button>
+        <button class="nav-link" data-section="payments">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+          Оплаты
+        </button>
+        <button class="nav-link" data-section="audit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+          Audit log
+        </button>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="admin-id-card">
+          <div class="admin-id-avatar" id="adminAvatar">A</div>
+          <div class="admin-id-info">
+            <strong>Superadmin</strong>
+            <span class="admin-phone" id="adminPhone"></span>
+          </div>
+        </div>
+        <button class="ghost-btn" type="button" onclick="logout()" style="background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" x2="9" y1="12" y2="12"/></svg>
+          Выйти
+        </button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="section active" id="section-dashboard">
+        <div class="dashboard-layout">
+          <header class="dash-header">
+            <div>
+              <div class="dash-kicker">Live</div>
+              <h1 class="dash-title">Обзор платформы</h1>
+              <p class="dash-subtitle">Ключевые метрики, выручка и активность в реальном времени.</p>
+            </div>
+            <button class="dash-refresh" onclick="loadDashboard()">Обновить</button>
+          </header>
+
+          <div class="dash-board">
+            <section class="dash-card hero-card">
+              <div>
+                <div class="hero-label">Выручка всего</div>
+                <div class="hero-value" id="dashRevenueHero">—</div>
+                <div class="hero-trend" id="dashRevenueTrend"></div>
+              </div>
+              <div class="hero-copy" id="dashRevenueSub2"></div>
+            </section>
+
+            <section class="dash-card hero-card">
+              <div>
+                <div class="hero-label">Платформа</div>
+                <div class="hero-mini-grid">
+                  <div class="hero-mini"><strong id="dashUsersTotal2">—</strong><span>Пользователи</span></div>
+                  <div class="hero-mini"><strong id="dashEventsTotal2">—</strong><span>События</span></div>
+                  <div class="hero-mini"><strong id="dashGuestsTotal2">—</strong><span>Гости</span></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="dash-card hero-card">
+              <div>
+                <div class="hero-label">Внимание</div>
+                <div class="hero-mini-grid">
+                  <div class="hero-mini"><strong id="dashPendingPayments2">—</strong><span>Ожидают оплаты</span></div>
+                  <div class="hero-mini"><strong id="dashBlockedUsers2">—</strong><span>Заблокированы</span></div>
+                  <div class="hero-mini"><strong id="dashTemplates2">—</strong><span>Шаблоны</span></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="dash-card growth-card">
+              <div class="chart-head">
+                <div>
+                  <div class="chart-title">Объём платформы</div>
+                  <div class="chart-sub">Распределение по ключевым метрикам</div>
+                </div>
+              </div>
+              <canvas class="chart-canvas" id="chartGrowth"></canvas>
+            </section>
+
+            <section class="dash-card activity-card">
+              <div class="chart-head">
+                <div>
+                  <div class="chart-title">Активность</div>
+                  <div class="chart-sub">Последние действия</div>
+                </div>
+              </div>
+              <div class="activity-list" id="activityFeed"></div>
+            </section>
+
+            <div class="kpi-row">
+              <div class="kpi-card">
+                <div class="kpi-label">Новые пользователи</div>
+                <div class="kpi-value" id="dashUsersToday">—</div>
+                <div class="kpi-sub">Сегодня</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Новые события</div>
+                <div class="kpi-value" id="dashEventsToday">—</div>
+                <div class="kpi-sub">Сегодня</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">RSVP ответы</div>
+                <div class="kpi-value" id="dashRsvpToday">—</div>
+                <div class="kpi-sub" id="dashRsvpSub2">Сегодня / — за неделю</div>
+              </div>
+              <div class="kpi-card">
+                <div class="kpi-label">Подтверждено платежей</div>
+                <div class="kpi-value" id="dashPaymentsConfirmed">—</div>
+                <div class="kpi-sub">Сегодня</div>
+              </div>
+            </div>
+
+            <div class="analytics-row">
+              <section class="dash-card analytics-card">
+                <div class="chart-head">
+                  <div>
+                    <div class="chart-title">Воронка событий</div>
+                    <div class="chart-sub">Draft → Published → Closed</div>
+                  </div>
+                </div>
+                <div class="funnel" id="funnelContainer"></div>
+              </section>
+
+              <section class="dash-card analytics-card">
+                <div class="chart-head">
+                  <div>
+                    <div class="chart-title">Статусы событий</div>
+                    <div class="chart-sub">Распределение</div>
+                  </div>
+                </div>
+                <canvas class="chart-canvas" id="chartDonut"></canvas>
+              </section>
+
+              <section class="dash-card analytics-card">
+                <div class="chart-head">
+                  <div>
+                    <div class="chart-title">Состояние системы</div>
+                    <div class="chart-sub">Ключевые показатели</div>
+                  </div>
+                </div>
+                <div class="health-list" id="systemHealth"></div>
+              </section>
+            </div>
+
+            <div class="dash-lists">
+              <section class="dash-card dash-list-card">
+                <div class="chart-head">
+                  <div>
+                    <div class="chart-title">Последние пользователи</div>
+                  </div>
+                </div>
+                <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none;max-height:340px;" id="dashUsersTable"></div>
+              </section>
+
+              <section class="dash-card dash-list-card">
+                <div class="chart-head">
+                  <div>
+                    <div class="chart-title">Последние события</div>
+                  </div>
+                </div>
+                <div class="table-wrap" style="border:0;border-radius:0;box-shadow:none;max-height:340px;" id="dashEventsTable"></div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-users">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">CRM</div>
+            <h1>Пользователи</h1>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="filters">
+            <input id="userSearch" class="input" placeholder="Поиск по телефону или имени"/>
+            <select id="userStatus" class="select">
+              <option value="">Все статусы</option>
+              <option value="ACTIVE">Активные</option>
+              <option value="BLOCKED">Заблокированные</option>
+              <option value="DELETED">Удалённые</option>
+            </select>
+            <label class="tiny-btn"><input id="userIncludeDeleted" type="checkbox"/> с удалёнными</label>
+          </div>
+          <button class="ghost-btn" onclick="loadUsers()">Найти</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Телефон</th><th>Имя</th><th>Роль</th><th>Статус</th><th>Последний вход</th><th>Регистрация</th><th>Действия</th></tr></thead>
+          <tbody id="usersTable"></tbody>
+        </table></div>
+        <div class="pager" id="usersPager"></div>
+      </section>
+
+      <section class="section" id="section-events">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Приглашения</div>
+            <h1>События</h1>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="filters">
+            <input id="eventSearch" class="input" placeholder="Название, slug, телефон, шаблон"/>
+            <select id="eventStatus" class="select">
+              <option value="">Все статусы</option>
+              <option value="DRAFT">DRAFT</option>
+              <option value="PUBLISHED">PUBLISHED</option>
+              <option value="CLOSED">CLOSED</option>
+            </select>
+            <label class="tiny-btn"><input id="eventIncludeDeleted" type="checkbox"/> с удалёнными</label>
+          </div>
+          <button class="ghost-btn" onclick="loadEvents()">Найти</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Название</th><th>Владелец</th><th>Шаблон</th><th>Статус</th><th>Дата тоя</th><th>Slug</th><th>Действия</th></tr></thead>
+          <tbody id="eventsTable"></tbody>
+        </table></div>
+        <div class="pager" id="eventsPager"></div>
+      </section>
+
+      <section class="section" id="section-templates">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Каталог</div>
+            <h1>Шаблоны</h1>
+          </div>
+          <div class="top-actions">
+            <button class="primary-btn accent-btn" onclick="openCreateTemplate()">Новый шаблон</button>
+            <button class="ghost-btn" onclick="loadTemplates()">Обновить</button>
+          </div>
+        </div>
+        <div class="template-showcase" id="templatesShowcase"></div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Название</th><th>Категория</th><th>Path</th><th>Порядок</th><th>Статус</th><th>Обновлён</th><th>Действия</th></tr></thead>
+          <tbody id="templatesTable"></tbody>
+        </table></div>
+        <div class="pager" id="templatesPager"></div>
+      </section>
+
+      <section class="section" id="section-landing">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Сайт</div>
+            <h1>Лендинг</h1>
+          </div>
+          <div class="top-actions">
+            <a class="ghost-btn" href="/landing.html" target="_blank" rel="noopener">Открыть сайт</a>
+            <button class="ghost-btn" onclick="loadLanding()">Обновить</button>
+            <button class="primary-btn accent-btn" onclick="saveLanding()">Сохранить</button>
+          </div>
+        </div>
+
+        <div class="landing-grid">
+          <div class="landing-panel">
+            <h2>Включить / скрыть блоки</h2>
+            <p class="landing-help">Скрытый блок остаётся в коде, но не показывается на публичном лендинге.</p>
+            <div class="landing-switches" id="landingSectionSwitches"></div>
+            <div class="landing-status" id="landingStatus">—</div>
+          </div>
+
+          <div class="landing-panel">
+            <h2>Тексты и контент</h2>
+            <p class="landing-help">Меняйте основные тексты как в обычной форме. Списки можно пополнять и удалять без ручного JSON.</p>
+            <div class="landing-form" id="landingForm"></div>
+            <details class="landing-advanced">
+              <summary>Расширенный JSON</summary>
+              <div class="top-actions" style="justify-content:flex-start;margin-bottom:10px;">
+                <button class="tiny-btn" onclick="formatLandingJson()">Форматировать</button>
+                <button class="tiny-btn" onclick="copyLandingJson()">Скопировать JSON</button>
+                <button class="tiny-btn" onclick="applyLandingJsonToForm()">Применить JSON к форме</button>
+              </div>
+              <textarea class="textarea landing-json" id="landingJson" spellcheck="false" placeholder="Загрузка..."></textarea>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="section-payments">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Финансы</div>
+            <h1>Оплаты</h1>
+          </div>
+        </div>
+        <div class="toolbar">
+          <div class="filters">
+            <input id="paymentSearch" class="input" placeholder="Телефон, чек, событие"/>
+            <select id="paymentStatus" class="select">
+              <option value="">Все статусы</option>
+              <option value="PENDING">PENDING</option>
+              <option value="AWAITING_CONFIRMATION">AWAITING_CONFIRMATION</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="REJECTED">REJECTED</option>
+              <option value="REFUNDED">REFUNDED</option>
+            </select>
+          </div>
+          <button class="ghost-btn" onclick="loadPayments()">Найти</button>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Пользователь</th><th>Событие</th><th>Сумма</th><th>Метод</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+          <tbody id="paymentsTable"></tbody>
+        </table></div>
+        <div class="pager" id="paymentsPager"></div>
+      </section>
+
+      <section class="section" id="section-audit">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Безопасность</div>
+            <h1>Audit log</h1>
+          </div>
+          <div class="top-actions">
+            <button class="ghost-btn" onclick="loadAudit()">Обновить</button>
+          </div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>Админ</th><th>Действие</th><th>Цель</th><th>Причина</th><th>IP</th><th>Дата</th></tr></thead>
+          <tbody id="auditTable"></tbody>
+        </table></div>
+        <div class="pager" id="auditPager"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+const API = '/api/admin';
+const state = {
+  usersPage: 0,
+  eventsPage: 0,
+  templatesPage: 0,
+  paymentsPage: 0,
+  auditPage: 0,
+  activeSection: 'dashboard',
+  landingConfig: null
+};
+
+const sectionLoaders = {
+  dashboard: loadDashboard,
+  users: loadUsers,
+  events: loadEvents,
+  templates: loadTemplates,
+  landing: loadLanding,
+  payments: loadPayments,
+  audit: loadAudit
+};
+
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  const phone = document.getElementById('loginPhone').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone, password }),
+      credentials: 'include'
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) return showLoginError(data.message || 'Неверный телефон или пароль');
+    if (data.role !== 'SUPERADMIN') return showLoginError('Доступ запрещён. Нужна роль SUPERADMIN.');
+    showApp(data.phone || phone);
+  } catch {
+    showLoginError('Не удалось подключиться к серверу');
+  }
+});
+
+document.querySelectorAll('.nav-link').forEach(btn => {
+  btn.addEventListener('click', () => navigateTo(btn.dataset.section));
+});
+
+['userSearch','eventSearch','paymentSearch'].forEach(id => {
+  document.getElementById(id)?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      if (id === 'userSearch') { state.usersPage = 0; loadUsers(); }
+      if (id === 'eventSearch') { state.eventsPage = 0; loadEvents(); }
+      if (id === 'paymentSearch') { state.paymentsPage = 0; loadPayments(); }
+    }
+  });
+});
+
+['userStatus','userIncludeDeleted'].forEach(id => document.getElementById(id)?.addEventListener('change', () => { state.usersPage = 0; loadUsers(); }));
+['eventStatus','eventIncludeDeleted'].forEach(id => document.getElementById(id)?.addEventListener('change', () => { state.eventsPage = 0; loadEvents(); }));
+document.getElementById('paymentStatus')?.addEventListener('change', () => { state.paymentsPage = 0; loadPayments(); });
+
+function showLoginError(message) {
+  const err = document.getElementById('loginError');
+  err.textContent = message;
+  err.style.display = 'block';
+}
+
+function showApp(phone) {
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appScreen').style.display = 'block';
+  document.getElementById('adminPhone').textContent = phone;
+  const avatar = document.getElementById('adminAvatar');
+  if (avatar) avatar.textContent = (phone || 'A').replace(/\D/g, '').slice(-2) || 'A';
+  navigateTo(state.activeSection || 'dashboard');
+}
+
+function toggleSidebar(open) {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebarBackdrop');
+  if (!sidebar) return;
+  const willOpen = open ?? !sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', willOpen);
+  backdrop?.classList.toggle('show', willOpen);
+}
+
+async function checkSession() {
+  try {
+    const res = await fetch('/api/auth/me', { credentials: 'include' });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.role === 'SUPERADMIN') showApp(data.phone);
+  } catch {}
+}
+
+async function logout() {
+  await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+  document.getElementById('appScreen').style.display = 'none';
+  document.getElementById('loginScreen').style.display = '';
+  document.getElementById('loginForm').reset();
+}
+
+function navigateTo(section) {
+  state.activeSection = section;
+  document.querySelectorAll('.nav-link').forEach(b => b.classList.toggle('active', b.dataset.section === section));
+  document.querySelectorAll('.section').forEach(s => s.classList.toggle('active', s.id === `section-${section}`));
+  if (window.matchMedia('(max-width: 980px)').matches) toggleSidebar(false);
+  sectionLoaders[section]?.();
+}
+
+async function apiJson(url, options = {}) {
+  const res = await fetch(url, { credentials: 'include', ...options });
+  if (res.status === 401 || res.status === 403) {
+    document.getElementById('appScreen').style.display = 'none';
+    document.getElementById('loginScreen').style.display = '';
+    showLoginError(res.status === 403 ? 'Нет доступа к админке' : 'Сессия истекла');
+    return null;
+  }
+  if (res.status === 204) return {};
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    toast(data.message || 'Запрос не выполнен');
+    return null;
+  }
+  return data;
+}
+
+function jsonOptions(payload, method = 'POST') {
+  return {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload || {})
+  };
+}
+
+function skeletonRows(cols, rows = 6) {
+  let html = '';
+  for (let i = 0; i < rows; i++) {
+    let tds = '';
+    for (let j = 0; j < cols; j++) {
+      const w = 30 + ((i * 17 + j * 23) % 60);
+      tds += `<td><div class="sk-line" style="width:${w}%"></div></td>`;
+    }
+    html += `<tr>${tds}</tr>`;
+  }
+  return html;
+}
+
+function showSkeleton(tableId, cols) {
+  const el = document.getElementById(tableId);
+  if (el) el.innerHTML = skeletonRows(cols);
+}
+
+const AVATAR_PALETTE = ['#2F7D48','#245C9A','#6D28D9','#167386','#B86B19','#8A6412','#5E3A8A','#9A2342'];
+function avatarFor(seed) {
+  const text = String(seed || '?');
+  let hash = 0;
+  for (let i = 0; i < text.length; i++) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
+  return AVATAR_PALETTE[hash % AVATAR_PALETTE.length];
+}
+function initialsFor(name, phone) {
+  if (name && name.trim()) {
+    const parts = name.trim().split(/\s+/);
+    return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase() || (name[0] || '?').toUpperCase();
+  }
+  if (phone) return phone.replace(/\D/g, '').slice(-2) || '#';
+  return '?';
+}
+
+document.addEventListener('click', (e) => {
+  const cell = e.target.closest('.copy-cell');
+  if (!cell || !cell.dataset.copy) return;
+  const value = cell.dataset.copy;
+  const fallback = () => {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch {}
+    document.body.removeChild(ta);
+  };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(value).catch(fallback);
+  else fallback();
+  cell.classList.add('copied');
+  toast('Скопировано: ' + value);
+  setTimeout(() => cell.classList.remove('copied'), 1300);
+});
+
+async function loadDashboard() {
+  const d = await apiJson(`${API}/dashboard`);
+  if (!d) return;
+
+  // Hero strip
+  setText('dashRevenueHero', fmtMoney(d.revenueTotal));
+  const revToday = Number(d.revenueToday || 0);
+  const trendEl = document.getElementById('dashRevenueTrend');
+  if (trendEl) {
+    trendEl.textContent = revToday > 0 ? `↑ ${fmtMoney(d.revenueToday)} сегодня` : 'Нет поступлений сегодня';
+    trendEl.className = 'hero-trend' + (revToday > 0 ? ' up' : '');
+  }
+  setText('dashRevenueSub2', `Комиссия платформы 12% · ~${fmtMoney((d.revenueTotal || 0).multiply ? (d.revenueTotal.multiply(0.88) || d.revenueTotal) : d.revenueTotal)} после вычета`);
+
+  setText('dashUsersTotal2', numberShort(d.usersTotal));
+  setText('dashEventsTotal2', numberShort(d.eventsTotal));
+  setText('dashGuestsTotal2', numberShort(d.guestsTotal));
+  setText('dashPendingPayments2', numberShort(d.paymentsPending));
+  setText('dashBlockedUsers2', numberShort(d.usersBlocked));
+  setText('dashTemplates2', numberShort(d.templatesActive));
+
+  // KPI row
+  setText('dashUsersToday', '+' + numberShort(d.usersToday));
+  setText('dashEventsToday', '+' + numberShort(d.eventsToday));
+  setText('dashRsvpToday', numberShort(d.rsvpsToday));
+  setText('dashPaymentsConfirmed', numberShort(d.paymentsConfirmedToday));
+  const rsvpSub = document.getElementById('dashRsvpSub2');
+  if (rsvpSub) rsvpSub.textContent = `Сегодня / ${numberShort(d.rsvpsWeek)} за неделю`;
+
+  // Activity feed
+  renderActivityFeed(d);
+
+  // Charts
+  renderGrowthChart(d);
+  renderDonutChart(d);
+  renderFunnelChart(d);
+  renderSystemHealth(d);
+
+  // Lists
+  const users = await apiJson(`${API}/users?page=0&size=5`);
+  document.getElementById('dashUsersTable').innerHTML = renderDashTable(
+    users?.content || [],
+    ['Телефон', 'Имя', 'Роль', 'Дата'],
+    u => [esc(u.phone), esc(u.name || '—'), badge(u.role || 'CLIENT', u.role === 'SUPERADMIN' ? 'role-superadmin' : 'gray'), fmtDate(u.createdAt)]
+  );
+
+  const events = await apiJson(`${API}/events?page=0&size=5`);
+  document.getElementById('dashEventsTable').innerHTML = renderDashTable(
+    events?.content || [],
+    ['Название', 'Владелец', 'Статус'],
+    e => [esc(e.title || '—'), esc(e.user?.phone || '—'), statusBadge(e.status)]
+  );
+}
+
+function renderActivityFeed(d) {
+  const el = document.getElementById('activityFeed');
+  if (!el) return;
+  const items = [
+    { dot: '#139A4B', text: `${numberShort(d.usersToday)} новых пользователей за сегодня`, time: 'Сегодня' },
+    { dot: '#2563EB', text: `${numberShort(d.eventsToday)} новых событий создано`, time: 'Сегодня' },
+    { dot: '#C2710A', text: `${numberShort(d.paymentsPending)} платежей ожидают подтверждения`, time: 'Сейчас' },
+    { dot: '#139A4B', text: `${numberShort(d.rsvpsToday)} RSVP ответов получено`, time: 'Сегодня' },
+    { dot: '#6B6B68', text: `${numberShort(d.templatesActive)} активных шаблонов`, time: 'Всего' },
+  ].filter(i => i.text.startsWith('0') ? false : true);
+  
+  if (!items.length) {
+    el.innerHTML = '<div class="empty-state"><span class="empty-state-text">Пока нет активности</span></div>';
+    return;
+  }
+  el.innerHTML = items.map(i => `
+    <div class="activity-item">
+      <div class="activity-dot" style="background:${i.dot}"></div>
+      <div class="activity-body">
+        <div class="activity-text">${i.text}</div>
+        <div class="activity-time">${i.time}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderGrowthChart(d) {
+  const setup = setupCanvas('chartGrowth', 290);
+  if (!setup) return;
+  const { ctx, width, height } = setup;
+  const items = [
+    { label: 'Пользователи', value: Number(d.usersTotal || 0), color: '#121212' },
+    { label: 'События', value: Number(d.eventsTotal || 0), color: '#404040' },
+    { label: 'Гости', value: Number(d.guestsTotal || 0), color: '#6B6B68' },
+    { label: 'RSVP (7д)', value: Number(d.rsvpsWeek || 0), color: '#2563EB' },
+    { label: 'Оплаты', value: Number(d.paymentsConfirmedToday || 0), color: '#139A4B' }
+  ];
+  
+  const pad = { top: 20, right: 16, bottom: 40, left: 16 };
+  const plotW = width - pad.left - pad.right;
+  const plotH = height - pad.top - pad.bottom;
+  const max = Math.max(1, ...items.map(i => i.value));
+  
+  // Grid lines
+  ctx.strokeStyle = '#EBEBE8';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 4; i++) {
+    const y = pad.top + i * (plotH / 3);
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(width - pad.right, y); ctx.stroke();
+  }
+  
+  const slot = plotW / items.length;
+  const barW = Math.min(52, slot * .55);
+  
+  items.forEach((item, i) => {
+    const h = Math.max(8, (item.value / max) * plotH);
+    const x = pad.left + slot * i + (slot - barW) / 2;
+    const y = pad.top + plotH - h;
+    
+    ctx.fillStyle = item.color;
+    roundRect(ctx, x, y, barW, h, 6, item.color);
+    
+    ctx.fillStyle = '#141413';
+    ctx.font = '600 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(numberShort(item.value), x + barW / 2, y - 8);
+    
+    ctx.fillStyle = '#9D9D99';
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.fillText(item.label, x + barW / 2, height - 14);
+  });
+}
+
+function renderDonutChart(d) {
+  const setup = setupCanvas('chartDonut', 220);
+  if (!setup) return;
+  const { ctx, width, height } = setup;
+  const draft = Math.max(0, Number(d.eventsTotal || 0) - Number(d.eventsPublished || 0) - Number(d.eventsClosed || 0));
+  const items = [
+    { label: 'Draft', value: draft, color: '#9D9D99' },
+    { label: 'Published', value: Number(d.eventsPublished || 0), color: '#139A4B' },
+    { label: 'Closed', value: Number(d.eventsClosed || 0), color: '#404040' }
+  ];
+  const total = Math.max(1, items.reduce((s, i) => s + i.value, 0));
+  
+  const cx = width / 2, cy = height / 2 - 4;
+  const radius = Math.min(width, height) * .28;
+  let start = -Math.PI / 2;
+  
+  ctx.lineCap = 'round';
+  items.forEach(item => {
+    const angle = (item.value / total) * Math.PI * 2;
+    if (angle < 0.02) return;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, start + .03, start + angle - .03);
+    ctx.lineWidth = 18;
+    ctx.strokeStyle = item.color;
+    ctx.stroke();
+    start += angle;
+  });
+  
+  ctx.fillStyle = '#141413';
+  ctx.font = '700 28px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(numberShort(total), cx, cy + 6);
+  ctx.fillStyle = '#9D9D99';
+  ctx.font = '600 10px Inter, sans-serif';
+  ctx.fillText('total events', cx, cy + 22);
+  
+  // Legend
+  let lx = 16;
+  items.forEach(item => {
+    ctx.fillStyle = item.color;
+    ctx.beginPath(); ctx.arc(lx, height - 12, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#6B6B68';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(`${item.label} ${item.value}`, lx + 8, height - 8);
+    lx += ctx.measureText(`${item.label} ${item.value}`).width + 24;
+  });
+}
+
+function renderFunnelChart(d) {
+  const el = document.getElementById('funnelContainer');
+  if (!el) return;
+  const rows = [
+    ['Пользователи', d.usersTotal, '#121212'],
+    ['Создано событий', d.eventsTotal, '#404040'],
+    ['Опубликовано', d.eventsPublished, '#139A4B'],
+    ['Закрыто', d.eventsClosed, '#6B6B68']
+  ];
+  const max = Math.max(1, ...rows.map(r => Number(r[1] || 0)));
+  el.innerHTML = rows.map(([label, value, color]) => {
+    const pct = Math.max(3, Math.round((Number(value || 0) / max) * 100));
+    return `<div class="funnel-row">
+      <span class="funnel-label">${esc(label)}</span>
+      <div class="funnel-track"><div class="funnel-bar" style="background:${color};width:${pct}%"></div></div>
+      <span class="funnel-value">${esc(numberShort(value))}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderSystemHealth(d) {
+  const el = document.getElementById('systemHealth');
+  if (!el) return;
+  const pending = Number(d.paymentsPending || 0);
+  const blocked = Number(d.usersBlocked || 0);
+  const revenueOk = (Number(d.revenueTotal || 0)) > 0;
+  
+  el.innerHTML = [
+    { label: 'Выручка', value: fmtMoney(d.revenueTotal), ok: revenueOk },
+    { label: 'Оплаты на проверке', value: numberShort(pending), ok: pending < 10 },
+    { label: 'Заблокировано', value: numberShort(blocked), ok: blocked < 5 },
+    { label: 'Активных шаблонов', value: numberShort(d.templatesActive), ok: Number(d.templatesActive) > 0 },
+    { label: 'RSVP за неделю', value: numberShort(d.rsvpsWeek), ok: Number(d.rsvpsWeek) > 0 },
+  ].map(row => `
+    <div class="health-row">
+      <span class="health-label"><span class="health-dot ${row.ok ? 'ok' : 'warn'}"></span>${row.label}</span>
+      <span class="health-value">${row.value}</span>
+    </div>
+  `).join('');
+}
+
+function renderDashTable(items, headers, mapper) {
+  if (!items.length) return '<div class="empty-state"><span class="empty-state-text">Пока пусто</span></div>';
+  return `<table class="mini-table">
+    <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+    <tbody>${items.map(item => `<tr>${mapper(item).map(v => `<td>${v}</td>`).join('')}</tr>`).join('')}</tbody>
+  </table>`;
+}
+
+function setText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = value ?? '—';
+}
+
+function setupCanvas(id, height = 220) {
+  const canvas = document.getElementById(id);
+  if (!canvas) return null;
+  const box = canvas.getBoundingClientRect();
+  const width = Math.max(280, Math.floor(box.width || canvas.parentElement?.clientWidth || 400));
+  const ratio = window.devicePixelRatio || 1;
+  canvas.width = Math.floor(width * ratio);
+  canvas.height = Math.floor(height * ratio);
+  canvas.style.height = height + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+  return { ctx, width, height };
+}
+
+function roundRect(ctx, x, y, w, h, r, fill) {
+  const radius = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + w, y, x + w, y + h, radius);
+  ctx.arcTo(x + w, y + h, x, y + h, radius);
+  ctx.arcTo(x, y + h, x, y, radius);
+  ctx.arcTo(x, y, x + w, y, radius);
+  ctx.closePath();
+  ctx.fillStyle = fill;
+  ctx.fill();
+}
+
+async function loadUsers() {
+  showSkeleton('usersTable', 8);
+  const query = new URLSearchParams({
+    page: state.usersPage,
+    size: 20,
+    search: document.getElementById('userSearch').value.trim(),
+    status: document.getElementById('userStatus').value,
+    includeDeleted: document.getElementById('userIncludeDeleted').checked
+  });
+  const page = await apiJson(`${API}/users?${query}`);
+  if (!page) return;
+  const rows = page.content || [];
+  document.getElementById('usersTable').innerHTML = rows.length ? rows.map(userRow).join('') : emptyRow(8, 'Пользователей не найдено');
+  renderPager('usersPager', page, n => { state.usersPage = n; loadUsers(); });
+}
+
+function userRow(u) {
+  const status = u.deleted ? badge('Удалён', 'gray') : u.active ? badge('Активен', 'green') : badge('Блок', 'red');
+  const initials = initialsFor(u.name, u.phone);
+  const tone = avatarFor(u.phone || u.id);
+  const roleTone = u.role === 'SUPERADMIN' ? 'role-superadmin' : 'gray';
+  return `
+    <tr>
+      <td class="mono muted">${esc(u.id)}</td>
+      <td class="nowrap"><span class="copy-cell" data-copy="${attr(u.phone)}" title="Скопировать">${esc(u.phone)}</span></td>
+      <td>
+        <div class="user-cell">
+          <span class="avatar" style="background:${tone}">${esc(initials)}</span>
+          <span class="user-cell-name"><strong>${esc(u.name || 'Без имени')}</strong>${u.name ? '' : '<span>—</span>'}</span>
+        </div>
+      </td>
+      <td>${badge(u.role || 'CLIENT', roleTone)}</td>
+      <td>${status}</td>
+      <td class="muted nowrap">${fmtDateTime(u.lastLoginAt)}</td>
+      <td class="muted nowrap">${fmtDate(u.createdAt)}</td>
+      <td><div class="row-actions">
+        ${u.active && !u.deleted ? `<button class="tiny-btn danger" onclick="blockUser(${Number(u.id)})">Блок</button>` : ''}
+        ${!u.active && !u.deleted ? `<button class="tiny-btn good" onclick="unblockUser(${Number(u.id)})">Разблок</button>` : ''}
+        <button class="tiny-btn" onclick="viewUserEvents(${Number(u.id)}, '${attr(u.phone)}')">События</button>
+        ${u.role !== 'SUPERADMIN' && !u.deleted ? `<button class="tiny-btn danger" onclick="deleteUser(${Number(u.id)})">Удалить</button>` : ''}
+      </div></td>
+    </tr>`;
+}
+
+async function blockUser(id) {
+  const ans = await promptReason({
+    title: 'Заблокировать пользователя',
+    message: 'Пользователь не сможет войти в систему. Причина попадёт в audit log.',
+    placeholder: 'Например: множественные жалобы от гостей',
+    submitLabel: 'Заблокировать',
+    tone: 'danger'
+  });
+  if (!ans) return;
+  const res = await apiJson(`${API}/users/${id}/block`, jsonOptions({ reason: ans.reason }));
+  if (res) { toast('Пользователь заблокирован'); loadUsers(); loadAuditIfOpen(); }
+}
+
+async function unblockUser(id) {
+  const res = await apiJson(`${API}/users/${id}/unblock`, jsonOptions({ reason: 'Разблокировка из админки' }));
+  if (res) { toast('Пользователь разблокирован'); loadUsers(); loadAuditIfOpen(); }
+}
+
+async function deleteUser(id) {
+  const ans = await promptReason({
+    title: 'Удалить пользователя',
+    message: 'Soft-delete: записи останутся в базе, но пользователь будет помечен как удалённый.',
+    placeholder: 'Например: запрос пользователя на удаление аккаунта',
+    submitLabel: 'Удалить',
+    tone: 'danger'
+  });
+  if (!ans) return;
+  const res = await apiJson(`${API}/users/${id}`, jsonOptions({ reason: ans.reason }, 'DELETE'));
+  if (res) { toast('Пользователь удалён'); loadUsers(); loadAuditIfOpen(); }
+}
+
+async function viewUserEvents(id, phone) {
+  const page = await apiJson(`${API}/users/${id}/events?page=0&size=30`);
+  if (!page) return;
+  const items = page.content || [];
+  const body = items.length
+    ? `<div class="table-wrap"><table style="min-width:0"><thead><tr><th>ID</th><th>Название</th><th>Статус</th><th>Ссылка</th></tr></thead><tbody>${items.map(e => `
+        <tr><td class="mono">${esc(e.id)}</td><td>${esc(e.title || 'Без названия')}</td><td>${statusBadge(e.status)}</td><td>${link(e.previewUrl || e.publicUrl, 'Открыть')}</td></tr>
+      `).join('')}</tbody></table></div>`
+    : '<div class="empty-state">У пользователя нет событий</div>';
+  showModal(`События: ${phone}`, body);
+}
+
+async function loadEvents() {
+  showSkeleton('eventsTable', 8);
+  const query = new URLSearchParams({
+    page: state.eventsPage,
+    size: 30,
+    search: document.getElementById('eventSearch').value.trim(),
+    status: document.getElementById('eventStatus').value,
+    includeDeleted: document.getElementById('eventIncludeDeleted').checked
+  });
+  const page = await apiJson(`${API}/events?${query}`);
+  if (!page) return;
+  const rows = page.content || [];
+  document.getElementById('eventsTable').innerHTML = rows.length ? rows.map(eventRow).join('') : emptyRow(8, 'Событий не найдено');
+  renderPager('eventsPager', page, n => { state.eventsPage = n; loadEvents(); });
+}
+
+function eventRow(e) {
+  const phone = e.user?.phone;
+  const slug = e.slug;
+  return `
+    <tr>
+      <td class="mono muted">${esc(e.id)}</td>
+      <td><strong>${esc(e.title || 'Без названия')}</strong><div class="muted">${esc([e.person1, e.person2].filter(Boolean).join(' + ') || e.location || '')}</div></td>
+      <td class="nowrap">${phone ? `<span class="copy-cell" data-copy="${attr(phone)}" title="Скопировать">${esc(phone)}</span>` : '—'}</td>
+      <td>${esc(e.template?.name || '—')}</td>
+      <td>${e.deleted ? badge('Удалён', 'gray') : statusBadge(e.status)}</td>
+      <td class="muted nowrap">${fmtDate(e.eventDate)}</td>
+      <td class="mono">${slug ? `<span class="copy-cell" data-copy="${attr(slug)}" title="Скопировать">${esc(slug)}</span>` : '—'}</td>
+      <td><div class="row-actions">
+        ${e.publicUrl ? linkButton(e.publicUrl, 'Публичная') : ''}
+        ${e.previewUrl ? linkButton(e.previewUrl, 'Превью') : ''}
+        ${!e.deleted && e.status !== 'PUBLISHED' ? `<button class="tiny-btn good" onclick="updateEventStatus(${Number(e.id)}, 'PUBLISHED')">Опубликовать</button>` : ''}
+        ${!e.deleted && e.status === 'PUBLISHED' ? `<button class="tiny-btn" onclick="updateEventStatus(${Number(e.id)}, 'CLOSED')">Закрыть</button>` : ''}
+        ${e.deleted ? `<button class="tiny-btn good" onclick="restoreEvent(${Number(e.id)})">Восст.</button>` : `<button class="tiny-btn danger" onclick="deleteEvent(${Number(e.id)})">Удалить</button>`}
+      </div></td>
+    </tr>`;
+}
+
+async function updateEventStatus(id, status) {
+  const res = await apiJson(`${API}/events/${id}`, jsonOptions({ status, reason: `Смена статуса на ${status}` }, 'PATCH'));
+  if (res) { toast(`Статус: ${status}`); loadEvents(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function deleteEvent(id) {
+  const ans = await promptReason({
+    title: 'Удалить событие',
+    message: 'Soft-delete события. Можно восстановить.',
+    placeholder: 'Например: дубликат / запрос владельца',
+    submitLabel: 'Удалить',
+    tone: 'danger'
+  });
+  if (!ans) return;
+  const res = await apiJson(`${API}/events/${id}`, jsonOptions({ reason: ans.reason }, 'DELETE'));
+  if (res) { toast('Событие удалено'); loadEvents(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function restoreEvent(id) {
+  const res = await apiJson(`${API}/events/${id}/restore`, jsonOptions({ reason: 'Восстановление из админки' }));
+  if (res) { toast('Событие восстановлено'); loadEvents(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function loadTemplates() {
+  showSkeleton('templatesTable', 8);
+  const page = await apiJson(`${API}/templates?page=${state.templatesPage}&size=50`);
+  if (!page) return;
+  const rows = page.content || [];
+  renderTemplatesShowcase(rows);
+  document.getElementById('templatesTable').innerHTML = rows.length ? rows.map(templateRow).join('') : emptyRow(8, 'Шаблонов нет');
+  renderPager('templatesPager', page, n => { state.templatesPage = n; loadTemplates(); });
+}
+
+function renderTemplatesShowcase(rows) {
+  const el = document.getElementById('templatesShowcase');
+  if (!el) return;
+  if (!rows.length) {
+    el.innerHTML = '<div class="template-empty">Шаблоны появятся здесь после добавления</div>';
+    return;
+  }
+  el.innerHTML = rows.slice(0, 6).map(templateCard).join('');
+}
+
+function templateCard(t) {
+  const preview = t.thumbnailUrl
+    ? `<img src="${attr(t.thumbnailUrl)}" alt=""/>`
+    : `<span class="template-preview-code">${esc(t.templatePath || 'template')}</span>`;
+  return `
+    <article class="template-card">
+      <div class="template-preview">${preview}</div>
+      <div class="template-body">
+        <div class="template-title-row">
+          <div>
+            <div class="template-name">${esc(t.name || 'Без названия')}</div>
+            <div class="template-path">${esc(t.templatePath || '—')}</div>
+          </div>
+          ${t.active ? badge('live', 'green') : badge('draft', 'gray')}
+        </div>
+        <div class="template-actions">
+          <button class="tiny-btn" onclick="editTemplate(${Number(t.id)}, '${attr(t.name)}', ${Number(t.sortOrder)}, ${Boolean(t.active)})">Править</button>
+          <button class="tiny-btn ${t.active ? 'danger' : 'good'}" onclick="toggleTemplate(${Number(t.id)}, ${!t.active})">${t.active ? 'Скрыть' : 'Включить'}</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function templateRow(t) {
+  return `
+    <tr>
+      <td class="mono">${esc(t.id)}</td>
+      <td><strong>${esc(t.name)}</strong><div class="muted">${esc(t.description || '')}</div></td>
+      <td>${esc(t.category || '—')}</td>
+      <td class="mono">${esc(t.templatePath || '—')}</td>
+      <td class="mono">${esc(t.sortOrder)}</td>
+      <td>${t.active ? badge('Активен', 'green') : badge('Скрыт', 'gray')}</td>
+      <td class="muted nowrap">${fmtDate(t.updatedAt)}</td>
+      <td><div class="row-actions">
+        <button class="tiny-btn" onclick="editTemplate(${Number(t.id)}, '${attr(t.name)}', ${Number(t.sortOrder)}, ${Boolean(t.active)})">Править</button>
+        <button class="tiny-btn ${t.active ? 'danger' : 'good'}" onclick="toggleTemplate(${Number(t.id)}, ${!t.active})">${t.active ? 'Скрыть' : 'Включить'}</button>
+      </div></td>
+    </tr>`;
+}
+
+async function toggleTemplate(id, active) {
+  const res = await apiJson(`${API}/templates/${id}`, jsonOptions({ active, reason: active ? 'Включение шаблона' : 'Скрытие шаблона' }, 'PATCH'));
+  if (res) { toast(active ? 'Шаблон включён' : 'Шаблон скрыт'); loadTemplates(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+function editTemplate(id, currentName, currentOrder, currentActive) {
+  showModal('Редактировать шаблон', `
+    <div class="field"><label>Название</label><input class="input" id="tplName" value="${attr(currentName)}"/></div>
+    <div class="field"><label>Порядок</label><input class="input" id="tplOrder" type="number" value="${Number(currentOrder)}"/></div>
+    <label class="tiny-btn" style="justify-content:flex-start;"><input id="tplActive" type="checkbox" ${currentActive ? 'checked' : ''}/> активен</label>
+  `, async () => {
+    const payload = {
+      name: document.getElementById('tplName').value,
+      sortOrder: Number(document.getElementById('tplOrder').value || 0),
+      active: document.getElementById('tplActive').checked,
+      reason: 'Редактирование шаблона'
+    };
+    const res = await apiJson(`${API}/templates/${id}`, jsonOptions(payload, 'PATCH'));
+    if (res) { toast('Шаблон обновлён'); closeModal(); loadTemplates(); loadAuditIfOpen(); }
+  });
+}
+
+function openCreateTemplate() {
+  showModal('Новый шаблон', `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+      <div class="field"><label>Название</label><input class="input" id="newTplName" placeholder="Elegant Wedding"/></div>
+      <div class="field"><label>Папка</label><input class="input" id="newTplPath" placeholder="template-3"/></div>
+      <div class="field"><label>Категория</label><input class="input" id="newTplCategory" value="WEDDING"/></div>
+      <div class="field"><label>Порядок</label><input class="input" id="newTplOrder" type="number" value="100"/></div>
+    </div>
+    <div class="field"><label>Обложка</label><input class="input" id="newTplThumb" placeholder="/templates/template-3/preview.jpg"/></div>
+    <div class="field"><label>Описание</label><input class="input" id="newTplDescription" placeholder="Премиальный шаблон для свадьбы"/></div>
+    <div class="field"><label>blocksSchema</label><textarea class="textarea" id="newTplSchema" placeholder="Можно оставить пустым"></textarea></div>
+    <label class="tiny-btn" style="justify-content:flex-start;"><input id="newTplActive" type="checkbox"/> сразу показать клиентам</label>
+  `, async () => {
+    const schema = document.getElementById('newTplSchema').value.trim();
+    if (schema) {
+      try { JSON.parse(schema); } catch { toast('blocksSchema должен быть JSON'); return; }
+    }
+    const payload = {
+      name: document.getElementById('newTplName').value.trim(),
+      templatePath: document.getElementById('newTplPath').value.trim(),
+      category: document.getElementById('newTplCategory').value.trim(),
+      sortOrder: Number(document.getElementById('newTplOrder').value || 100),
+      thumbnailUrl: document.getElementById('newTplThumb').value.trim(),
+      description: document.getElementById('newTplDescription').value.trim(),
+      blocksSchema: schema || null,
+      active: document.getElementById('newTplActive').checked,
+      reason: 'Создание шаблона из админки'
+    };
+    if (!payload.name) { toast('Название обязательно'); return; }
+    const res = await apiJson(`${API}/templates`, jsonOptions(payload));
+    if (res) {
+      toast('Шаблон добавлен');
+      closeModal();
+      state.templatesPage = 0;
+      loadTemplates();
+      loadDashboard();
+      loadAuditIfOpen();
+    }
+  });
+}
+
+const LANDING_SECTION_LABELS = {
+  hero: 'Первый экран',
+  miniFeatures: '3 быстрых преимущества',
+  phoneMockup: 'Айфон-мокап',
+  stats: 'Статистика под мокапом',
+  trust: 'Бегущая строка доверия',
+  categories: 'Категории событий',
+  how: 'Как работает',
+  features: 'Преимущества',
+  comparison: 'Сравнение с WhatsApp',
+  templates: 'Галерея шаблонов',
+  reviews: 'Отзывы',
+  pricing: 'Тарифы',
+  faq: 'FAQ',
+  finalCta: 'Финальный CTA',
+  footer: 'Футер'
+};
+
+async function loadLanding() {
+  const jsonEl = document.getElementById('landingJson');
+  const statusEl = document.getElementById('landingStatus');
+  if (jsonEl) jsonEl.value = 'Загрузка...';
+  const data = await apiJson(`${API}/landing`);
+  if (!data) return;
+  let config = {};
+  try {
+    config = JSON.parse(data.contentJson || '{}');
+  } catch {
+    config = {};
+  }
+  state.landingConfig = config;
+  if (jsonEl) jsonEl.value = JSON.stringify(config, null, 2);
+  renderLandingSwitches(config.sections || {});
+  renderLandingForm(config);
+  if (statusEl) statusEl.textContent = 'Загружено. После сохранения изменения сразу пойдут на публичный лендинг.';
+}
+
+function renderLandingSwitches(sections) {
+  const el = document.getElementById('landingSectionSwitches');
+  if (!el) return;
+  el.innerHTML = Object.entries(LANDING_SECTION_LABELS).map(([key, label]) => `
+    <label class="landing-switch">
+      <span>${esc(label)}</span>
+      <input type="checkbox" data-landing-section="${attr(key)}" ${sections[key] !== false ? 'checked' : ''} onchange="syncLandingFormToJson()"/>
+    </label>
+  `).join('');
+}
+
+const LANDING_SIMPLE_GROUPS = [
+  { title: 'SEO и превью', fields: [
+    ['meta.title', 'Title вкладки'],
+    ['meta.description', 'Meta description', 'textarea'],
+    ['meta.ogTitle', 'OG title'],
+    ['meta.ogDescription', 'OG description', 'textarea']
+  ]},
+  { title: 'Первый экран', fields: [
+    ['hero.badge', 'Плашка с рейтингом'],
+    ['hero.titleTop', 'Заголовок: верхняя строка'],
+    ['hero.titleAccent', 'Заголовок: акцент'],
+    ['hero.subtitle', 'Подзаголовок', 'textarea'],
+    ['hero.primaryCta', 'Главная кнопка'],
+    ['hero.secondaryCta', 'Вторая кнопка']
+  ]},
+  { title: 'Статистика и доверие', fields: [
+    ['stats.socialProof', 'Текст над статистикой', 'textarea']
+  ]},
+  { title: 'Категории', fields: [
+    ['categories.eyebrow', 'Надзаголовок'],
+    ['categories.title', 'Заголовок']
+  ]},
+  { title: 'Как работает', fields: [
+    ['how.eyebrow', 'Надзаголовок'],
+    ['how.title', 'Заголовок'],
+    ['how.subtitle', 'Подзаголовок', 'textarea'],
+    ['how.cta', 'Кнопка']
+  ]},
+  { title: 'Преимущества', fields: [
+    ['features.eyebrow', 'Надзаголовок'],
+    ['features.title', 'Заголовок'],
+    ['features.subtitle', 'Подзаголовок', 'textarea'],
+    ['features.highlightTitle', 'Большой блок: заголовок'],
+    ['features.highlightText', 'Большой блок: текст', 'textarea'],
+    ['features.highlightCta', 'Большой блок: кнопка']
+  ]},
+  { title: 'Сравнение', fields: [
+    ['comparison.eyebrow', 'Надзаголовок'],
+    ['comparison.title', 'Заголовок'],
+    ['comparison.subtitle', 'Подзаголовок', 'textarea'],
+    ['comparison.cta', 'Кнопка']
+  ]},
+  { title: 'Шаблоны', fields: [
+    ['templates.eyebrow', 'Надзаголовок'],
+    ['templates.title', 'Заголовок'],
+    ['templates.subtitle', 'Подзаголовок'],
+    ['templates.cta', 'Кнопка']
+  ]},
+  { title: 'Отзывы', fields: [
+    ['reviews.eyebrow', 'Надзаголовок'],
+    ['reviews.title', 'Заголовок']
+  ]},
+  { title: 'Тарифы', fields: [
+    ['pricing.eyebrow', 'Надзаголовок'],
+    ['pricing.title', 'Заголовок'],
+    ['pricing.subtitle', 'Подзаголовок', 'textarea']
+  ]},
+  { title: 'FAQ', fields: [
+    ['faq.eyebrow', 'Надзаголовок'],
+    ['faq.title', 'Заголовок']
+  ]},
+  { title: 'Финальный CTA', fields: [
+    ['finalCta.badge', 'Плашка'],
+    ['finalCta.title', 'Заголовок', 'textarea'],
+    ['finalCta.subtitle', 'Подзаголовок', 'textarea'],
+    ['finalCta.primaryCta', 'Главная кнопка'],
+    ['finalCta.secondaryCta', 'Вторая кнопка']
+  ]},
+  { title: 'Футер', fields: [
+    ['footer.text', 'Описание', 'textarea'],
+    ['footer.phone', 'Телефон'],
+    ['footer.email', 'Email'],
+    ['footer.city', 'Город'],
+    ['footer.copyright', 'Copyright']
+  ]}
+];
+
+function renderLandingForm(config) {
+  const form = document.getElementById('landingForm');
+  if (!form) return;
+  form.innerHTML = [
+    ...LANDING_SIMPLE_GROUPS.map(group => `
+      <section class="landing-group">
+        <div class="landing-group-title"><span>${esc(group.title)}</span></div>
+        <div class="landing-fields">
+          ${group.fields.map(([path, label, type]) => landingField(path, label, type)).join('')}
+        </div>
+      </section>
+    `),
+    landingTextListGroup('hero.bullets', 'Первый экран: галочки'),
+    landingTextListGroup('trust', 'Бегущая строка доверия'),
+    landingTextListGroup('pricing.badges', 'Тарифы: подписи под карточками'),
+    landingTextListGroup('finalCta.bullets', 'Финальный CTA: галочки'),
+    landingObjectListGroup('categories.items', 'Карточки категорий', [
+      ['emoji', 'Эмодзи'], ['title', 'Название'], ['text', 'Описание']
+    ]),
+    landingObjectListGroup('how.steps', 'Шаги процесса', [
+      ['title', 'Название'], ['text', 'Описание', 'textarea']
+    ]),
+    landingObjectListGroup('features.items', 'Карточки преимуществ', [
+      ['title', 'Название'], ['text', 'Описание', 'textarea']
+    ]),
+    landingObjectListGroup('reviews.items', 'Отзывы', [
+      ['avatar', 'Буква'], ['name', 'Имя'], ['meta', 'Подпись'], ['text', 'Текст отзыва', 'textarea']
+    ]),
+    landingObjectListGroup('pricing.plans', 'Тарифные планы', [
+      ['name', 'Название'], ['tag', 'Метка'], ['description', 'Описание'],
+      ['price', 'Цена'], ['currency', 'Валюта'], ['oldPrice', 'Старая цена'],
+      ['note', 'Подпись под ценой'], ['badge', 'Плашка сверху'], ['cta', 'Кнопка'],
+      ['features', 'Пункты тарифа, каждый с новой строки', 'lines']
+    ]),
+    landingObjectListGroup('faq.items', 'FAQ', [
+      ['question', 'Вопрос'], ['answer', 'Ответ', 'textarea']
+    ])
+  ].join('');
+}
+
+function landingField(path, label, type = 'input') {
+  const value = landingPathGet(state.landingConfig || {}, path) ?? '';
+  const wide = type === 'textarea' ? ' wide' : '';
+  const control = type === 'textarea'
+    ? `<textarea class="textarea" data-l-field="${attr(path)}" rows="3" oninput="syncLandingFormToJson()">${esc(value)}</textarea>`
+    : `<input class="input" data-l-field="${attr(path)}" value="${attr(value)}" oninput="syncLandingFormToJson()"/>`;
+  return `<div class="field${wide}"><label>${esc(label)}</label>${control}</div>`;
+}
+
+function landingTextListGroup(path, title) {
+  const items = landingPathGet(state.landingConfig || {}, path) || [];
+  return `
+    <section class="landing-group">
+      <div class="landing-group-title">
+        <span>${esc(title)}</span>
+        <button class="tiny-btn" onclick="landingAddTextItem('${attr(path)}')">Добавить</button>
+      </div>
+      <div class="landing-repeat">
+        ${items.map((item, i) => `
+          <div class="landing-repeat-item">
+            <div class="landing-repeat-head"><span>Пункт</span><button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button></div>
+            <input class="input" data-l-list="${attr(path)}" data-l-index="${i}" value="${attr(item)}" oninput="syncLandingFormToJson()"/>
+          </div>
+        `).join('')}
+      </div>
+    </section>`;
+}
+
+function landingObjectListGroup(path, title, fields) {
+  const items = landingPathGet(state.landingConfig || {}, path) || [];
+  return `
+    <section class="landing-group">
+      <div class="landing-group-title">
+        <span>${esc(title)}</span>
+        <button class="tiny-btn" onclick="landingAddObjectItem('${attr(path)}')">Добавить</button>
+      </div>
+      <div class="landing-repeat">
+        ${items.map((item, i) => `
+          <div class="landing-repeat-item">
+            <div class="landing-repeat-head"><span>${esc(title)}</span><button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button></div>
+            <div class="landing-fields">
+              ${fields.map(([key, label, type]) => {
+                const value = type === 'lines'
+                  ? (Array.isArray(item?.[key]) ? item[key].join('\n') : '')
+                  : (item?.[key] ?? '');
+                const wide = type === 'textarea' || type === 'lines' ? ' wide' : '';
+                const control = type === 'textarea' || type === 'lines'
+                  ? `<textarea class="textarea" rows="${type === 'lines' ? 5 : 3}" data-l-object="${attr(path)}" data-l-index="${i}" data-l-key="${attr(key)}" data-l-type="${attr(type || 'input')}" oninput="syncLandingFormToJson()">${esc(value)}</textarea>`
+                  : `<input class="input" data-l-object="${attr(path)}" data-l-index="${i}" data-l-key="${attr(key)}" value="${attr(value)}" oninput="syncLandingFormToJson()"/>`;
+                return `<div class="field${wide}"><label>${esc(label)}</label>${control}</div>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </section>`;
+}
+
+function readLandingJson() {
+  const raw = document.getElementById('landingJson').value.trim();
+  if (!raw) throw new Error('JSON пустой');
+  const parsed = JSON.parse(raw);
+  if (!parsed || Array.isArray(parsed) || typeof parsed !== 'object') {
+    throw new Error('Корень должен быть объектом');
+  }
+  parsed.sections = parsed.sections || {};
+  return parsed;
+}
+
+function syncLandingFormToJson() {
+  try {
+    const config = state.landingConfig || readLandingJson();
+    config.sections = config.sections || {};
+    document.querySelectorAll('[data-landing-section]').forEach(input => {
+      config.sections[input.dataset.landingSection] = input.checked;
+    });
+    document.querySelectorAll('[data-l-field]').forEach(input => {
+      landingPathSet(config, input.dataset.lField, input.value);
+    });
+    const listGroups = {};
+    document.querySelectorAll('[data-l-list]').forEach(input => {
+      (listGroups[input.dataset.lList] ||= [])[Number(input.dataset.lIndex)] = input.value;
+    });
+    Object.entries(listGroups).forEach(([path, values]) => landingPathSet(config, path, values.filter(v => String(v).trim() !== '')));
+    const objectGroups = {};
+    document.querySelectorAll('[data-l-object]').forEach(input => {
+      const path = input.dataset.lObject;
+      const index = Number(input.dataset.lIndex);
+      const key = input.dataset.lKey;
+      const value = input.dataset.lType === 'lines'
+        ? input.value.split('\n').map(v => v.trim()).filter(Boolean)
+        : input.value;
+      objectGroups[path] ||= [];
+      objectGroups[path][index] ||= {};
+      objectGroups[path][index][key] = value;
+    });
+    Object.entries(objectGroups).forEach(([path, values]) => landingPathSet(config, path, values));
+    state.landingConfig = config;
+    document.getElementById('landingJson').value = JSON.stringify(config, null, 2);
+  } catch (e) {
+    toast('Форма пока не сохранена: ' + e.message);
+  }
+}
+
+function landingPathGet(obj, path) {
+  return path.split('.').reduce((acc, key) => acc == null ? undefined : acc[key], obj);
+}
+
+function landingPathSet(obj, path, value) {
+  const parts = path.split('.');
+  let cur = obj;
+  parts.slice(0, -1).forEach(key => {
+    if (!cur[key] || typeof cur[key] !== 'object') cur[key] = {};
+    cur = cur[key];
+  });
+  cur[parts[parts.length - 1]] = value;
+}
+
+function landingAddTextItem(path) {
+  syncLandingFormToJson();
+  const arr = landingPathGet(state.landingConfig, path) || [];
+  arr.push('');
+  landingPathSet(state.landingConfig, path, arr);
+  refreshLandingEditor();
+}
+
+function landingAddObjectItem(path) {
+  syncLandingFormToJson();
+  const arr = landingPathGet(state.landingConfig, path) || [];
+  const sample = arr[0] || {};
+  const item = Object.fromEntries(Object.keys(sample).map(key => [key, Array.isArray(sample[key]) ? [] : '']));
+  arr.push(item);
+  landingPathSet(state.landingConfig, path, arr);
+  refreshLandingEditor();
+}
+
+function landingRemoveItem(path, index) {
+  syncLandingFormToJson();
+  const arr = landingPathGet(state.landingConfig, path) || [];
+  arr.splice(index, 1);
+  landingPathSet(state.landingConfig, path, arr);
+  refreshLandingEditor();
+}
+
+function refreshLandingEditor() {
+  document.getElementById('landingJson').value = JSON.stringify(state.landingConfig || {}, null, 2);
+  renderLandingSwitches(state.landingConfig?.sections || {});
+  renderLandingForm(state.landingConfig || {});
+}
+
+function applyLandingJsonToForm() {
+  try {
+    state.landingConfig = readLandingJson();
+    refreshLandingEditor();
+    toast('JSON применён к форме');
+  } catch (e) {
+    toast('Ошибка JSON: ' + e.message);
+  }
+}
+
+function formatLandingJson() {
+  try {
+    const config = readLandingJson();
+    state.landingConfig = config;
+    refreshLandingEditor();
+    toast('JSON отформатирован');
+  } catch (e) {
+    toast('Ошибка JSON: ' + e.message);
+  }
+}
+
+function copyLandingJson() {
+  const value = document.getElementById('landingJson').value;
+  navigator.clipboard?.writeText(value).then(() => toast('JSON скопирован')).catch(() => toast('Не удалось скопировать'));
+}
+
+async function saveLanding() {
+  let config;
+  try {
+    syncLandingFormToJson();
+    config = state.landingConfig || readLandingJson();
+  } catch (e) {
+    toast('Ошибка формы: ' + e.message);
+    return;
+  }
+  const res = await apiJson(`${API}/landing`, jsonOptions({
+    contentJson: JSON.stringify(config),
+    reason: 'Обновление лендинга из админки'
+  }, 'PUT'));
+  if (!res) return;
+  const saved = JSON.parse(res.contentJson || '{}');
+  state.landingConfig = saved;
+  refreshLandingEditor();
+  document.getElementById('landingStatus').textContent = 'Сохранено. Публичный лендинг подтянет этот конфиг при загрузке.';
+  toast('Лендинг сохранён');
+  loadAuditIfOpen();
+}
+
+async function loadPayments() {
+  showSkeleton('paymentsTable', 8);
+  const query = new URLSearchParams({
+    page: state.paymentsPage,
+    size: 30,
+    search: document.getElementById('paymentSearch').value.trim(),
+    status: document.getElementById('paymentStatus').value
+  });
+  const page = await apiJson(`${API}/payments?${query}`);
+  if (!page) return;
+  const rows = page.content || [];
+  document.getElementById('paymentsTable').innerHTML = rows.length ? rows.map(paymentRow).join('') : emptyRow(8, 'Платежей не найдено');
+  renderPager('paymentsPager', page, n => { state.paymentsPage = n; loadPayments(); });
+}
+
+function paymentRow(p) {
+  const phone = p.user?.phone;
+  return `
+    <tr>
+      <td class="mono muted">${esc(p.id)}</td>
+      <td class="nowrap">${phone ? `<span class="copy-cell" data-copy="${attr(phone)}" title="Скопировать">${esc(phone)}</span>` : '—'}</td>
+      <td>${esc(p.event?.title || '—')}</td>
+      <td><strong>${fmtMoney(p.amount, p.currency)}</strong></td>
+      <td>${esc(p.method || '—')}</td>
+      <td>${paymentBadge(p.status)}</td>
+      <td class="muted nowrap">${fmtDate(p.createdAt)}</td>
+      <td><div class="row-actions">
+        ${['PENDING','AWAITING_CONFIRMATION'].includes(p.status)
+          ? `<button class="tiny-btn good" onclick="confirmPayment(${Number(p.id)})">Подтв.</button>
+             <button class="tiny-btn danger" onclick="rejectPayment(${Number(p.id)})">Откл.</button>`
+          : `<span class="muted nowrap">${fmtDate(p.confirmedAt) || esc(p.rejectedReason || '—')}</span>`}
+      </div></td>
+    </tr>`;
+}
+
+async function confirmPayment(id) {
+  const ans = await promptReason({
+    title: 'Подтвердить оплату',
+    message: 'Деньги получены. Сохранится в audit log.',
+    placeholder: 'Например: проверено вручную',
+    submitLabel: 'Подтвердить',
+    required: false,
+    extraField: { label: 'Номер чека / external_ref', placeholder: 'Можно оставить пустым' }
+  });
+  if (!ans) return;
+  const res = await apiJson(`${API}/payments/${id}/confirm`, jsonOptions({ externalRef: ans.extra || '', reason: ans.reason || 'Ручное подтверждение оплаты' }));
+  if (res) { toast('Платёж подтверждён'); loadPayments(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function rejectPayment(id) {
+  const ans = await promptReason({
+    title: 'Отклонить оплату',
+    message: 'Статус сменится на REJECTED. Причина пойдёт в audit log.',
+    placeholder: 'Например: чек не подтверждён банком',
+    submitLabel: 'Отклонить',
+    tone: 'danger'
+  });
+  if (!ans) return;
+  const res = await apiJson(`${API}/payments/${id}/reject`, jsonOptions({ reason: ans.reason }));
+  if (res) { toast('Платёж отклонён'); loadPayments(); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function loadAudit() {
+  showSkeleton('auditTable', 7);
+  const page = await apiJson(`${API}/audit?page=${state.auditPage}&size=50`);
+  if (!page) return;
+  const rows = page.content || [];
+  document.getElementById('auditTable').innerHTML = rows.length ? rows.map(auditRow).join('') : emptyRow(7, 'Записей аудита пока нет');
+  renderPager('auditPager', page, n => { state.auditPage = n; loadAudit(); });
+}
+
+function auditRow(a) {
+  return `
+    <tr>
+      <td class="mono">${esc(a.id)}</td>
+      <td class="mono">${esc(a.adminUserId || '—')}</td>
+      <td>${badge(a.actionCode || '—', 'blue')}</td>
+      <td>${esc(a.targetType || '—')} <span class="mono">${esc(a.targetId || '')}</span></td>
+      <td>${esc(a.reason || '—')}</td>
+      <td class="mono">${esc(a.ip || '—')}</td>
+      <td class="muted nowrap">${fmtDateTime(a.createdAt)}</td>
+    </tr>`;
+}
+
+function renderPager(targetId, page, onPage) {
+  const el = document.getElementById(targetId);
+  const number = page.number || 0;
+  const totalPages = page.totalPages || 1;
+  const total = page.totalElements || 0;
+  el.innerHTML = `
+    <span>${esc(total)} записей · страница ${number + 1} из ${totalPages}</span>
+    <button class="tiny-btn" ${number <= 0 ? 'disabled' : ''} data-page="${number - 1}">Назад</button>
+    <button class="tiny-btn" ${number >= totalPages - 1 ? 'disabled' : ''} data-page="${number + 1}">Вперёд</button>
+  `;
+  el.querySelectorAll('button[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => onPage(Number(btn.dataset.page)));
+  });
+}
+
+function statusBadge(status) {
+  const tone = status === 'PUBLISHED' ? 'green' : status === 'CLOSED' ? 'gray' : status === 'DRAFT' ? 'yellow' : 'gray';
+  return badge(status || '—', tone);
+}
+
+function paymentBadge(status) {
+  const tones = {
+    PENDING: 'yellow',
+    AWAITING_CONFIRMATION: 'yellow',
+    CONFIRMED: 'green',
+    REJECTED: 'red',
+    REFUNDED: 'gray'
+  };
+  return badge(status || '—', tones[status] || 'gray');
+}
+
+function badge(text, tone) {
+  return `<span class="badge ${tone || 'gray'}">${esc(text)}</span>`;
+}
+
+function link(url, text) {
+  if (!url) return '—';
+  return `<a href="${attr(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+}
+
+function linkButton(url, text) {
+  return `<a class="tiny-btn" href="${attr(url)}" target="_blank" rel="noopener">${esc(text)}</a>`;
+}
+
+function emptyRow(cols, text) {
+  return `<tr><td colspan="${Number(cols)}"><div class="empty-state">${esc(text)}</div></td></tr>`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleDateString('ru-RU', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function fmtDateTime(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '—';
+  return d.toLocaleString('ru-RU', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtMoney(amount, currency = 'KGS') {
+  const value = Number(amount || 0);
+  return `${value.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ${currency || 'KGS'}`;
+}
+
+function moneyShort(amount, currency = 'KGS') {
+  const value = Number(amount || 0);
+  if (Math.abs(value) >= 1_000_000) return `${(value / 1_000_000).toFixed(1).replace('.', ',').replace(',0','')} млн ${currency || 'KGS'}`;
+  if (Math.abs(value) >= 1_000) return `${(value / 1_000).toFixed(0)} тыс. ${currency || 'KGS'}`;
+  return fmtMoney(value, currency);
+}
+
+function numberShort(value) {
+  const n = Number(value || 0);
+  if (Math.abs(n) >= 1_000_000) return `${(n / 1_000_000).toFixed(1).replace('.0','')}M`;
+  if (Math.abs(n) >= 1_000) return `${(n / 1_000).toFixed(1).replace('.0','')}k`;
+  return n.toLocaleString('ru-RU');
+}
+
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;'
+  })[ch]);
+}
+
+function attr(value) {
+  return esc(value).replace(/`/g, '&#96;');
+}
+
+function toast(message) {
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+let modalSubmit = null;
+function showModal(title, body, onSubmit = null, options = {}) {
+  closeModal();
+  modalSubmit = onSubmit;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'activeModal';
+  const submitLabel = esc(options.submitLabel || 'Сохранить');
+  const submitClass = options.submitTone === 'danger' ? 'danger-btn' : 'primary-btn';
+  overlay.innerHTML = `
+    <div class="modal-box">
+      <div class="modal-head">
+        <div class="modal-title">${esc(title)}</div>
+        <button class="tiny-btn" onclick="closeModal()" aria-label="Закрыть">✕</button>
+      </div>
+      <div class="modal-body">${body}</div>
+      ${onSubmit ? `<div class="modal-foot"><button class="ghost-btn" onclick="closeModal()">Отмена</button><button class="${submitClass}" onclick="submitModal()">${submitLabel}</button></div>` : ''}
+    </div>
+  `;
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeModal(); });
+  document.body.appendChild(overlay);
+  setTimeout(() => overlay.querySelector('textarea, input:not([type=checkbox])')?.focus(), 40);
+}
+
+function closeModal() {
+  document.getElementById('activeModal')?.remove();
+  modalSubmit = null;
+}
+
+function submitModal() {
+  modalSubmit?.();
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeModal();
+});
+
+function promptReason({ title, message, placeholder = 'Укажите причину...', submitLabel = 'Подтвердить', tone = 'primary', required = true, extraField }) {
+  return new Promise(resolve => {
+    let resolved = false;
+    const onClose = () => { if (!resolved) { resolved = true; resolve(null); } };
+    const extraHtml = extraField ? `
+      <div class="field">
+        <label>${esc(extraField.label)}</label>
+        <input class="input" id="reasonExtra" placeholder="${attr(extraField.placeholder || '')}" value="${attr(extraField.value || '')}"/>
+      </div>` : '';
+    showModal(title, `
+      ${message ? `<div style="color:var(--text-secondary);font-size:13px;line-height:1.5;">${esc(message)}</div>` : ''}
+      ${extraHtml}
+      <div class="field">
+        <label>Причина${required ? ' *' : ''}</label>
+        <textarea class="textarea" id="reasonText" placeholder="${attr(placeholder)}" style="min-height:90px;"></textarea>
+      </div>
+    `, () => {
+      const reason = document.getElementById('reasonText').value.trim();
+      if (required && !reason) {
+        const ta = document.getElementById('reasonText');
+        ta.style.borderColor = 'var(--red)';
+        ta.focus();
+        toast('Укажите причину');
+        return;
+      }
+      const extra = extraField ? document.getElementById('reasonExtra').value.trim() : null;
+      resolved = true;
+      closeModal();
+      resolve({ reason, extra });
+    }, { submitLabel, submitTone: tone === 'danger' ? 'danger' : 'primary' });
+    const overlay = document.getElementById('activeModal');
+    if (overlay) {
+      const observer = new MutationObserver(() => {
+        if (!document.getElementById('activeModal')) { observer.disconnect(); onClose(); }
+      });
+      observer.observe(document.body, { childList: true });
+    }
+  });
+}
+
+function loadAuditIfOpen() {
+  if (state.activeSection === 'audit') loadAudit();
+}
+
+checkSession();
+</script>
+</body>
+</html>

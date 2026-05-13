@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ToiLink — Мои события</title>
-  <meta name="theme-color" content="#FAFAF8"/>
+  <meta name="theme-color" content="#FFF8FB"/>
 
   <script>
     fetch('/api/auth/me', { credentials: 'include' })
@@ -12,30 +12,16 @@
       .catch(() => location.replace('/login.html'));
   </script>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=block" rel="stylesheet"/>
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/tokens.css"/>
   <link rel="stylesheet" href="/css/base.css"/>
   <link rel="stylesheet" href="/css/app-shell.css?v=app2"/>
   <script src="/js/app-shell.js?v=app2"></script>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: { inter: ['Inter','sans-serif'], cormorant: ['Cormorant Garamond','serif'] },
-          colors: {
-            ink: '#1E2820', muted: '#6B6860',
-            cream: '#FAFAF8', cream2: '#F5F2EE', cream3: '#F0EDE8',
-            line: '#E8E4DE', sage: '#3D6B45', sage2: '#2C4A30',
-            mint: '#C2E0C6', gold: '#C2A882'
-          }
-        }
-      }
-    }
-  </script>
+  <link rel="stylesheet" href="/css/tailwind.css"/>
 
   <style>
     body {
@@ -122,6 +108,18 @@
       content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
       height: 2px; background: linear-gradient(90deg, #F93B7A, #FF6D45); border-radius: 2px;
     }
+    .brand-link {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: #1E2820; text-decoration: none;
+    }
+    .brand-link img {
+      width: 30px; height: 30px; display: block; object-fit: contain;
+    }
+    .brand-text {
+      font-family: var(--font-serif); font-size: 26px; line-height: 1;
+      font-weight: 600; font-style: italic; color: #1E2820;
+    }
+    .mobile-header .brand-text { font-size: 22px; }
 
     /* ── Mobile header ── */
     .mobile-header {
@@ -295,10 +293,10 @@
     /* FAB (mobile) */
     .fab {
       display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 14px 22px; background: #1E2820; color: #fff;
+      padding: 14px 22px; background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); color: #fff;
       border-radius: 100px;
       font-weight: 600; font-size: 14px;
-      box-shadow: 0 10px 28px rgba(30,40,32,.30), 0 2px 6px rgba(0,0,0,.12);
+      box-shadow: 0 10px 28px rgba(249,59,122,.30), 0 2px 6px rgba(0,0,0,.10);
       cursor: pointer; border: none; text-decoration: none;
       transition: transform .15s ease;
     }
@@ -916,11 +914,12 @@
 <!-- ─────────────────────────── -->
 <header class="top-nav fixed top-0 left-0 right-0 z-40 hidden md:block">
   <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-    <a href="/" class="flex items-center gap-2">
-      <span class="font-cormorant text-[26px] font-semibold italic text-ink">ToiLink</span>
+    <a href="/" class="brand-link" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="">
+      <span class="brand-text">ToiLink</span>
     </a>
     <nav class="flex items-center gap-8">
-      <a href="/" class="nav-link active">Мои события</a>
+      <a href="/index.html" class="nav-link active">Мои события</a>
       <a href="/templates.html" class="nav-link">Шаблоны</a>
     </nav>
     <div class="flex items-center gap-2">
@@ -941,7 +940,10 @@
 <!-- ─────────────────────────── -->
 <header class="mobile-header md:hidden">
   <div class="flex items-center justify-between px-5 h-14">
-    <a href="/" class="font-cormorant text-[22px] font-semibold italic text-ink">ToiLink</a>
+    <a href="/" class="brand-link" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="">
+      <span class="brand-text">ToiLink</span>
+    </a>
     <button onclick="showProfile()" class="w-9 h-9 rounded-full bg-cream3 flex items-center justify-center text-muted active:scale-90 transition-transform">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
     </button>
@@ -1028,7 +1030,7 @@
 <nav class="nav-bar md:hidden fixed bottom-0 left-0 right-0 z-30"
      style="padding-bottom: env(safe-area-inset-bottom, 0px);">
   <div class="flex">
-    <a href="/" class="nav-item active">
+    <a href="/index.html" class="nav-item active">
       <svg class="w-6 h-6" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span class="nav-label">Главная</span>
     </a>

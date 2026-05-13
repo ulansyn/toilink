@@ -90,11 +90,11 @@ function pluralize(n, forms) {
 
 function avatarPalette(name) {
   const palettes = [
+    { bg: '#FFF0F5', fg: '#C71F5C' },
+    { bg: '#FFE6DD', fg: '#B94A2B' },
     { bg: '#C2E0C6', fg: '#1A3D20' },
-    { bg: '#E6D5B8', fg: '#7C5520' },
-    { bg: '#DDE4EC', fg: '#3A5080' },
-    { bg: '#F0DCD5', fg: '#8B4030' },
-    { bg: '#EADDE4', fg: '#70345A' },
+    { bg: '#FFF0DD', fg: '#7C5520' },
+    { bg: '#F3E7F0', fg: '#70345A' },
   ];
   return palettes[(name.charCodeAt(0) || 0) % palettes.length];
 }
@@ -104,11 +104,11 @@ function chipFor(status) {
     case 'ATTENDING':
       return `<span class="chip-sm" style="background:#C2E0C6; color:#1A3D20;"><span class="chip-dot" style="background:#1A3D20;"></span>Придёт</span>`;
     case 'DECLINED':
-      return `<span class="chip-sm" style="background:#F0DCD5; color:#8B4030;"><span class="chip-dot" style="background:#8B4030;"></span>Не придёт</span>`;
+      return `<span class="chip-sm" style="background:#FFE0EC; color:#C71F5C;"><span class="chip-dot" style="background:#C71F5C;"></span>Не придёт</span>`;
     case 'MAYBE':
       return `<span class="chip-sm" style="background:#E6D5B8; color:#7C5520;"><span class="chip-dot" style="background:#7C5520;"></span>Возможно</span>`;
     default:
-      return `<span class="chip-sm" style="background:#F0EDE8; color:#7C6040;"><span class="chip-dot" style="background:#7C6040;"></span>Ждём</span>`;
+      return `<span class="chip-sm" style="background:#FFF0F5; color:#9B4060;"><span class="chip-dot" style="background:#F93B7A;"></span>Ждём</span>`;
   }
 }
 
@@ -277,18 +277,18 @@ function renderEmpty() {
     <div class="flex flex-col items-center justify-center text-center py-14 md:py-20 px-6 fade-in">
       <div class="relative mb-6">
         <div class="w-24 h-24 md:w-28 md:h-28 rounded-[28px] flex items-center justify-center"
-             style="background: linear-gradient(160deg, #C2E0C6 0%, #A8D2B0 100%);">
-          <svg class="w-10 h-10 md:w-12 md:h-12 text-sage2" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+             style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); box-shadow:0 14px 36px rgba(249,59,122,.22);">
+          <svg class="w-10 h-10 md:w-12 md:h-12 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
           </svg>
         </div>
         <div class="absolute -top-3 -right-3 w-11 h-11 rounded-2xl bg-white border border-line flex items-center justify-center" style="box-shadow:0 6px 18px rgba(30,40,32,.08);">
-          <svg class="w-5 h-5 text-sage" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          <svg class="w-5 h-5 text-accent" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         </div>
       </div>
       <div class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-3">Начните список</div>
       <h2 class="font-cormorant text-[30px] md:text-[40px] italic font-semibold text-ink leading-tight mb-3">
-        Добавьте <em class="text-sage">первого гостя</em>
+        Добавьте <em class="text-accent">первого гостя</em>
       </h2>
       <p class="text-muted text-[14px] md:text-[15px] max-w-[320px] leading-relaxed mb-7">
         Для персональных гостей можно копировать отдельную ссылку, а остальные смогут ответить по общей ссылке события.
@@ -741,7 +741,7 @@ async function init() {
   const params = new URLSearchParams(location.search);
   eventId = params.get('eventId') ? parseInt(params.get('eventId')) : null;
 
-  if (!eventId) { location.href = '/'; return; }
+  if (!eventId) { location.href = '/index.html'; return; }
 
   const f = params.get('filter');
   if (f && FILTERS[f]) state.filter = f;

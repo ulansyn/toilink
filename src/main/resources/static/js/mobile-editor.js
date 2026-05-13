@@ -383,10 +383,11 @@
     const type = options?.type || 'text';
     const inputMode = options?.inputMode ? ` inputmode="${esc(options.inputMode)}"` : '';
     const placeholder = options?.placeholder ? ` placeholder="${esc(options.placeholder)}"` : '';
+    const pickerMode = options?.picker ? ` data-tl-picker="${esc(options.picker)}" inputmode="none"` : '';
     const acValue = (type === 'text' || type === 'textarea') ? 'new-password' : 'off';
     const input = type === 'textarea'
       ? `<textarea rows="${options?.rows || 4}" data-bind="${esc(path)}"${placeholder} autocomplete="${acValue}" spellcheck="false">${esc(value)}</textarea>`
-      : `<input type="${esc(type)}" value="${esc(value)}" data-bind="${esc(path)}"${placeholder}${inputMode} autocomplete="${acValue}" spellcheck="false" />`;
+      : `<input type="${esc(options?.picker ? 'text' : type)}" value="${esc(value)}" data-bind="${esc(path)}"${placeholder}${inputMode}${pickerMode} autocomplete="${acValue}" spellcheck="false" />`;
     return `
       <label class="field-row">
         <span class="field-label">${esc(label)}</span>
@@ -431,7 +432,7 @@
           ${field('Имя жениха', 'cover.person1')}
           ${field('Имя невесты', 'cover.person2')}
         </div>
-        ${field('Дата и время', 'cover.date', { type: 'datetime-local' })}
+        ${field('Дата и время', 'cover.date', { picker: 'datetime' })}
         <div class="field-row">
           <span class="field-label">Фото обложки</span>
           <div class="photo-picker"><img src="${esc(state.data.cover.heroImage)}" alt=""></div>
@@ -525,7 +526,7 @@
                 </button>
               </div>
               <div class="timeline-editor-row">
-                <span class="field-control"><input data-timeline-field="time" value="${esc(event.time)}" inputmode="numeric" autocomplete="new-password" spellcheck="false" aria-label="Время ${index + 1}"></span>
+                <span class="field-control"><input data-timeline-field="time" value="${esc(event.time)}" data-tl-picker="time" inputmode="none" autocomplete="new-password" spellcheck="false" aria-label="Время ${index + 1}"></span>
                 <span class="field-control"><input data-timeline-field="title" value="${esc(event.title)}" autocomplete="new-password" spellcheck="false" aria-label="Событие ${index + 1}"></span>
               </div>
               <span class="field-control"><input data-timeline-field="desc" value="${esc(event.desc)}" autocomplete="new-password" spellcheck="false" aria-label="Описание ${index + 1}"></span>
@@ -609,6 +610,7 @@
     if (titleEl) titleEl.textContent = sections[section]?.title || '';
     sheetBody.innerHTML = `<form autocomplete="off" novalidate>${sheetRenderers[section]?.() ?? ''}</form>`;
     sheetBody.querySelector('form').addEventListener('submit', (e) => e.preventDefault());
+    window.ToiDateTimePicker?.enhance(sheetBody);
     bindSheetControls();
     updateSheetScrollThumb();
   }
@@ -657,7 +659,9 @@
         sendToPreviewDebounced();
         markLive();
       });
-      control.addEventListener('focus', () => enterKeyboardMode(control));
+      if (!control.dataset.tlPicker) {
+        control.addEventListener('focus', () => enterKeyboardMode(control));
+      }
     });
 
     sheetBody.querySelectorAll('[data-switch]').forEach((control) => {
@@ -706,7 +710,9 @@
           markLive();
         }
       });
-      control.addEventListener('focus', () => enterKeyboardMode(control));
+      if (!control.dataset.tlPicker) {
+        control.addEventListener('focus', () => enterKeyboardMode(control));
+      }
     });
 
     sheetBody.querySelectorAll('[data-photo-src]').forEach((button) => {

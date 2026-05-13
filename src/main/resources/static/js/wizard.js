@@ -143,6 +143,7 @@ function renderWizard() {
   document.getElementById('slidesViewport').innerHTML = W.config.steps
     .map((step, i) => renderSlide(step, i))
     .join('');
+  window.ToiDateTimePicker?.enhance(document.getElementById('slidesViewport'));
 }
 
 function renderSlide(step, idx) {
@@ -165,9 +166,12 @@ function renderField(field) {
     case 'text':
     case 'date':
     case 'time': {
+      const pickerMode = field.type === 'time' ? 'time' : field.type === 'date' ? 'date' : '';
       const attrs = [
         `id="${field.id}"`,
-        `type="${field.type}"`,
+        `type="${pickerMode ? 'text' : field.type}"`,
+        pickerMode ? `inputmode="none"` : '',
+        pickerMode ? `data-tl-picker="${pickerMode}"` : '',
         `placeholder=" "`,
         field.autocomplete ? `autocomplete="${field.autocomplete}"` : '',
         field.maxlength    ? `maxlength="${field.maxlength}"`       : '',
@@ -608,7 +612,7 @@ function goToPaywall() {
 
 function goToEditor() {
   if (W.eventId) location.href = '/editor.html?id=' + W.eventId;
-  else           location.href = '/';
+  else           location.href = '/index.html';
 }
 window.goToEditor = goToEditor;
 
@@ -647,6 +651,7 @@ function restoreDraft() {
         if (inner) inner.style.display = 'none';
       }
     }
+    window.ToiDateTimePicker?.enhance(document.getElementById('slidesViewport'));
   } catch (_) {}
 }
 

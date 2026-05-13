@@ -5,40 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
     <title>ToiLink — Активация сайта</title>
     <meta name="description" content="Оплата и активация готового сайта ToiLink"/>
-    <meta name="theme-color" content="#ffffff"/>
+    <meta name="theme-color" content="#FFF8FB"/>
 
-    <link rel="icon" type="image/png" href="/images/logo.png"/>
-    <link rel="preconnect" href="https://fonts.googleapis.com"/>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@400;500;600;700;800;900&display=block" rel="stylesheet"/>
+    <link rel="icon" type="image/webp" href="/images/logo.webp"/>
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
     <link rel="stylesheet" href="/css/tokens.css"/>
     <link rel="stylesheet" href="/css/base.css"/>
 
     <style>
         :root {
-            --pink: #F93B7A;
-            --orange: #FF6D45;
-            --ink: #111827;
-            --muted: #6B7280;
-            --soft: #9CA3AF;
-            --line: rgba(229, 231, 235, 0.92);
-            --green: #10B981;
+            --pink: var(--color-accent);
+            --orange: var(--color-accent-2);
+            --ink: var(--color-text);
+            --muted: var(--color-text-secondary);
+            --soft: var(--color-text-muted);
+            --line: rgba(249, 59, 122, 0.13);
+            --green: #16A45A;
             --whatsapp: #25D366;
-            --cream: #FFF8F1;
+            --cream: #FFF8FB;
         }
 
         html,
         body {
             min-height: 100dvh;
-            background: #fff;
+            background: var(--cream);
             color: var(--ink);
             font-family: var(--font-sans);
         }
 
         body {
             background-image:
-                radial-gradient(ellipse 70% 50% at 85% 0%, rgba(249, 59, 122, 0.08) 0%, transparent 70%),
-                radial-gradient(ellipse 55% 40% at 15% 95%, rgba(249, 59, 122, 0.05) 0%, transparent 65%);
+                radial-gradient(900px 420px at 50% -180px, rgba(249, 59, 122, 0.10), transparent 68%),
+                radial-gradient(720px 360px at 96% 32%, rgba(255, 109, 69, 0.05), transparent 70%);
         }
 
         .page {
@@ -51,10 +52,10 @@
             top: 0;
             z-index: 20;
             height: 64px;
-            background: rgba(255, 255, 255, 0.82);
+            background: rgba(255, 248, 251, 0.86);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid rgba(243, 244, 246, 0.88);
+            border-bottom: 1px solid rgba(249, 59, 122, 0.10);
         }
 
         .topbar-inner {
@@ -90,9 +91,9 @@
             justify-content: center;
             gap: 0.45rem;
             border-radius: 999px;
-            color: #4B5563;
+            color: var(--muted);
             font-size: 0.875rem;
-            font-weight: 700;
+            font-weight: 650;
             transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
         }
 
@@ -102,9 +103,9 @@
 
         .support-btn {
             padding: 0 1rem;
-            background: #fff;
-            border: 1px solid rgba(249, 59, 122, 0.18);
-            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.06);
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(249, 59, 122, 0.14);
+            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.04);
         }
 
         .ghost-btn:hover,
@@ -116,13 +117,13 @@
             width: 100%;
             max-width: 72rem;
             margin: 0 auto;
-            padding: 1.5rem 1.25rem calc(3rem + env(safe-area-inset-bottom, 0px));
+            padding: 1.35rem 1.25rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
             position: relative;
         }
 
         .hero {
             text-align: center;
-            max-width: 44rem;
+            max-width: 41rem;
             margin: 0 auto;
         }
 
@@ -131,17 +132,17 @@
             align-items: center;
             gap: 0.5rem;
             background: #fff;
-            border: 1px solid rgba(249, 59, 122, 0.18);
-            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.06);
+            border: 1px solid rgba(249, 59, 122, 0.14);
+            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.04);
             border-radius: 999px;
             padding: 0.4rem 0.9rem;
             color: var(--ink);
             font-size: 0.75rem;
-            font-weight: 700;
+            font-weight: 650;
         }
 
         .stars {
-            color: #F59E0B;
+            color: var(--pink);
             font-size: 0.7rem;
             letter-spacing: 0.06rem;
         }
@@ -152,9 +153,10 @@
 
         h1 {
             margin-top: 1.25rem;
-            font-size: clamp(2.45rem, 8vw, 4.85rem);
-            font-weight: 700;
-            line-height: 1.04;
+            font-family: var(--font-serif);
+            font-size: clamp(2.35rem, 7.2vw, 4.55rem);
+            font-weight: 600;
+            line-height: 1.02;
             letter-spacing: 0;
         }
 
@@ -164,6 +166,8 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
             color: transparent;
+            font-style: italic;
+            font-weight: 600;
         }
 
         .hero-sub {
@@ -171,7 +175,7 @@
             margin: 1rem auto 0;
             color: var(--muted);
             font-size: clamp(0.95rem, 2vw, 1.08rem);
-            line-height: 1.7;
+            line-height: 1.65;
         }
 
         .hero-checks {
@@ -180,9 +184,9 @@
             justify-content: center;
             gap: 0.65rem 1.2rem;
             margin-top: 1.25rem;
-            color: #4B5563;
+            color: var(--muted);
             font-size: 0.82rem;
-            font-weight: 700;
+            font-weight: 650;
         }
 
         .hero-checks span {
@@ -200,12 +204,12 @@
             display: grid;
             grid-template-columns: minmax(0, 1fr);
             gap: 1rem;
-            margin-top: 2rem;
+            margin-top: 1.75rem;
         }
 
         .phone-stage {
             position: relative;
-            min-height: 25rem;
+            min-height: 24rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -214,11 +218,11 @@
 
         .phone-bg {
             position: absolute;
-            width: 19rem;
-            height: 19rem;
+            width: 18rem;
+            height: 18rem;
             border-radius: 50%;
             background: radial-gradient(circle at 30% 30%, #fdedf3 0%, #f8c8df 100%);
-            opacity: 0.76;
+            opacity: 0.46;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
@@ -227,31 +231,31 @@
         .float-card {
             position: absolute;
             z-index: 4;
-            background: rgba(255, 255, 255, 0.54);
-            backdrop-filter: blur(12px) saturate(160%);
-            -webkit-backdrop-filter: blur(12px) saturate(160%);
-            border: 1px solid rgba(255, 255, 255, 0.64);
-            box-shadow: 0 16px 36px rgba(249, 59, 122, 0.16);
-            border-radius: 1.25rem;
-            padding: 0.85rem;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(10px) saturate(140%);
+            -webkit-backdrop-filter: blur(10px) saturate(140%);
+            border: 1px solid rgba(249, 59, 122, 0.12);
+            box-shadow: 0 10px 24px rgba(249, 59, 122, 0.10);
+            border-radius: 1rem;
+            padding: 0.72rem;
         }
 
         .float-left {
             left: max(0.5rem, 7%);
             top: 3rem;
-            width: 8.5rem;
+            width: 7.8rem;
         }
 
         .float-right {
             right: max(0.5rem, 5%);
             bottom: 3.2rem;
-            width: 9rem;
+            width: 8.2rem;
         }
 
         .float-label {
             color: var(--soft);
             font-size: 0.68rem;
-            font-weight: 800;
+            font-weight: 750;
             text-transform: uppercase;
             letter-spacing: 0.07em;
         }
@@ -259,8 +263,8 @@
         .float-value {
             margin-top: 0.2rem;
             color: var(--ink);
-            font-size: 1rem;
-            font-weight: 900;
+            font-size: 0.94rem;
+            font-weight: 800;
             line-height: 1.18;
         }
 
@@ -271,15 +275,15 @@
         .phone {
             position: relative;
             z-index: 3;
-            width: 14.8rem;
-            height: 30rem;
+            width: 14.2rem;
+            height: 28.8rem;
             border-radius: 3rem;
             background:
                 linear-gradient(112deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 9%, transparent 17%),
                 linear-gradient(160deg, #414141 0%, #262626 16%, #070707 39%, #050505 58%, #202020 80%, #414141 100%);
             padding: 0.35rem;
-            transform: rotateY(-14deg) rotateZ(5deg);
-            box-shadow: 0 28px 58px rgba(17, 24, 39, 0.24);
+            transform: rotateY(-10deg) rotateZ(4deg);
+            box-shadow: 0 24px 52px rgba(30, 40, 32, 0.18);
         }
 
         .phone-screen {
@@ -353,7 +357,7 @@
             font-size: 2.25rem;
             font-weight: 600;
             font-style: italic;
-            box-shadow: 0 0 0 5px #FAF6F0, 0 8px 24px rgba(0, 0, 0, 0.10);
+            box-shadow: 0 0 0 5px #FAF6F0, 0 8px 20px rgba(0, 0, 0, 0.08);
         }
 
         .screen-rsvp {
@@ -372,41 +376,30 @@
         .checkout-card {
             position: relative;
             z-index: 6;
-            border-radius: 1.75rem;
-            background: #fff;
-            box-shadow: 0 18px 48px rgba(249, 59, 122, 0.16), 0 2px 14px rgba(0,0,0,0.05);
+            border-radius: 1.5rem;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(249, 59, 122, 0.12);
+            box-shadow: 0 16px 42px rgba(249, 59, 122, 0.10), 0 2px 12px rgba(30,40,32,0.04);
             overflow: hidden;
         }
 
         .checkout-top {
             position: relative;
-            padding: 1.5rem;
-            background: linear-gradient(140deg, var(--pink) 0%, var(--orange) 100%);
-            color: #fff;
+            padding: 1.35rem 1.35rem 1.15rem;
+            background: linear-gradient(180deg, #FFF7FA 0%, #FFFFFF 100%);
+            color: var(--ink);
             overflow: hidden;
         }
 
-        .checkout-top::before,
-        .checkout-top::after {
+        .checkout-top::before {
             content: "";
             position: absolute;
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 50%;
+            left: 1.35rem;
+            right: 1.35rem;
+            bottom: 0;
+            height: 1px;
+            background: rgba(249, 59, 122, 0.12);
             pointer-events: none;
-        }
-
-        .checkout-top::before {
-            width: 16rem;
-            height: 16rem;
-            top: -8rem;
-            right: -6rem;
-        }
-
-        .checkout-top::after {
-            width: 13rem;
-            height: 13rem;
-            bottom: -7rem;
-            left: -6rem;
         }
 
         .checkout-content {
@@ -420,17 +413,18 @@
             gap: 0.5rem;
             border-radius: 999px;
             padding: 0.42rem 0.8rem;
-            background: rgba(255,255,255,0.18);
-            border: 1px solid rgba(255,255,255,0.24);
+            background: rgba(249,59,122,0.08);
+            border: 1px solid rgba(249,59,122,0.14);
+            color: #C71F5C;
             font-size: 0.78rem;
-            font-weight: 800;
+            font-weight: 750;
         }
 
         .price-label {
             margin-top: 1.1rem;
             font-size: 0.86rem;
             font-weight: 700;
-            opacity: 0.86;
+            color: var(--muted);
         }
 
         .price-row {
@@ -441,31 +435,37 @@
         }
 
         .price {
-            font-size: 4rem;
+            font-size: 3.55rem;
             line-height: 0.95;
-            font-weight: 900;
+            font-weight: 850;
             letter-spacing: 0;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
         }
 
         .currency {
             font-size: 1.25rem;
-            font-weight: 900;
+            font-weight: 800;
+            color: var(--muted);
         }
 
         .price-note {
             margin-top: 0.55rem;
             font-size: 0.86rem;
-            opacity: 0.84;
+            color: var(--muted);
         }
 
         .checkout-body {
-            padding: 1.2rem;
+            padding: 1.15rem;
         }
 
         .qr-wrap {
             display: grid;
-            grid-template-columns: 8.25rem minmax(0, 1fr);
-            gap: 1rem;
+            grid-template-columns: 7.4rem minmax(0, 1fr);
+            gap: 0.9rem;
             align-items: center;
         }
 
@@ -475,7 +475,7 @@
             border-radius: 1.15rem;
             background: #fff;
             border: 1px solid #F3E3E9;
-            box-shadow: 0 10px 28px rgba(17,24,39,0.08);
+            box-shadow: 0 8px 22px rgba(30,40,32,0.06);
         }
 
         .qr-box img {
@@ -500,7 +500,7 @@
 
         .pay-title {
             font-size: 1rem;
-            font-weight: 900;
+            font-weight: 800;
             line-height: 1.25;
         }
 
@@ -528,7 +528,7 @@
             border-radius: 999px;
             color: #4B5563;
             font-size: 0.74rem;
-            font-weight: 800;
+            font-weight: 750;
             background: #fff;
         }
 
@@ -545,16 +545,16 @@
 
         .order-panel {
             margin-top: 1rem;
-            border-radius: 1.1rem;
-            background: #FFF5F8;
-            border: 1px solid rgba(249,59,122,0.16);
-            padding: 1rem;
+            border-radius: 1rem;
+            background: rgba(249,59,122,0.045);
+            border: 1px solid rgba(249,59,122,0.11);
+            padding: 0.9rem;
         }
 
         .order-title {
             color: #C71F5C;
             font-size: 0.86rem;
-            font-weight: 900;
+            font-weight: 750;
             line-height: 1.35;
         }
 
@@ -563,9 +563,9 @@
             align-items: center;
             justify-content: space-between;
             gap: 0.75rem;
-            margin-top: 0.75rem;
-            padding: 0.85rem;
-            border-radius: 0.9rem;
+            margin-top: 0.65rem;
+            padding: 0.75rem;
+            border-radius: 0.85rem;
             background: #fff;
             border: 1px solid rgba(249,59,122,0.12);
         }
@@ -573,7 +573,7 @@
         .order-label {
             color: var(--soft);
             font-size: 0.68rem;
-            font-weight: 900;
+            font-weight: 750;
             text-transform: uppercase;
             letter-spacing: 0.04em;
         }
@@ -581,8 +581,8 @@
         .order-value {
             margin-top: 0.08rem;
             color: var(--ink);
-            font-size: 1.18rem;
-            font-weight: 900;
+            font-size: 1.12rem;
+            font-weight: 800;
         }
 
         .copy-btn {
@@ -609,24 +609,24 @@
 
         .whatsapp-btn {
             width: 100%;
-            min-height: 3.65rem;
+            min-height: 3.45rem;
             margin-top: 0.9rem;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 0.6rem;
-            border-radius: 1rem;
+            border-radius: 999px;
             background: var(--whatsapp);
             color: #fff;
             font-size: 1rem;
-            font-weight: 900;
-            box-shadow: 0 12px 30px rgba(37,211,102,0.22);
+            font-weight: 800;
+            box-shadow: 0 10px 24px rgba(37,211,102,0.18);
             transition: transform 180ms ease, box-shadow 180ms ease;
         }
 
         .whatsapp-btn:hover {
             transform: translateY(-1px);
-            box-shadow: 0 16px 34px rgba(37,211,102,0.28);
+            box-shadow: 0 14px 30px rgba(37,211,102,0.24);
         }
 
         .microcopy {
@@ -639,18 +639,16 @@
 
         .steps-card {
             margin-top: 1rem;
-            background: rgba(255,255,255,0.54);
-            backdrop-filter: blur(12px) saturate(160%);
-            -webkit-backdrop-filter: blur(12px) saturate(160%);
-            border: 1px solid rgba(255,255,255,0.62);
-            border-radius: 1.5rem;
-            padding: 1.15rem;
-            box-shadow: 0 8px 32px rgba(31,38,135,0.07), inset 0 0 0 1px rgba(255,255,255,0.20);
+            background: rgba(255,255,255,0.72);
+            border: 1px solid rgba(249,59,122,0.11);
+            border-radius: 1.25rem;
+            padding: 1.05rem;
+            box-shadow: 0 8px 24px rgba(249,59,122,0.06);
         }
 
         .steps-title {
             font-size: 1rem;
-            font-weight: 900;
+            font-weight: 750;
         }
 
         .steps {
@@ -663,7 +661,7 @@
             display: flex;
             gap: 0.75rem;
             align-items: flex-start;
-            color: #4B5563;
+            color: var(--muted);
             font-size: 0.9rem;
             line-height: 1.5;
         }
@@ -679,8 +677,8 @@
             background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
             color: #fff;
             font-size: 0.86rem;
-            font-weight: 900;
-            box-shadow: 0 6px 18px rgba(249,59,122,0.28);
+            font-weight: 800;
+            box-shadow: 0 5px 14px rgba(249,59,122,0.22);
         }
 
         .bottom-note {
@@ -751,39 +749,39 @@
             }
 
             .activation-wrap {
-                grid-template-columns: minmax(0, 40rem);
-                align-items: center;
-                gap: 2.25rem;
-                margin-top: 0.5rem;
+                grid-template-columns: minmax(0, 1fr) 25.5rem;
+                align-items: start;
+                gap: 2rem;
+                margin-top: 1.2rem;
             }
 
             .phone-stage {
-                min-height: 34rem;
-                max-width: 40rem;
+                min-height: 31rem;
+                max-width: 38rem;
             }
 
             .phone {
-                width: 15.9rem;
-                height: 32.8rem;
+                width: 15.2rem;
+                height: 31.2rem;
             }
 
             .checkout-card {
-                position: absolute;
-                top: -28rem;
-                right: 2rem;
-                width: 26rem;
-                margin-top: 0;
+                position: sticky;
+                top: 5.25rem;
+                width: 100%;
+                margin-top: -24rem;
             }
 
             .steps-card {
                 grid-column: 1 / -1;
-                max-width: 58rem;
-                margin: 0.25rem auto 0;
-                padding: 1.35rem;
+                max-width: none;
+                margin: 0;
+                padding: 1.15rem;
             }
 
             .steps {
                 grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
             }
         }
 
@@ -887,14 +885,14 @@
                 font-size: 0.88rem;
             }
 
-            .checkout-card { border-radius: 1.45rem; }
+            .checkout-card { border-radius: 1.35rem; }
 
             .checkout-top {
-                padding: 1.25rem;
+                padding: 1.2rem;
             }
 
             .price {
-                font-size: 3.45rem;
+                font-size: 3.25rem;
             }
 
             .checkout-body {
@@ -902,12 +900,13 @@
             }
 
             .qr-wrap {
-                grid-template-columns: 1fr;
+                grid-template-columns: 7rem minmax(0, 1fr);
+                align-items: center;
             }
 
             .qr-box {
-                width: 12.5rem;
-                margin: 0 auto;
+                width: auto;
+                margin: 0;
             }
         }
 
@@ -935,7 +934,7 @@
             </button>
 
             <a class="brand" href="/" aria-label="ToiLink — главная">
-                <img src="/images/logo.png" alt=""/>
+                <img src="/images/logo.webp" alt=""/>
                 <span>ToiLink</span>
             </a>
 

@@ -6,11 +6,13 @@
   <title>ToiLink — Создать приглашение</title>
   <meta name="theme-color" content="#ffffff"/>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@400;500;600;700&display=block" rel="stylesheet"/>
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
   <link rel="stylesheet" href="/css/tokens.css"/>
   <link rel="stylesheet" href="/css/base.css"/>
+  <link rel="stylesheet" href="/css/date-time-picker.css"/>
 
   <style>
     :root {
@@ -114,16 +116,18 @@
     }
 
     .logo-mark {
-      display: flex;
+      display: inline-flex;
       align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
       font-family: var(--serif);
-      font-size: 1.125rem;
+      font-size: 1.25rem;
       font-weight: 600;
       font-style: italic;
       color: var(--text);
-      letter-spacing: -0.01em;
+      line-height: 1;
     }
-    .logo-mark img { height: 26px; width: auto; display: block; }
+    .logo-mark img { width: 26px; height: 26px; object-fit: contain; display: block; }
 
     .skip-btn {
       font-size: 0.875rem;
@@ -256,13 +260,12 @@
       text-transform: uppercase;
     }
 
-    .field-input[type="date"] { padding-top: 1.25rem; }
-    .field-input[type="date"]::-webkit-calendar-picker-indicator {
-      opacity: 0.4; cursor: pointer;
+    .field-input[data-tl-picker] {
+      cursor: pointer;
+      caret-color: transparent;
     }
 
-    /* Date field — label always up */
-    .field-input[type="date"] ~ .field-label {
+    .field-input[data-tl-picker] ~ .field-label {
       top: 0.65rem;
       font-size: 0.7rem;
       font-weight: 600;
@@ -270,7 +273,7 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-    .field-input[type="date"]:focus ~ .field-label { color: var(--pink); }
+    .field-input[data-tl-picker]:focus ~ .field-label { color: var(--pink); }
 
     /* Photo upload */
     .photo-drop {
@@ -413,9 +416,11 @@
       display: flex; align-items: center; justify-content: space-between;
     }
     .wiz-desk-nav-logo {
+      display: inline-flex; align-items: center; gap: 0.5rem;
       font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
-      font-style: italic; color: var(--text); text-decoration: none;
+      font-style: italic; color: var(--text); text-decoration: none; line-height: 1;
     }
+    .wiz-desk-nav-logo img { width: 34px; height: 34px; object-fit: contain; display: block; }
     .wiz-desk-nav-links { display: flex; align-items: center; gap: 0.25rem; }
     .wiz-desk-nav-link {
       font-size: 0.9375rem; font-weight: 500; color: var(--text-2);
@@ -976,14 +981,6 @@
     .style-name  { font-size: 0.875rem; font-weight: 600; color: var(--text); }
     .style-desc  { font-size: 0.75rem; color: var(--text-2); }
 
-    /* ── TIME FIELD (same float-label as date) ── */
-    .field-input[type="time"] { padding-top: 1.25rem; }
-    .field-input[type="time"] ~ .field-label {
-      top: 0.65rem; font-size: 0.7rem; font-weight: 600;
-      letter-spacing: 0.04em; color: var(--text-muted); text-transform: uppercase;
-    }
-    .field-input[type="time"]:focus ~ .field-label { color: var(--pink); }
-
     /* ── PICKER SCREEN ── */
     #pickerScreen {
       position: absolute; inset: 0; z-index: 10;
@@ -1084,12 +1081,13 @@
 <!-- Desktop nav (hidden on mobile) -->
 <nav class="wiz-desk-nav">
   <div class="wiz-desk-nav-inner">
-    <a href="/" style="display:flex;align-items:center;text-decoration:none;">
-      <img src="/images/logo.png" alt="ToiLink" style="height:34px;width:auto;">
+    <a href="/" class="wiz-desk-nav-logo" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="">
+      <span>ToiLink</span>
     </a>
     <div class="wiz-desk-nav-links">
       <a href="/templates.html" class="wiz-desk-nav-link">Шаблоны</a>
-      <a href="/" class="wiz-desk-nav-link">Мой кабинет</a>
+      <a href="/index.html" class="wiz-desk-nav-link">Мой кабинет</a>
     </div>
   </div>
 </nav>
@@ -1104,7 +1102,7 @@
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12L6 8l4-4"/></svg>
         Назад
       </button>
-      <span class="logo-mark"><img src="/images/logo.png" alt="ToiLink"></span>
+      <span class="logo-mark"><img src="/images/logo.webp" alt=""><span>ToiLink</span></span>
       <div style="width:3rem"></div>
     </div>
 
@@ -1140,7 +1138,7 @@
       </svg>
       Назад
     </button>
-    <span class="logo-mark"><img src="/images/logo.png" alt="ToiLink"></span>
+    <span class="logo-mark"><img src="/images/logo.webp" alt=""><span>ToiLink</span></span>
     <button class="skip-btn" id="headerSkip" onclick="skipStep()" style="visibility:hidden">Пропустить</button>
   </header>
 
@@ -1234,7 +1232,7 @@
     <button class="btn-pink full lg" onclick="goToPaywall()">Открыть доступ — 990 сом →</button>
     <div class="locked-secondary-actions">
       <button onclick="goToEditor()" style="flex:1;height:2.75rem;border-radius:999px;border:1.5px solid var(--border);background:none;font-family:var(--sans);font-size:0.875rem;font-weight:500;color:var(--text-2);cursor:pointer">Редактировать</button>
-      <a href="/" style="flex:1;display:flex;align-items:center;justify-content:center;height:2.75rem;border-radius:999px;border:1.5px solid var(--border);font-family:var(--sans);font-size:0.875rem;font-weight:500;color:var(--text-2);text-decoration:none">Мой кабинет</a>
+      <a href="/index.html" style="flex:1;display:flex;align-items:center;justify-content:center;height:2.75rem;border-radius:999px;border:1.5px solid var(--border);font-family:var(--sans);font-size:0.875rem;font-weight:500;color:var(--text-2);text-decoration:none">Мой кабинет</a>
     </div>
   </div>
 </div>
@@ -1255,6 +1253,7 @@
 
 
 
+<script src="js/date-time-picker.js"></script>
 <script src="js/wizard-bridge.js"></script>
 <script src="js/wizard.js"></script>
 </body>
