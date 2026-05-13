@@ -1,15 +1,29 @@
-const SW_VERSION = 'toilink-app-v3';
+const SW_VERSION = 'toilink-app-v4';
 const PAGE_CACHE = `${SW_VERSION}:pages`;
 const ASSET_CACHE = `${SW_VERSION}:assets`;
 
 const PRECACHE_PAGES = [
   '/',
+  '/landing.html',
+  '/login.html',
   '/templates.html',
   '/guests.html'
 ];
 
 const PRECACHE_ASSETS = [
+  '/css/tokens.css',
+  '/css/base.css',
   '/css/app-shell.css',
+  '/css/fonts.css',
+  '/css/tailwind.css',
+  '/fonts/inter-400.woff2',
+  '/fonts/inter-500.woff2',
+  '/fonts/inter-600.woff2',
+  '/fonts/inter-700.woff2',
+  '/fonts/cormorant-400.woff2',
+  '/fonts/cormorant-500.woff2',
+  '/fonts/cormorant-600.woff2',
+  '/images/logo.webp',
   '/js/app-shell.js',
   '/js/initAuth.js',
   '/js/dashboard.js',

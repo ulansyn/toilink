@@ -20,6 +20,7 @@ public class WebConfig implements WebMvcConfigurer {
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
         CacheControl assetCache = CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic();
+        CacheControl fontCache = CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable();
         CacheControl uploadCache = CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic();
 
         registry.addResourceHandler("/js/**")
@@ -29,6 +30,10 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/css/**")
                 .addResourceLocations("classpath:/static/css/")
                 .setCacheControl(assetCache);
+
+        registry.addResourceHandler("/fonts/**")
+                .addResourceLocations("classpath:/static/fonts/")
+                .setCacheControl(fontCache);
 
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("classpath:/static/images/")

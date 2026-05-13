@@ -5,9 +5,9 @@ spring:
   web:
     resources:
       cache:
-        period: 0
+        period: 3600
         cachecontrol:
-          no-cache: true
+          max-age: 3600
           must-revalidate: true
 
   datasource:
@@ -46,3 +46,9 @@ logging:
     liquibase: INFO
 server:
   port: ${PORT:8888}
+  compression:
+    enabled: true
+    mime-types: text/html,text/css,text/javascript,application/javascript,application/json,image/svg+xml,application/xml,text/xml,text/plain
+    min-response-size: 1024
+  http2:
+    enabled: true
