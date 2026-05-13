@@ -863,9 +863,10 @@
 
     /* ===== LANDING CMS ===== */
     .landing-grid,
-    .landing-cms-grid {
+    .landing-cms-grid,
+    .landing-builder {
       display: grid;
-      grid-template-columns: minmax(260px, 320px) minmax(520px, 1fr);
+      grid-template-columns: minmax(260px, 300px) minmax(520px, 1fr) minmax(240px, 280px);
       gap: 20px;
       align-items: start;
     }
@@ -894,6 +895,121 @@
       display: grid;
       gap: 14px;
       min-width: 0;
+    }
+    .landing-map {
+      display: grid;
+      gap: 6px;
+      max-height: calc(100vh - 190px);
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .landing-map-btn {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      border: 1px solid transparent;
+      border-radius: var(--r-sm);
+      background: var(--bg-subtle);
+      color: var(--text-primary);
+      text-align: left;
+      transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
+    }
+    .landing-map-btn:hover { background: var(--bg-hover); border-color: var(--border); }
+    .landing-map-btn.active {
+      background: var(--bg-surface);
+      border-color: var(--sidebar-bg);
+      box-shadow: 0 0 0 2px rgba(12,12,11,.06);
+    }
+    .landing-map-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .landing-map-title::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      flex-shrink: 0;
+    }
+    .landing-map-btn.off .landing-map-title::before { background: var(--text-tertiary); }
+    .landing-map-meta {
+      margin-top: 2px;
+      font-size: 11px;
+      color: var(--text-tertiary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .landing-map-badge {
+      min-width: 42px;
+      padding: 3px 7px;
+      border-radius: var(--r-full);
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      font-size: 10px;
+      font-weight: 800;
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .landing-map-btn.off .landing-map-badge { color: var(--text-tertiary); }
+    .landing-workspace {
+      display: grid;
+      gap: 14px;
+      min-width: 0;
+    }
+    .landing-editor-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .landing-editor-title {
+      margin: 0;
+      font-size: 24px;
+      font-family: var(--serif);
+      line-height: 1.1;
+      font-weight: 600;
+      letter-spacing: -.01em;
+    }
+    .landing-editor-sub {
+      margin-top: 5px;
+      color: var(--text-secondary);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .landing-section-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-full);
+      background: var(--bg-subtle);
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .landing-section-toggle input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--green);
+      cursor: pointer;
     }
     .landing-tabs {
       display: flex;
@@ -1128,6 +1244,12 @@
       letter-spacing: .04em;
     }
     .landing-repeat-head span { display: flex; align-items: center; gap: 8px; }
+    .landing-repeat-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      flex-shrink: 0;
+    }
     .landing-repeat-head span::before {
       content: counter(lrepeat);
       display: inline-flex;
@@ -1576,77 +1698,40 @@
           </div>
         </div>
 
-        <div class="landing-cms-grid">
+        <div class="landing-builder">
           <aside class="landing-sidebar">
             <div class="landing-panel compact">
               <h2>Публикация</h2>
-              <p class="landing-help">Редактируйте контент по вкладкам. JSON остаётся только как расширенный режим.</p>
               <div class="landing-status" id="landingStatus">—</div>
               <div class="landing-kpis" id="landingKpis"></div>
+            </div>
+
+            <div class="landing-panel compact">
+              <h2>Карта лендинга</h2>
+              <div class="landing-map" id="landingSectionMap"></div>
+            </div>
+          </aside>
+
+          <main class="landing-workspace">
+            <div class="landing-panel" id="landingWorkspace"></div>
+          </main>
+
+          <aside class="landing-sidebar">
+            <div class="landing-panel compact">
+              <h2>Контроль</h2>
               <div class="landing-preview" id="landingPreview"></div>
             </div>
 
             <div class="landing-panel compact">
-              <h2>Видимость блоков</h2>
-              <p class="landing-help">Выключенные блоки не показываются на публичном лендинге.</p>
-              <div class="landing-switches" id="landingSectionSwitches"></div>
+              <h2>JSON</h2>
+              <div class="top-actions" style="justify-content:flex-start;margin-bottom:10px;">
+                <button class="tiny-btn" onclick="formatLandingJson()">Форматировать</button>
+                <button class="tiny-btn" onclick="copyLandingJson()">Скопировать</button>
+                <button class="tiny-btn" onclick="applyLandingJsonToForm()">Применить</button>
+              </div>
+              <textarea class="textarea landing-json" id="landingJson" spellcheck="false" placeholder="Загрузка..."></textarea>
             </div>
           </aside>
-
-          <div class="landing-main">
-            <div class="landing-tabs" role="tablist" aria-label="Разделы CMS лендинга">
-              <button class="landing-tab active" data-landing-tab="main" onclick="setLandingTab('main')">Главное</button>
-              <button class="landing-tab" data-landing-tab="blocks" onclick="setLandingTab('blocks')">Блоки</button>
-              <button class="landing-tab" data-landing-tab="lists" onclick="setLandingTab('lists')">Списки</button>
-              <button class="landing-tab" data-landing-tab="seo" onclick="setLandingTab('seo')">SEO</button>
-              <button class="landing-tab" data-landing-tab="json" onclick="setLandingTab('json')">JSON</button>
-            </div>
-
-            <div class="landing-tab-panel active" id="landingTab-main">
-              <div class="landing-panel">
-                <h2>Главные тексты</h2>
-                <p class="landing-help">Первый экран, CTA, контакты и основные обещания. Это то, что чаще всего нужно менять перед запуском.</p>
-                <div class="landing-form" id="landingMainForm"></div>
-              </div>
-            </div>
-
-            <div class="landing-tab-panel" id="landingTab-blocks">
-              <div class="landing-panel">
-                <h2>Секции лендинга</h2>
-                <p class="landing-help">Заголовки и тексты больших блоков: категории, процесс, преимущества, сравнение, шаблоны, отзывы, тарифы и FAQ.</p>
-                <div class="landing-form" id="landingBlocksForm"></div>
-              </div>
-            </div>
-
-            <div class="landing-tab-panel" id="landingTab-lists">
-              <div class="landing-panel">
-                <h2>Повторяющийся контент</h2>
-                <p class="landing-help">Карточки, отзывы, тарифы, FAQ, галочки и бегущая строка. Здесь удобно добавлять, удалять и менять порядок смысловых элементов.</p>
-                <div class="landing-form" id="landingListsForm"></div>
-              </div>
-            </div>
-
-            <div class="landing-tab-panel" id="landingTab-seo">
-              <div class="landing-panel">
-                <h2>SEO и превью</h2>
-                <p class="landing-help">Title, description и OG-тексты для вкладки браузера и превью в мессенджерах.</p>
-                <div class="landing-form" id="landingSeoForm"></div>
-              </div>
-            </div>
-
-            <div class="landing-tab-panel" id="landingTab-json">
-              <div class="landing-panel">
-                <h2>Расширенный JSON</h2>
-                <p class="landing-help">Используйте только для нестандартных правок. После ручного изменения нажмите “Применить JSON к форме”.</p>
-                <div class="top-actions" style="justify-content:flex-start;margin-bottom:10px;">
-                  <button class="tiny-btn" onclick="formatLandingJson()">Форматировать</button>
-                  <button class="tiny-btn" onclick="copyLandingJson()">Скопировать JSON</button>
-                  <button class="tiny-btn" onclick="applyLandingJsonToForm()">Применить JSON к форме</button>
-                </div>
-                <textarea class="textarea landing-json" id="landingJson" spellcheck="false" placeholder="Загрузка..."></textarea>
-              </div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1711,6 +1796,7 @@ const state = {
   activeSection: 'dashboard',
   landingConfig: null,
   landingTab: 'main',
+  landingActiveSection: 'hero',
   landingDirty: false
 };
 
@@ -2441,6 +2527,142 @@ const LANDING_SECTION_LABELS = {
   footer: 'Футер'
 };
 
+const LANDING_CMS_SECTIONS = [
+  {
+    key: 'meta',
+    title: 'SEO и превью',
+    hint: 'Title, description и карточки в мессенджерах',
+    fields: [
+      ['meta.title', 'Title вкладки'],
+      ['meta.description', 'Meta description', 'textarea'],
+      ['meta.ogTitle', 'OG title'],
+      ['meta.ogDescription', 'OG description', 'textarea']
+    ]
+  },
+  {
+    key: 'hero',
+    title: 'Первый экран',
+    hint: 'Главный оффер, кнопки и галочки',
+    fields: [
+      ['hero.badge', 'Плашка с рейтингом'],
+      ['hero.titleTop', 'Заголовок: верхняя строка'],
+      ['hero.titleAccent', 'Заголовок: акцент'],
+      ['hero.subtitle', 'Подзаголовок', 'textarea'],
+      ['hero.primaryCta', 'Главная кнопка'],
+      ['hero.secondaryCta', 'Вторая кнопка']
+    ],
+    lists: [{ type: 'text', path: 'hero.bullets', title: 'Галочки под кнопками' }]
+  },
+  {
+    key: 'miniFeatures',
+    title: 'Быстрые преимущества',
+    hint: 'Три коротких пункта под hero',
+    lists: [{ type: 'object', path: 'miniFeatures', title: 'Преимущества', fields: [['title', 'Текст', 'textarea']] }]
+  },
+  { key: 'phoneMockup', title: 'Айфон-мокап', hint: 'Только видимость блока' },
+  {
+    key: 'stats',
+    title: 'Статистика',
+    hint: 'Социальное доказательство и цифры',
+    fields: [['stats.socialProof', 'Текст над статистикой', 'textarea']],
+    lists: [{ type: 'object', path: 'stats.items', title: 'Цифры', fields: [['value', 'Значение'], ['label', 'Подпись']] }]
+  },
+  {
+    key: 'trust',
+    title: 'Бегущая строка',
+    hint: 'Trust-фразы в marquee',
+    lists: [{ type: 'text', path: 'trust', title: 'Фразы доверия' }]
+  },
+  {
+    key: 'categories',
+    title: 'Категории',
+    hint: 'Карточки типов событий',
+    fields: [['categories.eyebrow', 'Надзаголовок'], ['categories.title', 'Заголовок']],
+    lists: [{ type: 'object', path: 'categories.items', title: 'Карточки категорий', fields: [['emoji', 'Эмодзи'], ['title', 'Название'], ['text', 'Описание']] }]
+  },
+  {
+    key: 'how',
+    title: 'Как работает',
+    hint: 'Процесс из шагов',
+    fields: [['how.eyebrow', 'Надзаголовок'], ['how.title', 'Заголовок'], ['how.subtitle', 'Подзаголовок', 'textarea'], ['how.cta', 'Кнопка']],
+    lists: [{ type: 'object', path: 'how.steps', title: 'Шаги процесса', fields: [['title', 'Название'], ['text', 'Описание', 'textarea']] }]
+  },
+  {
+    key: 'features',
+    title: 'Преимущества',
+    hint: 'Карточки и большой highlight',
+    fields: [
+      ['features.eyebrow', 'Надзаголовок'],
+      ['features.title', 'Заголовок'],
+      ['features.subtitle', 'Подзаголовок', 'textarea'],
+      ['features.highlightTitle', 'Большой блок: заголовок'],
+      ['features.highlightText', 'Большой блок: текст', 'textarea'],
+      ['features.highlightCta', 'Большой блок: кнопка']
+    ],
+    lists: [{ type: 'object', path: 'features.items', title: 'Карточки преимуществ', fields: [['title', 'Название'], ['text', 'Описание', 'textarea']] }]
+  },
+  {
+    key: 'comparison',
+    title: 'Сравнение',
+    hint: 'Блок “почему не WhatsApp”',
+    fields: [['comparison.eyebrow', 'Надзаголовок'], ['comparison.title', 'Заголовок'], ['comparison.subtitle', 'Подзаголовок', 'textarea'], ['comparison.cta', 'Кнопка']]
+  },
+  {
+    key: 'templates',
+    title: 'Шаблоны',
+    hint: 'Заголовок галереи',
+    fields: [['templates.eyebrow', 'Надзаголовок'], ['templates.title', 'Заголовок'], ['templates.subtitle', 'Подзаголовок'], ['templates.cta', 'Кнопка']]
+  },
+  {
+    key: 'reviews',
+    title: 'Отзывы',
+    hint: 'Карусель отзывов',
+    fields: [['reviews.eyebrow', 'Надзаголовок'], ['reviews.title', 'Заголовок']],
+    lists: [{ type: 'object', path: 'reviews.items', title: 'Отзывы', fields: [['avatar', 'Буква'], ['name', 'Имя'], ['meta', 'Подпись'], ['text', 'Текст отзыва', 'textarea']] }]
+  },
+  {
+    key: 'pricing',
+    title: 'Тарифы',
+    hint: 'Планы, цены и гарантии',
+    fields: [['pricing.eyebrow', 'Надзаголовок'], ['pricing.title', 'Заголовок'], ['pricing.subtitle', 'Подзаголовок', 'textarea']],
+    lists: [
+      { type: 'object', path: 'pricing.plans', title: 'Тарифные планы', fields: [
+        ['name', 'Название'], ['tag', 'Метка'], ['description', 'Описание'],
+        ['price', 'Цена'], ['currency', 'Валюта'], ['oldPrice', 'Старая цена'],
+        ['note', 'Подпись под ценой'], ['badge', 'Плашка сверху'], ['cta', 'Кнопка'],
+        ['features', 'Пункты тарифа, каждый с новой строки', 'lines']
+      ] },
+      { type: 'text', path: 'pricing.badges', title: 'Подписи под тарифами' }
+    ]
+  },
+  {
+    key: 'faq',
+    title: 'FAQ',
+    hint: 'Вопросы и ответы',
+    fields: [['faq.eyebrow', 'Надзаголовок'], ['faq.title', 'Заголовок']],
+    lists: [{ type: 'object', path: 'faq.items', title: 'FAQ', fields: [['question', 'Вопрос'], ['answer', 'Ответ', 'textarea']] }]
+  },
+  {
+    key: 'finalCta',
+    title: 'Финальный CTA',
+    hint: 'Последний экран перед футером',
+    fields: [
+      ['finalCta.badge', 'Плашка'],
+      ['finalCta.title', 'Заголовок', 'textarea'],
+      ['finalCta.subtitle', 'Подзаголовок', 'textarea'],
+      ['finalCta.primaryCta', 'Главная кнопка'],
+      ['finalCta.secondaryCta', 'Вторая кнопка']
+    ],
+    lists: [{ type: 'text', path: 'finalCta.bullets', title: 'Галочки финального CTA' }]
+  },
+  {
+    key: 'footer',
+    title: 'Футер',
+    hint: 'Контакты и нижний текст',
+    fields: [['footer.text', 'Описание', 'textarea'], ['footer.phone', 'Телефон'], ['footer.email', 'Email'], ['footer.city', 'Город'], ['footer.copyright', 'Copyright']]
+  }
+];
+
 async function loadLanding() {
   const jsonEl = document.getElementById('landingJson');
   const statusEl = document.getElementById('landingStatus');
@@ -2461,14 +2683,95 @@ async function loadLanding() {
 }
 
 function renderLandingSwitches(sections) {
-  const el = document.getElementById('landingSectionSwitches');
+  const el = document.getElementById('landingSectionMap');
   if (!el) return;
-  el.innerHTML = Object.entries(LANDING_SECTION_LABELS).map(([key, label]) => `
-    <label class="landing-switch">
-      <span>${esc(label)}</span>
-      <input type="checkbox" data-landing-section="${attr(key)}" ${sections[key] !== false ? 'checked' : ''} onchange="syncLandingFormToJson(true)"/>
-    </label>
-  `).join('');
+  el.innerHTML = LANDING_CMS_SECTIONS.map(def => {
+    const enabled = def.key === 'meta' || sections[def.key] !== false;
+    const count = landingSectionItemCount(def);
+    return `
+    <button class="landing-map-btn${state.landingActiveSection === def.key ? ' active' : ''}${enabled ? '' : ' off'}" onclick="setLandingActiveSection('${attr(def.key)}')">
+      <span style="min-width:0;">
+        <span class="landing-map-title">${esc(def.title)}</span>
+        <span class="landing-map-meta">${esc(def.hint || '')}</span>
+      </span>
+      <span class="landing-map-badge">${def.key === 'meta' ? 'SEO' : enabled ? count : 'off'}</span>
+    </button>`;
+  }).join('');
+}
+
+function landingSectionItemCount(def) {
+  return (def.lists || []).reduce((sum, list) => sum + countItems(landingPathGet(state.landingConfig || {}, list.path)), 0);
+}
+
+function setLandingActiveSection(key) {
+  if (!LANDING_CMS_SECTIONS.some(def => def.key === key)) return;
+  syncLandingFormToJson(false);
+  state.landingActiveSection = key;
+  refreshLandingEditor();
+}
+
+function landingToggleActiveSection(enabled) {
+  const key = state.landingActiveSection;
+  if (!key || key === 'meta') return;
+  state.landingConfig ||= {};
+  state.landingConfig.sections ||= {};
+  state.landingConfig.sections[key] = enabled;
+  state.landingDirty = true;
+  refreshLandingEditor();
+  setLandingStatus('Есть несохранённые изменения.', 'dirty');
+}
+
+function landingCurrentDef() {
+  return LANDING_CMS_SECTIONS.find(def => def.key === state.landingActiveSection) || LANDING_CMS_SECTIONS[1];
+}
+
+function landingListDef(path) {
+  for (const section of LANDING_CMS_SECTIONS) {
+    const list = (section.lists || []).find(item => item.path === path);
+    if (list) return list;
+  }
+  return null;
+}
+
+function landingSectionEnabled(key) {
+  return key === 'meta' || (state.landingConfig?.sections || {})[key] !== false;
+}
+
+function renderLandingForm(config) {
+  const workspace = document.getElementById('landingWorkspace');
+  if (!workspace) return;
+  const def = landingCurrentDef();
+  const enabled = landingSectionEnabled(def.key);
+  const fields = (def.fields || []).map(([path, label, type]) => landingField(path, label, type)).join('');
+  const lists = (def.lists || []).map(list => {
+    if (list.type === 'text') return landingTextListGroup(list.path, list.title);
+    if (list.type === 'object') return landingObjectListGroup(list.path, list.title, list.fields || []);
+    return '';
+  }).join('');
+  const empty = !fields && !lists
+    ? '<div class="landing-empty">В этой секции редактируется только видимость.</div>'
+    : '';
+
+  workspace.innerHTML = `
+    <div class="landing-editor-head">
+      <div>
+        <h2 class="landing-editor-title">${esc(def.title)}</h2>
+        <div class="landing-editor-sub">${esc(def.hint || '')}</div>
+      </div>
+      ${def.key === 'meta' ? '' : `
+        <label class="landing-section-toggle">
+          <input type="checkbox" ${enabled ? 'checked' : ''} onchange="landingToggleActiveSection(this.checked)"/>
+          ${enabled ? 'Включено' : 'Скрыто'}
+        </label>
+      `}
+    </div>
+    <div class="landing-form">
+      ${fields ? `<section class="landing-group"><div class="landing-fields">${fields}</div></section>` : ''}
+      ${lists}
+      ${empty}
+    </div>
+  `;
+  renderLandingSummary(config);
 }
 
 const LANDING_SIMPLE_GROUPS = [
@@ -2548,7 +2851,7 @@ const LANDING_SIMPLE_GROUPS = [
   ]}
 ];
 
-function renderLandingForm(config) {
+function renderLandingLegacyForm(config) {
   const main = document.getElementById('landingMainForm');
   const blocks = document.getElementById('landingBlocksForm');
   const lists = document.getElementById('landingListsForm');
@@ -2606,7 +2909,7 @@ function renderLandingForm(config) {
   setLandingTab(state.landingTab || 'main', false);
 }
 
-function renderLandingSimpleGroups(titles) {
+function renderLandingLegacySimpleGroups(titles) {
   return LANDING_SIMPLE_GROUPS
     .filter(group => titles.includes(group.title))
     .map(group => `
@@ -2639,7 +2942,15 @@ function landingTextListGroup(path, title) {
       <div class="landing-repeat">
         ${items.map((item, i) => `
           <div class="landing-repeat-item">
-            <div class="landing-repeat-head"><span>Пункт</span><button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button></div>
+            <div class="landing-repeat-head">
+              <span>${esc(item || 'Пункт')}</span>
+              <div class="landing-repeat-actions">
+                <button class="tiny-btn" onclick="landingMoveItem('${attr(path)}', ${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                <button class="tiny-btn" onclick="landingMoveItem('${attr(path)}', ${i}, 1)" ${i === items.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="tiny-btn" onclick="landingDuplicateItem('${attr(path)}', ${i})">Дубль</button>
+                <button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button>
+              </div>
+            </div>
             <input class="input" data-l-list="${attr(path)}" data-l-index="${i}" value="${attr(item)}" oninput="syncLandingFormToJson(true)"/>
           </div>
         `).join('')}
@@ -2656,9 +2967,19 @@ function landingObjectListGroup(path, title, fields) {
         <button class="tiny-btn" onclick="landingAddObjectItem('${attr(path)}')">Добавить</button>
       </div>
       <div class="landing-repeat">
-        ${items.map((item, i) => `
+        ${items.map((item, i) => {
+          const itemTitle = item?.title || item?.name || item?.question || item?.value || title;
+          return `
           <div class="landing-repeat-item">
-            <div class="landing-repeat-head"><span>${esc(title)}</span><button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button></div>
+            <div class="landing-repeat-head">
+              <span>${esc(itemTitle)}</span>
+              <div class="landing-repeat-actions">
+                <button class="tiny-btn" onclick="landingMoveItem('${attr(path)}', ${i}, -1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+                <button class="tiny-btn" onclick="landingMoveItem('${attr(path)}', ${i}, 1)" ${i === items.length - 1 ? 'disabled' : ''}>↓</button>
+                <button class="tiny-btn" onclick="landingDuplicateItem('${attr(path)}', ${i})">Дубль</button>
+                <button class="tiny-btn danger" onclick="landingRemoveItem('${attr(path)}', ${i})">Удалить</button>
+              </div>
+            </div>
             <div class="landing-fields">
               ${fields.map(([key, label, type]) => {
                 const value = type === 'lines'
@@ -2672,7 +2993,7 @@ function landingObjectListGroup(path, title, fields) {
               }).join('')}
             </div>
           </div>
-        `).join('')}
+        `}).join('')}
       </div>
     </section>`;
 }
@@ -2754,6 +3075,8 @@ function renderLandingSummary(config = {}) {
   const enabledCount = sectionEntries.filter(key => sections[key] !== false).length;
   const listCount =
     countItems(config.hero?.bullets) +
+    countItems(config.miniFeatures) +
+    countItems(config.stats?.items) +
     countItems(config.trust) +
     countItems(config.categories?.items) +
     countItems(config.how?.steps) +
@@ -2808,7 +3131,7 @@ function landingPathSet(obj, path, value) {
 function landingAddTextItem(path) {
   syncLandingFormToJson();
   const arr = landingPathGet(state.landingConfig, path) || [];
-  arr.push('');
+  arr.push('Новый пункт');
   landingPathSet(state.landingConfig, path, arr);
   state.landingDirty = true;
   refreshLandingEditor();
@@ -2819,8 +3142,36 @@ function landingAddObjectItem(path) {
   syncLandingFormToJson();
   const arr = landingPathGet(state.landingConfig, path) || [];
   const sample = arr[0] || {};
-  const item = Object.fromEntries(Object.keys(sample).map(key => [key, Array.isArray(sample[key]) ? [] : '']));
+  const fields = landingListDef(path)?.fields || [];
+  const keys = fields.length ? fields.map(([key]) => key) : Object.keys(sample);
+  const item = Object.fromEntries(keys.map(key => [key, Array.isArray(sample[key]) ? [] : '']));
   arr.push(item);
+  landingPathSet(state.landingConfig, path, arr);
+  state.landingDirty = true;
+  refreshLandingEditor();
+  setLandingStatus('Есть несохранённые изменения.', 'dirty');
+}
+
+function landingMoveItem(path, index, delta) {
+  syncLandingFormToJson();
+  const arr = landingPathGet(state.landingConfig, path) || [];
+  const next = index + delta;
+  if (next < 0 || next >= arr.length) return;
+  [arr[index], arr[next]] = [arr[next], arr[index]];
+  landingPathSet(state.landingConfig, path, arr);
+  state.landingDirty = true;
+  refreshLandingEditor();
+  setLandingStatus('Есть несохранённые изменения.', 'dirty');
+}
+
+function landingDuplicateItem(path, index) {
+  syncLandingFormToJson();
+  const arr = landingPathGet(state.landingConfig, path) || [];
+  if (!arr[index]) return;
+  const copy = typeof arr[index] === 'object'
+    ? JSON.parse(JSON.stringify(arr[index]))
+    : String(arr[index]);
+  arr.splice(index + 1, 0, copy);
   landingPathSet(state.landingConfig, path, arr);
   state.landingDirty = true;
   refreshLandingEditor();
