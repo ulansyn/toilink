@@ -29,3 +29,9 @@ databaseChangeLog:
       file: db/changelog/migrations/015-add-public-preview-and-guest-source.yaml
   - include:
       file: db/changelog/migrations/016-add-password-hash.yaml
+  - include:
+      file: db/changelog/migrations/017-admin-fields.yaml
+  - include:
+      file: db/changelog/migrations/018-seed-superadmin.yaml
+  - include:
+      file: db/changelog/migrations/019-create-landing-settings.yaml

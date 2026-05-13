@@ -1,3 +1,3 @@
 package kg.toilink.dto.response;
 
-public record AuthResponse(String phone, String name) {}
+public record AuthResponse(String phone, String name, String role) {}

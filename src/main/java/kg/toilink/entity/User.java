@@ -39,6 +39,18 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private LocalDateTime lastLoginAt;
+
+    @Column(length = 45)
+    private String lastLoginIp;
+
+    @Builder.Default
+    private Integer failedLoginCount = 0;
+
+    private LocalDateTime lockedUntil;
+
+    private LocalDateTime deletedAt;
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();

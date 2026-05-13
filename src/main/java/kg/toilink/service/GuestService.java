@@ -72,7 +72,7 @@ public class GuestService {
     private Event verifyOwnership(Long eventId, String phone) {
         User user = userService.findByPhone(phone)
                 .orElseThrow(() -> new NotFoundException("User not found for phone: " + phone));
-        Event event = eventRepository.findById(eventId)
+        Event event = eventRepository.findByIdAndDeletedAtIsNull(eventId)
                 .orElseThrow(() -> NotFoundException.event(eventId));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {
             throw NotFoundException.event(eventId);

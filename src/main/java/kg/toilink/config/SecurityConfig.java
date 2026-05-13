@@ -25,6 +25,7 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
+                .requestMatchers("/api/admin/**").hasAuthority("ROLE_SUPERADMIN")
                 .requestMatchers("/api/organizer/**").authenticated()
                 .anyRequest().permitAll()
             )

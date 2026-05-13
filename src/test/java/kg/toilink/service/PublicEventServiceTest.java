@@ -35,7 +35,7 @@ class PublicEventServiceTest {
                 .title("Test")
                 .build();
 
-        when(eventRepository.findBySlug("test-slug")).thenReturn(Optional.of(event));
+        when(eventRepository.findWithTemplateBySlug("test-slug")).thenReturn(Optional.of(event));
 
         assertDoesNotThrow(() -> publicEventService.findAccessibleEvent("test-slug", previewToken));
     }
@@ -49,7 +49,7 @@ class PublicEventServiceTest {
                 .title("Test")
                 .build();
 
-        when(eventRepository.findBySlug("test-slug")).thenReturn(Optional.of(event));
+        when(eventRepository.findWithTemplateBySlug("test-slug")).thenReturn(Optional.of(event));
 
         assertThrows(NotFoundException.class, () -> publicEventService.findAccessibleEvent("test-slug", null));
     }

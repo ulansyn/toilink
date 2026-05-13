@@ -17,17 +17,22 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
         long getTotal();
     }
 
-    List<Guest> findAllByEventId(Long eventId);
+    @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.deletedAt IS NULL ORDER BY g.createdAt DESC")
+    List<Guest> findAllByEventId(@Param("eventId") Long eventId);
 
     Optional<Guest> findByToken(UUID token);
 
     Optional<Guest> findByEventIdAndNameAndSource(Long eventId, String name, String source);
-    long countByEventId(Long eventId);
+    @Query("SELECT COUNT(g) FROM Guest g WHERE g.event.id = :eventId AND g.deletedAt IS NULL")
+    long countByEventId(@Param("eventId") Long eventId);
+
+    long countByDeletedAtIsNull();
 
     @Query("""
             select g.event.id as eventId, count(g) as total
             from Guest g
             where g.event.id in :eventIds
+              and g.deletedAt is null
             group by g.event.id
             """)
     List<EventGuestCountView> countByEventIds(@Param("eventIds") Collection<Long> eventIds);

@@ -47,6 +47,8 @@ public class Guest {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    private LocalDateTime deletedAt;
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();

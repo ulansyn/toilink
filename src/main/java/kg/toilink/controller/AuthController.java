@@ -25,7 +25,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public AuthResponse login(@Valid @RequestBody AuthRequest req, HttpServletRequest httpReq) {
-        User user = userService.loginOrRegister(req.phone(), req.password());
+        User user = userService.loginOrRegister(req.phone(), req.password(), clientIp(httpReq));
 
         UserDetails details = userService.loadUserByUsername(user.getPhone());
         UsernamePasswordAuthenticationToken auth =
@@ -38,7 +38,7 @@ public class AuthController {
         HttpSession session = httpReq.getSession(true);
         session.setAttribute("SPRING_SECURITY_CONTEXT", ctx);
 
-        return new AuthResponse(user.getPhone(), user.getName());
+        return new AuthResponse(user.getPhone(), user.getName(), user.getRole());
     }
 
     @PostMapping("/logout")
@@ -53,7 +53,16 @@ public class AuthController {
     public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails user) {
         if (user == null) return ResponseEntity.status(401).build();
         String phone = user.getUsername();
-        String name = userService.findByPhone(phone).map(User::getName).orElse(null);
-        return ResponseEntity.ok(new AuthResponse(phone, name));
+        User u = userService.findByPhone(phone).orElse(null);
+        if (u == null) return ResponseEntity.status(401).build();
+        return ResponseEntity.ok(new AuthResponse(phone, u.getName(), u.getRole()));
+    }
+
+    private String clientIp(HttpServletRequest req) {
+        String forwarded = req.getHeader("X-Forwarded-For");
+        if (forwarded != null && !forwarded.isBlank()) {
+            return forwarded.split(",")[0].trim();
+        }
+        return req.getRemoteAddr();
     }
 }

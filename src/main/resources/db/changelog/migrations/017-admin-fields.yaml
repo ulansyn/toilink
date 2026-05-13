@@ -1,0 +1,306 @@
+databaseChangeLog:
+  - changeSet:
+      id: 017-admin-fields
+      author: toilink
+      changes:
+        # --- users: admin fields ---
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: last_login_at
+                  type: timestamp
+              - column:
+                  name: last_login_ip
+                  type: varchar(45)
+              - column:
+                  name: failed_login_count
+                  type: int
+                  defaultValueNumeric: 0
+              - column:
+                  name: locked_until
+                  type: timestamp
+              - column:
+                  name: deleted_at
+                  type: timestamp
+
+        # --- events: soft-delete ---
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: deleted_at
+                  type: timestamp
+
+        # --- guests: soft-delete ---
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: deleted_at
+                  type: timestamp
+
+        # --- admin_audit_logs ---
+        - createTable:
+            tableName: admin_audit_logs
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: admin_audit_logs_pkey
+              - column:
+                  name: admin_user_id
+                  type: bigint
+              - column:
+                  name: action_code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_type
+                  type: varchar(30)
+              - column:
+                  name: target_id
+                  type: varchar(50)
+              - column:
+                  name: before_json
+                  type: jsonb
+              - column:
+                  name: after_json
+                  type: jsonb
+              - column:
+                  name: reason
+                  type: text
+              - column:
+                  name: ip
+                  type: varchar(45)
+              - column:
+                  name: user_agent
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_audit_admin
+            tableName: admin_audit_logs
+            columns:
+              - column:
+                  name: admin_user_id
+        - createIndex:
+            indexName: idx_audit_created
+            tableName: admin_audit_logs
+            columns:
+              - column:
+                  name: created_at
+
+        # --- admin_notes ---
+        - createTable:
+            tableName: admin_notes
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: admin_notes_pkey
+              - column:
+                  name: target_type
+                  type: varchar(30)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: target_id
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: admin_user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: text
+                  type: text
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_notes_target
+            tableName: admin_notes
+            columns:
+              - column:
+                  name: target_type
+              - column:
+                  name: target_id
+
+        # --- payments ---
+        - createTable:
+            tableName: payments
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: payments_pkey
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_payments_user
+                    references: users(id)
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_payments_event
+                    references: events(id)
+              - column:
+                  name: plan_id
+                  type: bigint
+              - column:
+                  name: amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency
+                  type: varchar(10)
+                  defaultValue: KGS
+              - column:
+                  name: method
+                  type: varchar(30)
+              - column:
+                  name: status
+                  type: varchar(30)
+                  defaultValue: PENDING
+                  constraints:
+                    nullable: false
+              - column:
+                  name: external_ref
+                  type: varchar(200)
+              - column:
+                  name: receipt_url
+                  type: varchar(500)
+              - column:
+                  name: promo_code_id
+                  type: bigint
+              - column:
+                  name: confirmed_at
+                  type: timestamp
+              - column:
+                  name: confirmed_by
+                  type: bigint
+              - column:
+                  name: rejected_reason
+                  type: text
+              - column:
+                  name: refunded_amount
+                  type: numeric(12,2)
+              - column:
+                  name: refunded_at
+                  type: timestamp
+              - column:
+                  name: notes
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_payments_user
+            tableName: payments
+            columns:
+              - column:
+                  name: user_id
+        - createIndex:
+            indexName: idx_payments_status
+            tableName: payments
+            columns:
+              - column:
+                  name: status
+
+        # --- promo_codes ---
+        - createTable:
+            tableName: promo_codes
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: promo_codes_pkey
+              - column:
+                  name: code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+              - column:
+                  name: type
+                  type: varchar(10)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: value
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: valid_from
+                  type: timestamp
+              - column:
+                  name: valid_to
+                  type: timestamp
+              - column:
+                  name: max_uses_total
+                  type: int
+              - column:
+                  name: max_uses_per_user
+                  type: int
+                  defaultValueNumeric: 1
+              - column:
+                  name: current_uses
+                  type: int
+                  defaultValueNumeric: 0
+              - column:
+                  name: min_amount
+                  type: numeric(12,2)
+              - column:
+                  name: is_active
+                  type: boolean
+                  defaultValueBoolean: true
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()

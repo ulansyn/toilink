@@ -133,7 +133,7 @@ public class EventService {
     private Event getEventForUser(Long id, String phone) {
         User user = userService.findByPhone(phone)
                 .orElseThrow(() -> new NotFoundException("User not found for phone: " + phone));
-        Event event = eventRepository.findById(id)
+        Event event = eventRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> NotFoundException.event(id));
         if (event.getUser() == null || !event.getUser().getId().equals(user.getId())) {
             throw NotFoundException.event(id);

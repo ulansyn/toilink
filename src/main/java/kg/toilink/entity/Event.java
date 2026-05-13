@@ -75,6 +75,8 @@ public class Event {
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private LocalDateTime deletedAt;
+
     @PrePersist
     void prePersist() {
         createdAt = LocalDateTime.now();
