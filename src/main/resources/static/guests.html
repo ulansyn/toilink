@@ -7,9 +7,16 @@
   <meta name="theme-color" content="#FFF8FB"/>
 
   <script>
-    (function () {
-      try { if (!localStorage.getItem('tl_phone')) location.replace('/landing.html'); } catch (_) {}
-    })();
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(data => {
+        if (data?.phone) {
+          try { localStorage.setItem('tl_phone', data.phone); } catch (_) {}
+        }
+      })
+      .catch(() => {
+        location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+      });
   </script>
 
     <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">

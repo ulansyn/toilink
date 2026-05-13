@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -55,11 +54,10 @@ public class UserService implements UserDetailsService {
         Optional<User> existing = userRepository.findByPhone(phone);
 
         if (existing.isEmpty()) {
-            boolean firstUser = userRepository.count() == 0;
             User user = User.builder()
                     .phone(phone)
                     .passwordHash(passwordEncoder.encode(rawPassword))
-                    .role(firstUser ? "SUPERADMIN" : "CLIENT")
+                    .role("CLIENT")
                     .lastLoginAt(LocalDateTime.now())
                     .lastLoginIp(ip)
                     .build();

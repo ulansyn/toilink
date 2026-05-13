@@ -1581,7 +1581,10 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) return showLoginError(data.message || 'Неверный телефон или пароль');
-    if (data.role !== 'SUPERADMIN') return showLoginError('Доступ запрещён. Нужна роль SUPERADMIN.');
+    if (data.role !== 'SUPERADMIN') {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+      return showLoginError('Доступ запрещён. Нужна роль SUPERADMIN.');
+    }
     showApp(data.phone || phone);
   } catch {
     showLoginError('Не удалось подключиться к серверу');

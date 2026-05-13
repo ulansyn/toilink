@@ -307,7 +307,7 @@
 <script>
   fetch('/api/auth/me', { credentials: 'include' })
     .then(r => r.ok ? r.json() : null)
-    .then(data => { if (data?.phone) location.replace('/'); })
+    .then(data => { if (data?.phone) location.replace('/index.html'); })
     .catch(() => {});
 
   const phoneEl = document.getElementById('phone');

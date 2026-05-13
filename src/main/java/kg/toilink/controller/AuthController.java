@@ -50,11 +50,16 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails user) {
+    public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails user, HttpServletRequest req) {
         if (user == null) return ResponseEntity.status(401).build();
         String phone = user.getUsername();
         User u = userService.findByPhone(phone).orElse(null);
-        if (u == null) return ResponseEntity.status(401).build();
+        if (u == null || u.getDeletedAt() != null || !u.isActive()) {
+            HttpSession session = req.getSession(false);
+            if (session != null) session.invalidate();
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.status(401).build();
+        }
         return ResponseEntity.ok(new AuthResponse(phone, u.getName(), u.getRole()));
     }
 

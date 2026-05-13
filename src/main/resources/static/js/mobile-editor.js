@@ -942,6 +942,10 @@
       credentials: 'include',
       body: fd
     });
+    if (res.status === 401 || res.status === 403) {
+      location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+      throw new Error('Требуется вход');
+    }
     if (!res.ok) throw new Error('Ошибка загрузки');
     const data = await res.json();
     return data.url;
@@ -951,6 +955,10 @@
     if (!eventId) return;
     try {
       const res = await fetch(`/api/organizer/events/${eventId}`, { credentials: 'include' });
+      if (res.status === 401 || res.status === 403) {
+        location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+        return;
+      }
       if (!res.ok) return;
       const event = await res.json();
       if (event.blocksConfig) {
@@ -989,6 +997,10 @@
         blocksConfig: JSON.stringify(d)
       })
     });
+    if (res.status === 401 || res.status === 403) {
+      location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
+      return;
+    }
     if (!res.ok) throw new Error('Ошибка сохранения');
   }
 

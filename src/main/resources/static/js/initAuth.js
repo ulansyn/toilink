@@ -1,15 +1,21 @@
 /**
  * initAuth — shared auth overlay module
  *
- * Checks localStorage for 'tl_phone'. If absent, renders a full-screen
- * onboarding overlay and returns a Promise that resolves with the phone
- * once the user submits a valid number.
+ * Checks the server session. If absent, renders a full-screen onboarding
+ * overlay and returns a Promise that resolves with the phone after login.
  */
 window.initAuth = function () {
   return new Promise((resolve) => {
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
-      .then(data => { if (data?.phone) { resolve(data.phone); return; } startOverlay(resolve); })
+      .then(data => {
+        if (data?.phone) {
+          try { localStorage.setItem('tl_phone', data.phone); } catch (_) {}
+          resolve(data.phone);
+          return;
+        }
+        startOverlay(resolve);
+      })
       .catch(() => startOverlay(resolve));
   });
 };
@@ -150,6 +156,7 @@ function startOverlay(resolve) {
           btn.textContent = 'Войти';
           return;
         }
+        try { localStorage.setItem('tl_phone', phone); } catch (_) {}
         overlay.style.opacity = '0';
         setTimeout(() => { overlay.remove(); resolve(phone); }, 400);
       } catch (_) {
