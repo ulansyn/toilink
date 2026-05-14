@@ -862,8 +862,6 @@
     }
 
     /* ===== LANDING CMS ===== */
-    .landing-grid,
-    .landing-cms-grid,
     .landing-builder {
       display: grid;
       grid-template-columns: minmax(260px, 300px) minmax(520px, 1fr) minmax(240px, 280px);
@@ -891,11 +889,6 @@
       letter-spacing: -.01em;
     }
     .landing-panel.compact { padding: 18px; }
-    .landing-main {
-      display: grid;
-      gap: 14px;
-      min-width: 0;
-    }
     .landing-map {
       display: grid;
       gap: 6px;
@@ -976,6 +969,36 @@
       border-bottom: 1px solid var(--border);
       margin-bottom: 16px;
     }
+    .landing-editor-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .landing-mode {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      background: var(--bg-subtle);
+    }
+    .landing-mode button {
+      min-height: 28px;
+      padding: 0 9px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .landing-mode button.active {
+      background: var(--bg-surface);
+      color: var(--text-primary);
+      box-shadow: var(--shadow-xs);
+    }
     .landing-editor-title {
       margin: 0;
       font-size: 24px;
@@ -1011,35 +1034,6 @@
       accent-color: var(--green);
       cursor: pointer;
     }
-    .landing-tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      padding: 6px;
-      background: var(--bg-surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r-lg);
-      box-shadow: var(--shadow-sm);
-    }
-    .landing-tab {
-      min-height: 34px;
-      padding: 0 12px;
-      border: 1px solid transparent;
-      border-radius: var(--r-sm);
-      background: transparent;
-      color: var(--text-secondary);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .01em;
-    }
-    .landing-tab:hover { background: var(--bg-hover); color: var(--text-primary); }
-    .landing-tab.active {
-      background: var(--sidebar-bg);
-      color: #fff;
-      box-shadow: var(--shadow-xs);
-    }
-    .landing-tab-panel { display: none; }
-    .landing-tab-panel.active { display: grid; gap: 14px; }
     .landing-empty {
       padding: 28px;
       border: 1px dashed var(--border-strong);
@@ -1096,45 +1090,6 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
     }
-    .landing-switches { display: grid; gap: 4px; max-height: 520px; overflow: auto; padding-right: 2px; }
-    .landing-switch {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      min-height: 40px;
-      padding: 8px 12px;
-      border: 1px solid transparent;
-      border-radius: var(--r-sm);
-      background: var(--bg-subtle);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background .12s ease, border-color .12s ease;
-    }
-    .landing-switch:hover { background: var(--bg-hover); border-color: var(--border); }
-    .landing-switch input {
-      width: 36px; height: 22px;
-      appearance: none; -webkit-appearance: none;
-      background: var(--border-strong);
-      border-radius: var(--r-full);
-      cursor: pointer;
-      position: relative;
-      transition: background .15s ease;
-      flex-shrink: 0;
-    }
-    .landing-switch input::after {
-      content: '';
-      position: absolute;
-      top: 2px; left: 2px;
-      width: 18px; height: 18px;
-      background: #fff;
-      border-radius: 50%;
-      transition: transform .15s ease;
-      box-shadow: 0 1px 3px rgba(0,0,0,.1);
-    }
-    .landing-switch input:checked { background: var(--green); }
-    .landing-switch input:checked::after { transform: translateX(14px); }
     .landing-json {
       min-height: 620px;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -1143,6 +1098,27 @@
       white-space: pre;
       tab-size: 2;
       border-color: var(--border);
+    }
+    .landing-section-data {
+      display: grid;
+      gap: 12px;
+    }
+    .landing-section-data .landing-json {
+      min-height: 420px;
+      max-height: calc(100vh - 360px);
+      resize: vertical;
+      background: #10100F;
+      color: #F5F5F3;
+      border-color: #10100F;
+    }
+    .landing-data-note {
+      color: var(--text-secondary);
+      font-size: 12px;
+      line-height: 1.5;
+      padding: 10px 12px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
     }
     .landing-help { color: var(--text-secondary); font-size: 13px; line-height: 1.5; margin: 0 0 18px; }
     .landing-status {
@@ -1367,7 +1343,7 @@
       .top-actions { justify-content: flex-start; }
       .filters .input, .filters .select { width: 100%; }
       h1 { font-size: 26px; }
-      .landing-grid, .landing-cms-grid { grid-template-columns: 1fr; }
+      .landing-builder { grid-template-columns: 1fr; }
       .landing-sidebar { position: static; }
       .template-showcase { grid-template-columns: 1fr; }
       .table-wrap { max-height: none; }
@@ -1720,19 +1696,13 @@
             <div class="landing-panel compact">
               <h2>Контроль</h2>
               <div class="landing-preview" id="landingPreview"></div>
-            </div>
-
-            <div class="landing-panel compact">
-              <h2>JSON</h2>
-              <div class="top-actions" style="justify-content:flex-start;margin-bottom:10px;">
-                <button class="tiny-btn" onclick="formatLandingJson()">Форматировать</button>
-                <button class="tiny-btn" onclick="copyLandingJson()">Скопировать</button>
-                <button class="tiny-btn" onclick="applyLandingJsonToForm()">Применить</button>
+              <div class="top-actions" style="justify-content:flex-start;margin-top:12px;">
+                <button class="tiny-btn" onclick="copyLandingJson()">Скопировать конфиг</button>
               </div>
-              <textarea class="textarea landing-json" id="landingJson" spellcheck="false" placeholder="Загрузка..."></textarea>
             </div>
           </aside>
         </div>
+        <textarea id="landingJson" hidden></textarea>
       </section>
 
       <section class="section" id="section-payments">
@@ -1795,8 +1765,8 @@ const state = {
   auditPage: 0,
   activeSection: 'dashboard',
   landingConfig: null,
-  landingTab: 'main',
   landingActiveSection: 'hero',
+  landingEditorMode: 'form',
   landingDirty: false
 };
 
@@ -2705,7 +2675,7 @@ function landingSectionItemCount(def) {
 
 function setLandingActiveSection(key) {
   if (!LANDING_CMS_SECTIONS.some(def => def.key === key)) return;
-  syncLandingFormToJson(false);
+  if (!syncLandingFormToJson(state.landingEditorMode === 'data')) return;
   state.landingActiveSection = key;
   refreshLandingEditor();
 }
@@ -2758,168 +2728,140 @@ function renderLandingForm(config) {
         <h2 class="landing-editor-title">${esc(def.title)}</h2>
         <div class="landing-editor-sub">${esc(def.hint || '')}</div>
       </div>
-      ${def.key === 'meta' ? '' : `
-        <label class="landing-section-toggle">
-          <input type="checkbox" ${enabled ? 'checked' : ''} onchange="landingToggleActiveSection(this.checked)"/>
-          ${enabled ? 'Включено' : 'Скрыто'}
-        </label>
-      `}
+      <div class="landing-editor-actions">
+        <div class="landing-mode" aria-label="Режим редактирования секции">
+          <button class="${state.landingEditorMode === 'form' ? 'active' : ''}" onclick="setLandingEditorMode('form')">Поля</button>
+          <button class="${state.landingEditorMode === 'data' ? 'active' : ''}" onclick="setLandingEditorMode('data')">Данные</button>
+        </div>
+        ${def.key === 'meta' ? '' : `
+          <label class="landing-section-toggle">
+            <input type="checkbox" ${enabled ? 'checked' : ''} onchange="landingToggleActiveSection(this.checked)"/>
+            ${enabled ? 'Включено' : 'Скрыто'}
+          </label>
+        `}
+      </div>
     </div>
-    <div class="landing-form">
-      ${fields ? `<section class="landing-group"><div class="landing-fields">${fields}</div></section>` : ''}
-      ${lists}
-      ${empty}
-    </div>
+    ${state.landingEditorMode === 'data'
+      ? renderLandingSectionDataEditor(def)
+      : `<div class="landing-form">
+          ${fields ? `<section class="landing-group"><div class="landing-fields">${fields}</div></section>` : ''}
+          ${lists}
+          ${empty}
+        </div>`}
   `;
   renderLandingSummary(config);
 }
 
-const LANDING_SIMPLE_GROUPS = [
-  { title: 'SEO и превью', fields: [
-    ['meta.title', 'Title вкладки'],
-    ['meta.description', 'Meta description', 'textarea'],
-    ['meta.ogTitle', 'OG title'],
-    ['meta.ogDescription', 'OG description', 'textarea']
-  ]},
-  { title: 'Первый экран', fields: [
-    ['hero.badge', 'Плашка с рейтингом'],
-    ['hero.titleTop', 'Заголовок: верхняя строка'],
-    ['hero.titleAccent', 'Заголовок: акцент'],
-    ['hero.subtitle', 'Подзаголовок', 'textarea'],
-    ['hero.primaryCta', 'Главная кнопка'],
-    ['hero.secondaryCta', 'Вторая кнопка']
-  ]},
-  { title: 'Статистика и доверие', fields: [
-    ['stats.socialProof', 'Текст над статистикой', 'textarea']
-  ]},
-  { title: 'Категории', fields: [
-    ['categories.eyebrow', 'Надзаголовок'],
-    ['categories.title', 'Заголовок']
-  ]},
-  { title: 'Как работает', fields: [
-    ['how.eyebrow', 'Надзаголовок'],
-    ['how.title', 'Заголовок'],
-    ['how.subtitle', 'Подзаголовок', 'textarea'],
-    ['how.cta', 'Кнопка']
-  ]},
-  { title: 'Преимущества', fields: [
-    ['features.eyebrow', 'Надзаголовок'],
-    ['features.title', 'Заголовок'],
-    ['features.subtitle', 'Подзаголовок', 'textarea'],
-    ['features.highlightTitle', 'Большой блок: заголовок'],
-    ['features.highlightText', 'Большой блок: текст', 'textarea'],
-    ['features.highlightCta', 'Большой блок: кнопка']
-  ]},
-  { title: 'Сравнение', fields: [
-    ['comparison.eyebrow', 'Надзаголовок'],
-    ['comparison.title', 'Заголовок'],
-    ['comparison.subtitle', 'Подзаголовок', 'textarea'],
-    ['comparison.cta', 'Кнопка']
-  ]},
-  { title: 'Шаблоны', fields: [
-    ['templates.eyebrow', 'Надзаголовок'],
-    ['templates.title', 'Заголовок'],
-    ['templates.subtitle', 'Подзаголовок'],
-    ['templates.cta', 'Кнопка']
-  ]},
-  { title: 'Отзывы', fields: [
-    ['reviews.eyebrow', 'Надзаголовок'],
-    ['reviews.title', 'Заголовок']
-  ]},
-  { title: 'Тарифы', fields: [
-    ['pricing.eyebrow', 'Надзаголовок'],
-    ['pricing.title', 'Заголовок'],
-    ['pricing.subtitle', 'Подзаголовок', 'textarea']
-  ]},
-  { title: 'FAQ', fields: [
-    ['faq.eyebrow', 'Надзаголовок'],
-    ['faq.title', 'Заголовок']
-  ]},
-  { title: 'Финальный CTA', fields: [
-    ['finalCta.badge', 'Плашка'],
-    ['finalCta.title', 'Заголовок', 'textarea'],
-    ['finalCta.subtitle', 'Подзаголовок', 'textarea'],
-    ['finalCta.primaryCta', 'Главная кнопка'],
-    ['finalCta.secondaryCta', 'Вторая кнопка']
-  ]},
-  { title: 'Футер', fields: [
-    ['footer.text', 'Описание', 'textarea'],
-    ['footer.phone', 'Телефон'],
-    ['footer.email', 'Email'],
-    ['footer.city', 'Город'],
-    ['footer.copyright', 'Copyright']
-  ]}
-];
-
-function renderLandingLegacyForm(config) {
-  const main = document.getElementById('landingMainForm');
-  const blocks = document.getElementById('landingBlocksForm');
-  const lists = document.getElementById('landingListsForm');
-  const seo = document.getElementById('landingSeoForm');
-
-  if (main) main.innerHTML = renderLandingSimpleGroups([
-    'Первый экран',
-    'Статистика и доверие',
-    'Финальный CTA',
-    'Футер'
-  ]);
-
-  if (blocks) blocks.innerHTML = renderLandingSimpleGroups([
-    'Категории',
-    'Как работает',
-    'Преимущества',
-    'Сравнение',
-    'Шаблоны',
-    'Отзывы',
-    'Тарифы',
-    'FAQ'
-  ]);
-
-  if (seo) seo.innerHTML = renderLandingSimpleGroups(['SEO и превью']);
-
-  if (lists) lists.innerHTML = [
-    landingTextListGroup('hero.bullets', 'Первый экран: галочки'),
-    landingTextListGroup('trust', 'Бегущая строка доверия'),
-    landingTextListGroup('pricing.badges', 'Тарифы: подписи под карточками'),
-    landingTextListGroup('finalCta.bullets', 'Финальный CTA: галочки'),
-    landingObjectListGroup('categories.items', 'Карточки категорий', [
-      ['emoji', 'Эмодзи'], ['title', 'Название'], ['text', 'Описание']
-    ]),
-    landingObjectListGroup('how.steps', 'Шаги процесса', [
-      ['title', 'Название'], ['text', 'Описание', 'textarea']
-    ]),
-    landingObjectListGroup('features.items', 'Карточки преимуществ', [
-      ['title', 'Название'], ['text', 'Описание', 'textarea']
-    ]),
-    landingObjectListGroup('reviews.items', 'Отзывы', [
-      ['avatar', 'Буква'], ['name', 'Имя'], ['meta', 'Подпись'], ['text', 'Текст отзыва', 'textarea']
-    ]),
-    landingObjectListGroup('pricing.plans', 'Тарифные планы', [
-      ['name', 'Название'], ['tag', 'Метка'], ['description', 'Описание'],
-      ['price', 'Цена'], ['currency', 'Валюта'], ['oldPrice', 'Старая цена'],
-      ['note', 'Подпись под ценой'], ['badge', 'Плашка сверху'], ['cta', 'Кнопка'],
-      ['features', 'Пункты тарифа, каждый с новой строки', 'lines']
-    ]),
-    landingObjectListGroup('faq.items', 'FAQ', [
-      ['question', 'Вопрос'], ['answer', 'Ответ', 'textarea']
-    ])
-  ].join('');
-
-  renderLandingSummary(config);
-  setLandingTab(state.landingTab || 'main', false);
+function setLandingEditorMode(mode) {
+  if (!['form', 'data'].includes(mode)) return;
+  if (state.landingEditorMode === 'form') {
+    if (!syncLandingFormToJson(false)) return;
+  } else if (state.landingEditorMode === 'data' && mode !== 'data') {
+    if (!syncLandingFormToJson(true)) return;
+  }
+  state.landingEditorMode = mode;
+  refreshLandingEditor();
 }
 
-function renderLandingLegacySimpleGroups(titles) {
-  return LANDING_SIMPLE_GROUPS
-    .filter(group => titles.includes(group.title))
-    .map(group => `
-      <section class="landing-group">
-        <div class="landing-group-title"><span>${esc(group.title)}</span></div>
-        <div class="landing-fields">
-          ${group.fields.map(([path, label, type]) => landingField(path, label, type)).join('')}
-        </div>
-      </section>
-    `).join('') || '<div class="landing-empty">В этой вкладке пока нет полей.</div>';
+function renderLandingSectionDataEditor(def) {
+  return `
+    <div class="landing-section-data">
+      <div class="landing-data-note">
+        Это технический вид только выбранной секции. Для обычной работы используйте “Поля”; “Данные” нужны для быстрых массовых правок или вставки готового блока.
+      </div>
+      <textarea class="textarea landing-json" id="landingSectionJson" spellcheck="false">${esc(landingSectionJson(def))}</textarea>
+      <div class="top-actions" style="justify-content:flex-start;">
+        <button class="tiny-btn good" onclick="applyLandingSectionJson()">Применить к секции</button>
+        <button class="tiny-btn" onclick="formatLandingSectionJson()">Форматировать</button>
+        <button class="tiny-btn" onclick="copyLandingSectionJson()">Скопировать</button>
+      </div>
+    </div>
+  `;
+}
+
+function landingSectionJson(def = landingCurrentDef()) {
+  return JSON.stringify(landingSectionData(def), null, 2);
+}
+
+function landingSectionData(def = landingCurrentDef()) {
+  const config = state.landingConfig || {};
+  if (def.key === 'meta') {
+    return structuredCloneSafe(config.meta || {});
+  }
+  return {
+    visible: landingSectionEnabled(def.key),
+    content: structuredCloneSafe(config[def.key] ?? landingEmptySectionValue(def))
+  };
+}
+
+function landingEmptySectionValue(def) {
+  if ((def.lists || []).length && !(def.fields || []).length) {
+    const firstList = def.lists[0];
+    return firstList.path === def.key ? [] : {};
+  }
+  return {};
+}
+
+function applyLandingSectionJson() {
+  try {
+    parseLandingSectionJsonIntoState(true);
+    state.landingEditorMode = 'form';
+    refreshLandingEditor();
+    setLandingStatus('Данные секции применены. Есть несохранённые изменения.', 'dirty');
+    toast('Данные секции применены');
+  } catch (e) {
+    toast('Ошибка в данных секции: ' + e.message);
+  }
+}
+
+function parseLandingSectionJsonIntoState(markDirty = false) {
+  const def = landingCurrentDef();
+  const raw = document.getElementById('landingSectionJson')?.value || '';
+  const value = JSON.parse(raw);
+  state.landingConfig ||= {};
+  if (def.key === 'meta') {
+    if (!value || Array.isArray(value) || typeof value !== 'object') {
+      throw new Error('SEO должен быть объектом');
+    }
+    state.landingConfig.meta = value;
+  } else {
+    state.landingConfig.sections ||= {};
+    if (value && typeof value === 'object' && !Array.isArray(value) && Object.prototype.hasOwnProperty.call(value, 'visible')) {
+      state.landingConfig.sections[def.key] = value.visible !== false;
+      if (Object.prototype.hasOwnProperty.call(value, 'content')) {
+        state.landingConfig[def.key] = value.content;
+      }
+    } else {
+      state.landingConfig[def.key] = value;
+    }
+  }
+  document.getElementById('landingJson').value = JSON.stringify(state.landingConfig || {}, null, 2);
+  renderLandingSummary(state.landingConfig || {});
+  if (markDirty) {
+    state.landingDirty = true;
+  }
+  return state.landingConfig;
+}
+
+function formatLandingSectionJson() {
+  const el = document.getElementById('landingSectionJson');
+  if (!el) return;
+  try {
+    el.value = JSON.stringify(JSON.parse(el.value), null, 2);
+    toast('Данные секции отформатированы');
+  } catch (e) {
+    toast('Ошибка в данных секции: ' + e.message);
+  }
+}
+
+function copyLandingSectionJson() {
+  const value = document.getElementById('landingSectionJson')?.value || landingSectionJson();
+  navigator.clipboard?.writeText(value).then(() => toast('Данные секции скопированы')).catch(() => toast('Не удалось скопировать'));
+}
+
+function structuredCloneSafe(value) {
+  if (value === undefined) return null;
+  return JSON.parse(JSON.stringify(value));
 }
 
 function landingField(path, label, type = 'input') {
@@ -3011,6 +2953,11 @@ function readLandingJson() {
 
 function syncLandingFormToJson(markDirty = false) {
   try {
+    if (state.landingEditorMode === 'data' && document.getElementById('landingSectionJson')) {
+      parseLandingSectionJsonIntoState(markDirty);
+      if (markDirty) setLandingStatus('Есть несохранённые изменения.', 'dirty');
+      return true;
+    }
     const config = state.landingConfig || readLandingJson();
     config.sections = config.sections || {};
     document.querySelectorAll('[data-landing-section]').forEach(input => {
@@ -3044,19 +2991,11 @@ function syncLandingFormToJson(markDirty = false) {
       state.landingDirty = true;
       setLandingStatus('Есть несохранённые изменения.', 'dirty');
     }
+    return true;
   } catch (e) {
     toast('Форма пока не сохранена: ' + e.message);
+    return false;
   }
-}
-
-function setLandingTab(tab, remember = true) {
-  if (remember) state.landingTab = tab;
-  document.querySelectorAll('[data-landing-tab]').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.landingTab === tab);
-  });
-  document.querySelectorAll('.landing-tab-panel').forEach(panel => {
-    panel.classList.toggle('active', panel.id === `landingTab-${tab}`);
-  });
 }
 
 function setLandingStatus(message, mode = '') {
@@ -3195,40 +3134,15 @@ function refreshLandingEditor() {
   renderLandingSummary(state.landingConfig || {});
 }
 
-function applyLandingJsonToForm() {
-  try {
-    state.landingConfig = readLandingJson();
-    state.landingDirty = true;
-    refreshLandingEditor();
-    setLandingStatus('JSON применён. Есть несохранённые изменения.', 'dirty');
-    toast('JSON применён к форме');
-  } catch (e) {
-    toast('Ошибка JSON: ' + e.message);
-  }
-}
-
-function formatLandingJson() {
-  try {
-    const config = readLandingJson();
-    state.landingConfig = config;
-    refreshLandingEditor();
-    state.landingDirty = true;
-    setLandingStatus('JSON отформатирован. Есть несохранённые изменения.', 'dirty');
-    toast('JSON отформатирован');
-  } catch (e) {
-    toast('Ошибка JSON: ' + e.message);
-  }
-}
-
 function copyLandingJson() {
-  const value = document.getElementById('landingJson').value;
-  navigator.clipboard?.writeText(value).then(() => toast('JSON скопирован')).catch(() => toast('Не удалось скопировать'));
+  const value = JSON.stringify(state.landingConfig || {}, null, 2);
+  navigator.clipboard?.writeText(value).then(() => toast('Конфиг скопирован')).catch(() => toast('Не удалось скопировать'));
 }
 
 async function saveLanding() {
   let config;
   try {
-    syncLandingFormToJson();
+    if (!syncLandingFormToJson()) return;
     config = state.landingConfig || readLandingJson();
   } catch (e) {
     toast('Ошибка формы: ' + e.message);
