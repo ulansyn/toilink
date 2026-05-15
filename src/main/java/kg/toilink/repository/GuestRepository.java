@@ -2,6 +2,7 @@ package kg.toilink.repository;
 
 import kg.toilink.entity.Guest;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -36,4 +37,16 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
             group by g.event.id
             """)
     List<EventGuestCountView> countByEventIds(@Param("eventIds") Collection<Long> eventIds);
+
+    interface TableGuestCountView {
+        Long getTableId();
+        long getCnt();
+    }
+
+    @Query("SELECT g.tableId as tableId, COUNT(g) as cnt FROM Guest g WHERE g.tableId IN :tableIds AND g.deletedAt IS NULL GROUP BY g.tableId")
+    List<TableGuestCountView> countByTableIds(@Param("tableIds") Collection<Long> tableIds);
+
+    @Modifying
+    @Query("UPDATE Guest g SET g.tableId = NULL WHERE g.tableId = :tableId")
+    void clearTableId(@Param("tableId") Long tableId);
 }

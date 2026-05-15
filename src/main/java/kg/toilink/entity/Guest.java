@@ -50,6 +50,9 @@ public class Guest {
     @Column(unique = true)
     private UUID token;
 
+    @Column(name = "table_id")
+    private Long tableId;
+
     @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<RsvpResponse> rsvpResponses = new ArrayList<>();
 

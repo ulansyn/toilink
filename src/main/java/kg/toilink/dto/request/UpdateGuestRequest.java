@@ -22,5 +22,7 @@ public record UpdateGuestRequest(
         String relationType,
 
         // null = no change; "NONE" = clear status; ATTENDING/DECLINED/MAYBE = set
-        String rsvpStatus
+        String rsvpStatus,
+
+        Long tableId
 ) {}

@@ -4,12 +4,14 @@ let eventId   = null;
 let eventData = null;
 let phone     = null;
 let allGuests = [];
+let allTables = [];
 let _wired    = false;
 const EVENTS_CACHE_KEY = 'tl:events:list';
 const STATS_CACHE_KEY  = 'tl:events:stats';
 const state = {
   filter: 'all',     // all | attending | declined | noReply
   search: '',
+  tab: 'guests',     // guests | tables
 };
 
 // ─── Session cache ───────────────────────────────────────────────────────────
@@ -169,6 +171,7 @@ function syncAllCaches() {
     syncCachedEventList(eventData);
   }
   cacheSet(`tl:guests:${eventId}`, allGuests);
+  cacheSet(`tl:tables:${eventId}`, allTables);
   cacheStatsForEvent(eventId, computeStats(allGuests));
 }
 
@@ -244,6 +247,13 @@ function syncToolbar() {
 }
 
 // ─── Guest row ────────────────────────────────────────────────────────────────
+function tableChip(tableId) {
+  if (!tableId) return '';
+  const t = allTables.find(x => x.id === tableId);
+  if (!t) return '';
+  return `<span class="chip-sm" style="background:#EEF2FF; color:#4F46E5; font-size:10px;">${escapeHtml(t.name)}</span>`;
+}
+
 function guestRow(g) {
   const name    = g.name || 'Аноним';
   const initial = name[0].toUpperCase();
@@ -274,6 +284,7 @@ function guestRow(g) {
           <span class="guest-row-name">${escapeHtml(name)}</span>
           ${chip}
           ${side}
+          ${tableChip(g.tableId)}
         </div>
         <div class="guest-row-sub">${sub}</div>
       </div>
@@ -653,6 +664,14 @@ function openEditSheet(g) {
             </div>
             <input type="hidden" id="edit-status" value="${currentStatus}"/>
           </div>
+          ${allTables.length > 0 ? `
+          <div>
+            <div class="field-section-label">Стол</div>
+            <select id="edit-table" class="select-field">
+              <option value="">— Не назначен —</option>
+              ${allTables.map(t => `<option value="${t.id}"${g.tableId === t.id ? ' selected' : ''}>${escapeHtml(t.name)}${t.capacity ? ` (до ${t.capacity})` : ''}</option>`).join('')}
+            </select>
+          </div>` : ''}
           <button type="submit" id="editSubmitBtn" class="btn-primary w-full mt-2">Сохранить</button>
         </form>
       </div>
@@ -700,6 +719,8 @@ function openEditSheet(g) {
     btn.textContent = 'Сохраняем...';
 
     const statusRaw = sheet.querySelector('#edit-status').value;
+    const tableSelect = sheet.querySelector('#edit-table');
+    const newTableId = tableSelect?.value ? parseInt(tableSelect.value) : null;
 
     try {
       const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${g.id}`, {
@@ -711,12 +732,22 @@ function openEditSheet(g) {
         relatedToId: g.relatedToId ?? null,
         relationType: g.relationType ?? null,
         rsvpStatus:  statusRaw === '' ? 'NONE' : statusRaw,
+        tableId:     newTableId,
       });
+      // update local table counts if table assignment changed
+      if (g.tableId !== newTableId) {
+        allTables = allTables.map(t => {
+          if (t.id === g.tableId) return { ...t, guestCount: Math.max(0, (t.guestCount || 1) - 1) };
+          if (t.id === newTableId) return { ...t, guestCount: (t.guestCount || 0) + 1 };
+          return t;
+        });
+      }
       allGuests = allGuests.map(x => x.id === g.id ? updated : x);
       window._allGuestsRef = allGuests;
       syncAllCaches();
       renderStats();
       renderList();
+      if (state.tab === 'tables') renderTables();
       toast('Изменения сохранены');
       close();
     } catch (err) {
@@ -828,9 +859,10 @@ window.submitAddGuest = async function (e) {
     closeAddSheet();
 
     // Reload full list so companion also appears
-    const [event, guests] = await fetchData();
+    const [event, guests, tables] = await fetchData();
     eventData = event;
     allGuests = guests;
+    allTables = tables;
     window._allGuestsRef = allGuests;
     syncAllCaches();
     applyEventMeta(event);
@@ -854,13 +886,19 @@ function applyEventMeta(event) {
 
 function renderAll() {
   window._allGuestsRef = allGuests;
-  renderStats();
-  if (allGuests.length > 0) syncToolbar();
-  renderList();
+  if (state.tab === 'tables') {
+    renderTables();
+  } else {
+    renderStats();
+    if (allGuests.length > 0) syncToolbar();
+    renderList();
+  }
   if (!_wired) {
     wireStatsDelegation();
     wireListDelegation();
     wireToolbar();
+    wireTabs();
+    wireTablesContainer();
     _wired = true;
   }
 }
@@ -871,17 +909,20 @@ async function fetchData() {
       headers: { 'X-User-Phone': phone },
     }).then(r => r.json()),
     api('GET', `/api/organizer/events/${eventId}/guests`),
+    api('GET', `/api/organizer/events/${eventId}/tables`),
   ]);
 }
 
 async function refreshData() {
   try {
-    const [event, guests] = await fetchData();
+    const [event, guests, tables] = await fetchData();
     const changed =
       JSON.stringify(event) !== JSON.stringify(eventData) ||
-      JSON.stringify(guests) !== JSON.stringify(allGuests);
+      JSON.stringify(guests) !== JSON.stringify(allGuests) ||
+      JSON.stringify(tables) !== JSON.stringify(allTables);
     eventData = event;
     allGuests = guests;
+    allTables = tables;
     syncAllCaches();
     if (changed) {
       applyEventMeta(event);
@@ -922,11 +963,13 @@ async function init() {
 
   const cachedEvent  = cacheGet(`tl:event:${eventId}`);
   const cachedGuests = cacheGet(`tl:guests:${eventId}`);
+  const cachedTables = cacheGet(`tl:tables:${eventId}`);
 
   if (cachedEvent && cachedGuests) {
     // Instant render from cache, then revalidate in background
     eventData = cachedEvent;
     allGuests = cachedGuests;
+    allTables = cachedTables || [];
     applyEventMeta(eventData);
     renderAll();
     warmRelatedPages();
@@ -935,9 +978,10 @@ async function init() {
   }
 
   try {
-    const [event, guests] = await fetchData();
+    const [event, guests, tables] = await fetchData();
     eventData = event;
     allGuests = guests;
+    allTables = tables;
     syncAllCaches();
     applyEventMeta(event);
     renderAll();
@@ -946,5 +990,319 @@ async function init() {
     showErrorState(err);
   }
 }
+
+// ─── Tables ───────────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  state.tab = tab;
+  document.querySelectorAll('#page-tabs .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  const gC = document.getElementById('guests-container');
+  const tC = document.getElementById('tables-container');
+  const fabLabel = document.getElementById('fab-label');
+  if (tab === 'tables') {
+    gC.classList.add('hidden');
+    tC.classList.remove('hidden');
+    if (fabLabel) fabLabel.textContent = 'Стол';
+    renderTables();
+  } else {
+    gC.classList.remove('hidden');
+    tC.classList.add('hidden');
+    if (fabLabel) fabLabel.textContent = 'Гостя';
+    renderStats();
+    if (allGuests.length > 0) syncToolbar();
+    renderList();
+  }
+}
+
+function renderTables() {
+  const container = document.getElementById('tables-list');
+  if (!container) return;
+  if (allTables.length === 0) {
+    container.innerHTML = `
+      <div class="flex flex-col items-center justify-center text-center py-14 px-6 fade-in">
+        <div class="w-20 h-20 rounded-[24px] flex items-center justify-center mb-5"
+             style="background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); box-shadow:0 10px 28px rgba(249,59,122,.22);">
+          <svg class="w-9 h-9 text-white" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/>
+          </svg>
+        </div>
+        <div class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-3">Рассадка</div>
+        <h2 class="font-cormorant text-[30px] italic font-semibold text-ink leading-tight mb-3">
+          Добавьте <em class="text-accent">первый стол</em>
+        </h2>
+        <p class="text-muted text-[14px] max-w-[300px] leading-relaxed mb-7">
+          Создайте столы и распределите гостей — каждый заранее узнает своё место.
+        </p>
+        <button onclick="window.openTableSheet()" class="btn-primary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Создать стол
+        </button>
+      </div>`;
+    observeFadeIn();
+    return;
+  }
+  const seated = allGuests.filter(g => g.tableId).length;
+  container.innerHTML = `
+    <div class="flex items-center justify-between mb-4">
+      <span class="font-cormorant italic text-[22px] md:text-[26px] font-semibold text-ink">Рассадка</span>
+      <span class="text-muted text-[13px]">${seated} из ${allGuests.length} распределено</span>
+    </div>
+    <div class="space-y-2">${allTables.map(tableCard).join('')}</div>`;
+  observeFadeIn();
+}
+
+function tableCard(t) {
+  const seated = allGuests.filter(g => g.tableId === t.id).length;
+  const capLabel = t.capacity ? `${seated} / ${t.capacity} мест` : `${seated} ${pluralize(seated, ['гость','гостя','гостей'])}`;
+  const overfull = t.capacity && seated > t.capacity;
+  return `
+    <div class="guest-row fade-in" data-action="table-detail" data-table-id="${t.id}">
+      <div class="avatar flex-shrink-0" style="width:40px;height:40px;border-radius:12px;background:#EEF2FF;color:#4F46E5;font-size:15px;">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+      </div>
+      <div class="guest-row-main">
+        <div class="guest-row-top">
+          <span class="guest-row-name">${escapeHtml(t.name)}</span>
+          ${overfull ? `<span class="chip-sm" style="background:#FFE0EC;color:#C71F5C;">Переполнен</span>` : ''}
+        </div>
+        <div class="guest-row-sub">${capLabel}</div>
+      </div>
+      <div class="guest-row-actions">
+        <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" title="Редактировать">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        </button>
+        <button class="row-icon-btn" data-action="delete-table" data-table-id="${t.id}" title="Удалить" style="color:#B8412E;">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+window.openTableSheet = function (table = null) {
+  document.getElementById('table-edit-id').value = table ? table.id : '';
+  document.getElementById('table-name').value = table ? table.name : '';
+  document.getElementById('table-capacity').value = table?.capacity ?? '';
+  document.getElementById('tableSheetMode').textContent = table ? 'Редактировать стол' : 'Новый стол';
+  document.getElementById('tableSheet').classList.add('open');
+  document.getElementById('tableBackdrop').classList.add('open');
+  setTimeout(() => document.getElementById('table-name')?.focus(), 260);
+};
+
+window.closeTableSheet = function () {
+  document.getElementById('tableSheet').classList.remove('open');
+  document.getElementById('tableBackdrop').classList.remove('open');
+  document.getElementById('table-form')?.reset();
+  document.getElementById('table-edit-id').value = '';
+};
+
+window.submitTableForm = async function (e) {
+  e.preventDefault();
+  const editId   = document.getElementById('table-edit-id').value;
+  const name     = document.getElementById('table-name').value.trim();
+  const capRaw   = document.getElementById('table-capacity').value;
+  const capacity = capRaw ? parseInt(capRaw) : null;
+  const btn      = document.getElementById('tableSubmitBtn');
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Сохраняем...';
+  try {
+    if (editId) {
+      const updated = await api('PUT', `/api/organizer/events/${eventId}/tables/${editId}`, { name, capacity });
+      allTables = allTables.map(t => t.id === updated.id ? { ...updated, guestCount: t.guestCount } : t);
+    } else {
+      const created = await api('POST', `/api/organizer/events/${eventId}/tables`, { name, capacity });
+      allTables = [...allTables, created];
+    }
+    window.closeTableSheet();
+    renderTables();
+    toast(editId ? 'Стол обновлён' : 'Стол создан');
+  } catch (err) {
+    toast(err.message || 'Ошибка', false);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+};
+
+function openTableDetail(table) {
+  document.getElementById('tableDetailBackdrop')?.remove();
+  document.getElementById('tableDetailSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'tableDetailBackdrop';
+  backdrop.className = 'bs-backdrop';
+  const sheet = document.createElement('div');
+  sheet.id = 'tableDetailSheet';
+  sheet.className = 'bs-sheet';
+
+  const assigned = allGuests.filter(g => g.tableId === table.id);
+  const capLine  = table.capacity
+    ? `${assigned.length} из ${table.capacity} мест`
+    : `${assigned.length} ${pluralize(assigned.length, ['гость','гостя','гостей'])}`;
+
+  const guestRows = assigned.map(g => {
+    const p = avatarPalette(g.name || 'A');
+    return `<div class="flex items-center gap-3 py-2.5" style="border-bottom:1px solid #F0EDE8;">
+      <div class="avatar flex-shrink-0" style="width:36px;height:36px;border-radius:10px;background:${p.bg};color:${p.fg};font-size:16px;">${(g.name || 'A')[0].toUpperCase()}</div>
+      <div class="flex-1 min-w-0">
+        <span class="text-[14px] font-medium text-ink">${escapeHtml(g.name || 'Аноним')}</span>
+        ${chipFor(g.rsvpStatus)}
+      </div>
+      <button class="row-icon-btn" data-unassign="${g.id}" title="Снять со стола">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+
+  sheet.innerHTML = `
+    <div class="sheet-inner" style="overflow-y:auto; max-height:80vh;">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0 pt-2 md:pt-0">
+        <div class="flex items-center gap-3 mb-4 pb-4" style="border-bottom:1px solid #F0EDE8;">
+          <div class="avatar flex-shrink-0" style="width:48px;height:48px;border-radius:14px;background:#EEF2FF;color:#4F46E5;font-size:12px;">
+            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-cormorant italic text-[22px] font-semibold text-ink leading-tight">${escapeHtml(table.name)}</p>
+            <p class="text-[12px] text-muted mt-0.5">${capLine}</p>
+          </div>
+        </div>
+        ${assigned.length === 0
+          ? `<p class="text-center text-muted py-8 font-cormorant italic text-[16px]">Нет гостей за этим столом</p>`
+          : `<div class="mb-4">${guestRows}</div>`}
+        <p class="text-[12px] text-muted mt-4 text-center">Чтобы добавить гостя — откройте его карточку и выберите стол</p>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+  let startY = 0;
+  sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchmove', e => { if (e.touches[0].clientY - startY > 60) close(); }, { passive: true });
+
+  sheet.querySelectorAll('[data-unassign]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const gid = parseInt(btn.getAttribute('data-unassign'));
+      const g   = allGuests.find(x => x.id === gid);
+      if (!g) return;
+      try {
+        const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${gid}`, {
+          name: g.name, phone: g.phone || null, notes: g.notes || null,
+          side: g.side || 'SHARED', relatedToId: g.relatedToId ?? null,
+          relationType: g.relationType ?? null,
+          rsvpStatus: g.rsvpStatus ?? null,
+          tableId: null,
+        });
+        allGuests = allGuests.map(x => x.id === gid ? updated : x);
+        allTables = allTables.map(t => t.id === table.id ? { ...t, guestCount: Math.max(0, (t.guestCount || 1) - 1) } : t);
+        window._allGuestsRef = allGuests;
+        syncAllCaches();
+        close();
+        renderTables();
+        toast('Гость откреплён от стола');
+      } catch (err) {
+        toast(err.message || 'Ошибка', false);
+      }
+    });
+  });
+
+  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
+}
+
+function confirmDeleteTable(table) {
+  document.getElementById('confirmTableBackdrop')?.remove();
+  document.getElementById('confirmTableSheet')?.remove();
+  const backdrop = document.createElement('div');
+  backdrop.id = 'confirmTableBackdrop';
+  backdrop.className = 'bs-backdrop';
+  const sheet = document.createElement('div');
+  sheet.id = 'confirmTableSheet';
+  sheet.className = 'bs-sheet';
+  const seated = allGuests.filter(g => g.tableId === table.id).length;
+  sheet.innerHTML = `
+    <div class="sheet-inner">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0 pt-3 md:pt-0 text-center">
+        <div class="w-14 h-14 rounded-2xl mx-auto mb-4 flex items-center justify-center" style="background:rgba(184,65,46,.08);color:#B8412E;">
+          <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <h2 class="font-cormorant italic text-[24px] md:text-[28px] font-semibold text-ink mb-2">Удалить ${escapeHtml(table.name)}?</h2>
+        <p class="text-[14px] text-muted leading-relaxed mb-5 max-w-[300px] mx-auto">
+          ${seated > 0
+            ? `${seated} ${pluralize(seated, ['гость','гостя','гостей'])} ${seated === 1 ? 'будет откреплён' : 'будут откреплены'} от стола.`
+            : 'Стол будет удалён.'}
+        </p>
+        <div class="flex flex-col gap-2">
+          <button id="confirm-del-table-btn" class="btn-primary w-full" style="background:#B8412E;">Да, удалить</button>
+          <button id="confirm-cancel-table-btn" class="btn-ghost w-full">Отмена</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+  function close() {
+    sheet.classList.remove('open'); backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+  sheet.querySelector('#confirm-cancel-table-btn').addEventListener('click', close);
+  sheet.querySelector('#confirm-del-table-btn').addEventListener('click', async () => {
+    const btn = sheet.querySelector('#confirm-del-table-btn');
+    btn.disabled = true; btn.textContent = 'Удаление...';
+    try {
+      await api('DELETE', `/api/organizer/events/${eventId}/tables/${table.id}`);
+      allGuests = allGuests.map(g => g.tableId === table.id ? { ...g, tableId: null, tableName: null } : g);
+      allTables = allTables.filter(t => t.id !== table.id);
+      window._allGuestsRef = allGuests;
+      syncAllCaches();
+      renderTables();
+      toast('Стол удалён');
+      close();
+    } catch (err) {
+      toast(err.message || 'Ошибка', false);
+      btn.disabled = false; btn.textContent = 'Да, удалить';
+    }
+  });
+  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
+}
+
+function wireTabs() {
+  document.getElementById('page-tabs').addEventListener('click', e => {
+    const btn = e.target.closest('[data-tab]');
+    if (btn) switchTab(btn.getAttribute('data-tab'));
+  });
+}
+
+function wireTablesContainer() {
+  document.getElementById('tables-list').addEventListener('click', e => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const tableId = parseInt(btn.getAttribute('data-table-id'));
+    const table   = allTables.find(t => t.id === tableId);
+    if (!table) return;
+    const act = btn.getAttribute('data-action');
+    if (act === 'edit-table')   { e.stopPropagation(); window.openTableSheet(table); }
+    else if (act === 'delete-table') { e.stopPropagation(); confirmDeleteTable(table); }
+    else if (act === 'table-detail') openTableDetail(table);
+  });
+}
+
+window.openCurrentAddSheet = function () {
+  if (state.tab === 'tables') window.openTableSheet();
+  else openAddSheet();
+};
 
 init();

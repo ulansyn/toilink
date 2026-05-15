@@ -451,6 +451,12 @@
       letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
     }
 
+    /* Table card */
+    .table-card-num {
+      font-family: 'Cormorant Garamond', serif; font-size: 17px; font-weight: 600; font-style: italic;
+      color: #4F46E5;
+    }
+
     /* Bottom nav */
     .nav-bar {
       background: rgba(250,250,248,.92);
@@ -586,6 +592,13 @@
 <!-- CONTENT -->
 <main data-app-surface class="max-w-5xl mx-auto px-5 md:px-6 pt-4 md:pt-6 pb-32 md:pb-20">
 
+  <!-- Page tabs -->
+  <div class="seg-control mb-5 md:mb-6" id="page-tabs" style="max-width:220px;">
+    <button type="button" class="seg-btn active" data-tab="guests">Гости</button>
+    <button type="button" class="seg-btn" data-tab="tables">Столы</button>
+  </div>
+
+  <div id="guests-container">
   <!-- Stats (clickable filters) -->
   <div id="stats" class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-5 md:mb-6">
     <div class="skeleton h-[88px]"></div>
@@ -625,6 +638,12 @@
       <div class="skeleton h-[64px]"></div>
     </div>
   </div>
+  </div><!-- /#guests-container -->
+
+  <!-- Tables view -->
+  <div id="tables-container" class="hidden">
+    <div id="tables-list"></div>
+  </div>
 </main>
 
 <script>
@@ -632,11 +651,11 @@
 </script>
 
 <!-- FAB (mobile) -->
-<button onclick="openAddSheet()"
+<button onclick="openCurrentAddSheet()"
         class="fab md:hidden fixed z-30 right-4"
         style="bottom: calc(76px + env(safe-area-inset-bottom, 0px))">
   <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-  Гостя
+  <span id="fab-label">Гостя</span>
 </button>
 
 <!-- BOTTOM NAV (mobile) -->
@@ -728,6 +747,32 @@
   </div>
 </div>
 
+<!-- TABLE SHEET (create / edit) -->
+<div id="tableBackdrop" class="bs-backdrop" onclick="window.closeTableSheet && window.closeTableSheet()"></div>
+<div id="tableSheet" class="bs-sheet">
+  <div class="sheet-inner">
+    <div class="drag-pill"></div>
+    <div class="px-6 md:px-0 pt-3 md:pt-0">
+      <div class="text-center mb-6">
+        <div id="tableSheetMode" class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-2">Новый стол</div>
+        <h2 class="font-cormorant text-[28px] md:text-[32px] italic font-semibold text-ink">Настройка стола</h2>
+      </div>
+      <form id="table-form" onsubmit="window.submitTableForm && window.submitTableForm(event)" class="flex flex-col gap-3">
+        <input type="hidden" id="table-edit-id" value="">
+        <div class="input-wrap">
+          <input id="table-name" type="text" placeholder="Название" class="field" required/>
+          <label for="table-name" class="lbl">Название стола</label>
+        </div>
+        <div class="input-wrap">
+          <input id="table-capacity" type="number" min="1" max="500" placeholder="Вместимость" class="field"/>
+          <label for="table-capacity" class="lbl">Вместимость (необязательно)</label>
+        </div>
+        <button type="submit" id="tableSubmitBtn" class="btn-primary w-full mt-2">Сохранить</button>
+      </form>
+    </div>
+  </div>
+</div>
+
 <!-- Toast -->
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
@@ -786,7 +831,10 @@
   });
 
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeSheetById('add');
+    if (e.key === 'Escape') {
+      closeSheetById('add');
+      if (typeof window.closeTableSheet === 'function') window.closeTableSheet();
+    }
   });
 
   // Swipe to close
@@ -797,6 +845,16 @@
     el.addEventListener('touchmove', e => {
       const dy = e.touches[0].clientY - startY;
       if (dy > 60) closeSheetById('add');
+    }, { passive: true });
+  })();
+
+  /* ── Swipe to close table sheet ── */
+  (function () {
+    const el = document.getElementById('tableSheet');
+    let startY = 0;
+    el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (e.touches[0].clientY - startY > 60 && typeof window.closeTableSheet === 'function') window.closeTableSheet();
     }, { passive: true });
   })();
 

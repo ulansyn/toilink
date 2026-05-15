@@ -18,17 +18,23 @@ public record GuestResponse(
         Long relatedToId,
         String relationType,
         String relatedToName,
+        Long tableId,
+        String tableName,
         LocalDateTime createdAt
 ) {
     public static GuestResponse from(Guest g) {
-        return from(g, null, null);
+        return from(g, null, null, null);
     }
 
     public static GuestResponse from(Guest g, String rsvpStatus) {
-        return from(g, rsvpStatus, null);
+        return from(g, rsvpStatus, null, null);
     }
 
     public static GuestResponse from(Guest g, String rsvpStatus, String relatedToName) {
+        return from(g, rsvpStatus, relatedToName, null);
+    }
+
+    public static GuestResponse from(Guest g, String rsvpStatus, String relatedToName, String tableName) {
         return new GuestResponse(
                 g.getId(),
                 g.getEvent().getId(),
@@ -42,6 +48,8 @@ public record GuestResponse(
                 g.getRelatedToId(),
                 g.getRelationType(),
                 relatedToName,
+                g.getTableId(),
+                tableName,
                 g.getCreatedAt()
         );
     }

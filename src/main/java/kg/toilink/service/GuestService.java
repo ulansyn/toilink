@@ -6,17 +6,21 @@ import kg.toilink.dto.response.GuestResponse;
 import kg.toilink.entity.Event;
 import kg.toilink.entity.Guest;
 import kg.toilink.entity.RsvpResponse;
+import kg.toilink.entity.SeatingTable;
 import kg.toilink.entity.User;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
 import kg.toilink.repository.RsvpResponseRepository;
+import kg.toilink.repository.SeatingTableRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,6 +30,7 @@ public class GuestService {
     private final GuestRepository guestRepository;
     private final EventRepository eventRepository;
     private final RsvpResponseRepository rsvpResponseRepository;
+    private final SeatingTableRepository seatingTableRepository;
     private final UserService userService;
 
     @Transactional(readOnly = true)
@@ -44,11 +49,18 @@ public class GuestService {
                 .filter(g -> g.getName() != null)
                 .collect(Collectors.toMap(Guest::getId, Guest::getName, (a, b) -> a));
 
+        Set<Long> tableIds = guests.stream()
+                .map(Guest::getTableId).filter(Objects::nonNull).collect(Collectors.toSet());
+        Map<Long, String> tableNameMap = tableIds.isEmpty() ? Map.of() :
+                seatingTableRepository.findAllById(tableIds).stream()
+                        .collect(Collectors.toMap(SeatingTable::getId, SeatingTable::getName));
+
         return guests.stream()
                 .map(g -> GuestResponse.from(
                         g,
                         statusByGuest.get(g.getId()),
-                        g.getRelatedToId() != null ? nameById.get(g.getRelatedToId()) : null))
+                        g.getRelatedToId() != null ? nameById.get(g.getRelatedToId()) : null,
+                        g.getTableId() != null ? tableNameMap.get(g.getTableId()) : null))
                 .toList();
     }
 
@@ -85,7 +97,7 @@ public class GuestService {
             primary = guestRepository.save(primary);
         }
 
-        return GuestResponse.from(primary, req.rsvpStatus(), resolveRelatedName(primary.getRelatedToId()));
+        return GuestResponse.from(primary, req.rsvpStatus(), resolveRelatedName(primary.getRelatedToId()), null);
     }
 
     @Transactional
@@ -103,10 +115,13 @@ public class GuestService {
         if (req.side() != null) guest.setSide(req.side());
         guest.setRelatedToId(req.relatedToId());
         guest.setRelationType(req.relatedToId() != null ? req.relationType() : null);
+        guest.setTableId(req.tableId());
         Guest saved = guestRepository.save(guest);
 
         String finalStatus = applyRsvpStatus(saved, event, req.rsvpStatus());
-        return GuestResponse.from(saved, finalStatus, resolveRelatedName(saved.getRelatedToId()));
+        String tableName = saved.getTableId() != null ?
+                seatingTableRepository.findById(saved.getTableId()).map(SeatingTable::getName).orElse(null) : null;
+        return GuestResponse.from(saved, finalStatus, resolveRelatedName(saved.getRelatedToId()), tableName);
     }
 
     private String applyRsvpStatus(Guest guest, Event event, String rsvpStatus) {
