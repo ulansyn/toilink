@@ -267,13 +267,17 @@ window.submitRsvp = async function(slug) {
   }
   const name = document.getElementById('rsvp-name')?.value?.trim() || null;
   const comment = document.getElementById('rsvp-comment')?.value?.trim() || null;
+  const savedToken = (() => {
+    try { return localStorage.getItem(`rsvp:${slug}:token`); } catch (_) { return null; }
+  })();
+  const token = guestToken() || savedToken || null;
 
   try {
     const res = await fetch(`${BASE_URL}/api/public/events/${slug}/rsvp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        guestToken: guestToken() || null,
+        guestToken: token,
         name,
         status: selectedStatus,
         groupSize,
@@ -281,6 +285,10 @@ window.submitRsvp = async function(slug) {
       }),
     });
     if (!res.ok) throw new Error((await res.json()).message || 'Ошибка');
+    const data = await res.json().catch(() => ({}));
+    if (data.guestToken) {
+      try { localStorage.setItem(`rsvp:${slug}:token`, data.guestToken); } catch (_) {}
+    }
     showConfirmation(selectedStatus);
   } catch (e) {
     showToast(e.message);
