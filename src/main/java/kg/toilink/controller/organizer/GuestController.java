@@ -2,6 +2,7 @@ package kg.toilink.controller.organizer;
 
 import jakarta.validation.Valid;
 import kg.toilink.dto.request.CreateGuestRequest;
+import kg.toilink.dto.request.UpdateGuestRequest;
 import kg.toilink.dto.response.GuestResponse;
 import kg.toilink.service.GuestService;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,14 @@ public class GuestController {
                              @Valid @RequestBody CreateGuestRequest request,
                              @AuthenticationPrincipal UserDetails user) {
         return guestService.addGuest(eventId, request, user.getUsername());
+    }
+
+    @PutMapping("/{guestId}")
+    public GuestResponse update(@PathVariable Long eventId,
+                                @PathVariable Long guestId,
+                                @Valid @RequestBody UpdateGuestRequest request,
+                                @AuthenticationPrincipal UserDetails user) {
+        return guestService.updateGuest(eventId, guestId, request, user.getUsername());
     }
 
     @DeleteMapping("/{guestId}")

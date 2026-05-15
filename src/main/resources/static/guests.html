@@ -22,9 +22,9 @@
     <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
-    <link rel="stylesheet" href="/css/fonts.css">
-  <link rel="stylesheet" href="/css/tokens.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/critical.css">
+    <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
   <link rel="stylesheet" href="/css/app-shell.css?v=app2"/>
   <script src="/js/app-shell.js?v=app2"></script>
 
@@ -421,6 +421,36 @@
       border-radius: 100px; margin: 12px auto 4px;
     }
 
+    /* Segmented control (side selector) */
+    .seg-control {
+      display: flex; gap: 5px;
+      background: #F0EDE8; padding: 4px; border-radius: 14px;
+    }
+    .seg-btn {
+      flex: 1; padding: 9px 8px; border-radius: 10px;
+      font-size: 13px; font-weight: 500; color: #6B6860;
+      background: transparent; border: none; cursor: pointer;
+      transition: background .18s, color .18s, box-shadow .18s;
+    }
+    .seg-btn.active {
+      background: #fff; color: #1E2820;
+      box-shadow: 0 1px 6px rgba(0,0,0,.10);
+    }
+    /* Select field */
+    .select-field {
+      width: 100%; padding: 14px 16px;
+      background: #F5F2EE; border: 1px solid transparent;
+      border-radius: 14px;
+      font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 500;
+      color: #1E2820; outline: none; cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .select-field:focus { background: #fff; border-color: #F93B7A; }
+    .field-section-label {
+      font-size: 11px; font-weight: 600; color: #9B8B7A;
+      letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
+    }
+
     /* Bottom nav */
     .nav-bar {
       background: rgba(250,250,248,.92);
@@ -491,6 +521,7 @@
     }
     .hover\:text-accent:hover { color: #F93B7A !important; }
   </style>
+  <script src="/js/sheet-behavior.js"></script>
 </head>
 <body data-app-page="guests">
 
@@ -652,6 +683,35 @@
           <label for="add-notes" class="lbl">Заметка — например, «+1 человек»</label>
         </div>
 
+        <div>
+          <div class="field-section-label">Сторона</div>
+          <div class="seg-control" id="add-side-control">
+            <button type="button" class="seg-btn" data-side="GROOM">Жених</button>
+            <button type="button" class="seg-btn" data-side="BRIDE">Невеста</button>
+            <button type="button" class="seg-btn active" data-side="SHARED">Общий</button>
+          </div>
+          <input type="hidden" id="add-side" value="SHARED"/>
+        </div>
+
+        <div>
+          <div class="field-section-label">Связан с гостем (необязательно)</div>
+          <select id="add-related-to" class="select-field">
+            <option value="">— не связан —</option>
+          </select>
+        </div>
+
+        <div id="add-rel-type-wrap" style="display:none;">
+          <div class="field-section-label">Тип связи</div>
+          <select id="add-relation-type" class="select-field">
+            <option value="SPOUSE">Супруг / супруга</option>
+            <option value="FAMILY">Семья</option>
+            <option value="CHILD">Ребёнок</option>
+            <option value="FRIEND">Друг / подруга</option>
+            <option value="COMPANION">Сопровождающий</option>
+            <option value="OTHER">Другое</option>
+          </select>
+        </div>
+
         <button type="submit" id="addSubmitBtn" class="btn-primary w-full mt-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
           Добавить и получить ссылку
@@ -679,13 +739,36 @@
     document.getElementById(id + 'Backdrop').classList.remove('open');
   }
   window.openAddSheet = function () {
+    // populate related-to select from current guests list
+    const sel = document.getElementById('add-related-to');
+    const guests = window._allGuestsRef || [];
+    sel.innerHTML = '<option value="">— не связан —</option>' +
+      guests.map(g => `<option value="${g.id}">${(g.name || 'Аноним').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</option>`).join('');
     openSheetById('add');
     setTimeout(() => document.getElementById('add-name')?.focus(), 260);
   };
   window.closeAddSheet = function () {
     closeSheetById('add');
     document.getElementById('add-form')?.reset();
+    // reset side to SHARED
+    document.querySelectorAll('#add-side-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.side === 'SHARED'));
+    document.getElementById('add-side').value = 'SHARED';
+    document.getElementById('add-rel-type-wrap').style.display = 'none';
   };
+
+  // Side segmented control
+  document.getElementById('add-side-control').addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    document.querySelectorAll('#add-side-control .seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('add-side').value = btn.dataset.side;
+  });
+
+  // Show/hide relation type when related guest selected
+  document.getElementById('add-related-to').addEventListener('change', e => {
+    document.getElementById('add-rel-type-wrap').style.display = e.target.value ? '' : 'none';
+  });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') closeSheetById('add');

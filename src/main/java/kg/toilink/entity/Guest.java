@@ -38,6 +38,15 @@ public class Guest {
     @Column(columnDefinition = "text")
     private String notes;
 
+    @Column(nullable = false, length = 20)
+    private String side;
+
+    @Column(name = "related_to_id")
+    private Long relatedToId;
+
+    @Column(length = 30)
+    private String relationType;
+
     @Column(unique = true)
     private UUID token;
 
@@ -53,6 +62,7 @@ public class Guest {
     void prePersist() {
         createdAt = LocalDateTime.now();
         if (source == null) source = "PERSONAL_LINK";
+        if (side == null) side = "SHARED";
         if (token == null) token = UUID.randomUUID();
     }
 }

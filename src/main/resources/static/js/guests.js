@@ -112,6 +112,22 @@ function chipFor(status) {
   }
 }
 
+function sideChip(side) {
+  if (side === 'GROOM') return `<span class="chip-sm" style="background:#E8EEFF; color:#2F4DAF; font-size:10px;">Жених</span>`;
+  if (side === 'BRIDE') return `<span class="chip-sm" style="background:#FFE8F5; color:#C71F5C; font-size:10px;">Невеста</span>`;
+  return '';
+}
+
+function relationLabel(g) {
+  if (!g.relatedToId || !g.relatedToName) return '';
+  const typeMap = {
+    SPOUSE: 'супруг/а', FAMILY: 'семья', CHILD: 'ребёнок',
+    FRIEND: 'друг/подруга', COMPANION: 'сопровождающий', OTHER: 'с',
+  };
+  const t = typeMap[g.relationType] || 'с';
+  return `${t}: ${escapeHtml(g.relatedToName)}`;
+}
+
 // ─── Stats & filtering ────────────────────────────────────────────────────────
 function computeStats(guests) {
   const total = guests.length;
@@ -233,10 +249,14 @@ function guestRow(g) {
   const initial = name[0].toUpperCase();
   const p       = avatarPalette(name);
   const chip    = chipFor(g.rsvpStatus);
+  const side    = sideChip(g.side);
+  const rel     = relationLabel(g);
 
-  const sub = g.notes
-    ? `<span class="italic-notes">«${escapeHtml(g.notes)}»</span>`
-    : (g.phone ? escapeHtml(g.phone) : '<span style="font-family:Cormorant Garamond,serif; font-style:italic; font-size:13px;">Без телефона</span>');
+  const sub = rel
+    ? `<span style="font-size:11.5px; color:#9B8B7A;">${rel}</span>`
+    : (g.notes
+      ? `<span class="italic-notes">«${escapeHtml(g.notes)}»</span>`
+      : (g.phone ? escapeHtml(g.phone) : '<span style="font-family:Cormorant Garamond,serif; font-style:italic; font-size:13px;">Без телефона</span>'));
 
   const copyBtn = hasPersonalLink(g) ? `
     <button class="row-icon-btn copy" data-action="copy" data-guest-id="${g.id}" title="Скопировать ссылку" aria-label="Скопировать">
@@ -253,6 +273,7 @@ function guestRow(g) {
         <div class="guest-row-top">
           <span class="guest-row-name">${escapeHtml(name)}</span>
           ${chip}
+          ${side}
         </div>
         <div class="guest-row-sub">${sub}</div>
       </div>
@@ -419,6 +440,16 @@ function openActionsSheet(g) {
             </div>
           </a>
 
+          <button class="action-row" data-act="edit">
+            <div class="action-icon">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+            </div>
+            <div class="action-main">
+              <div class="action-title">Редактировать</div>
+              <div class="action-sub">Имя, телефон, сторона, связь</div>
+            </div>
+          </button>
+
           <div class="action-divider"></div>
 
           <button class="action-row danger" data-act="delete">
@@ -470,6 +501,10 @@ function openActionsSheet(g) {
           prompt('Ссылка гостя:', url);
         }
         close();
+      } else if (act === 'edit') {
+        ev.preventDefault();
+        close();
+        setTimeout(() => openEditSheet(g), 260);
       } else if (act === 'delete') {
         ev.preventDefault();
         close();
@@ -565,6 +600,155 @@ function confirmDelete(guestId) {
   });
 }
 
+// ─── Edit guest bottom sheet ──────────────────────────────────────────────────
+function openEditSheet(g) {
+  document.getElementById('editBackdrop')?.remove();
+  document.getElementById('editSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'editBackdrop';
+  backdrop.className = 'bs-backdrop';
+
+  const sheet = document.createElement('div');
+  sheet.id = 'editSheet';
+  sheet.className = 'bs-sheet';
+
+  const relOpts = allGuests
+    .filter(x => x.id !== g.id)
+    .map(x => `<option value="${x.id}"${g.relatedToId === x.id ? ' selected' : ''}>${escapeHtml(x.name || 'Аноним')}</option>`)
+    .join('');
+
+  const REL_TYPES = [
+    ['SPOUSE', 'Супруг / супруга'],
+    ['FAMILY', 'Семья'],
+    ['CHILD', 'Ребёнок'],
+    ['FRIEND', 'Друг / подруга'],
+    ['COMPANION', 'Сопровождающий'],
+    ['OTHER', 'Другое'],
+  ];
+
+  const relTypeOpts = REL_TYPES
+    .map(([val, lbl]) => `<option value="${val}"${g.relationType === val ? ' selected' : ''}>${lbl}</option>`)
+    .join('');
+
+  const SIDES = [['GROOM', 'Жених'], ['BRIDE', 'Невеста'], ['SHARED', 'Общий']];
+  const currentSide = g.side || 'SHARED';
+
+  sheet.innerHTML = `
+    <div class="sheet-inner" style="overflow-y:auto;">
+      <div class="drag-pill"></div>
+      <div class="px-6 md:px-0 pt-3 md:pt-0">
+        <div class="text-center mb-5">
+          <div style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:#9B8B7A; font-weight:600; margin-bottom:6px;">Редактировать</div>
+          <h2 class="font-cormorant" style="font-size:28px; font-style:italic; font-weight:600; color:#1E2820;">${escapeHtml(g.name || 'Гость')}</h2>
+        </div>
+        <form id="edit-form" class="flex flex-col gap-3">
+          <div class="input-wrap">
+            <input id="edit-name" type="text" value="${escapeHtml(g.name || '')}" placeholder="Имя" class="field" required/>
+            <label class="lbl">Имя гостя</label>
+          </div>
+          <div class="input-wrap">
+            <input id="edit-phone" type="tel" value="${escapeHtml(g.phone || '')}" placeholder="Телефон" class="field"/>
+            <label class="lbl">Телефон</label>
+          </div>
+          <div class="input-wrap">
+            <input id="edit-notes" type="text" value="${escapeHtml(g.notes || '')}" placeholder="Заметка" class="field"/>
+            <label class="lbl">Заметка</label>
+          </div>
+          <div>
+            <div class="field-section-label">Сторона</div>
+            <div class="seg-control" id="edit-side-control">
+              ${SIDES.map(([v, l]) => `<button type="button" class="seg-btn${currentSide === v ? ' active' : ''}" data-side="${v}">${l}</button>`).join('')}
+            </div>
+            <input type="hidden" id="edit-side" value="${currentSide}"/>
+          </div>
+          <div>
+            <div class="field-section-label">Связан с гостем (необязательно)</div>
+            <select id="edit-related-to" class="select-field">
+              <option value="">— не связан —</option>
+              ${relOpts}
+            </select>
+          </div>
+          <div id="edit-rel-type-wrap" style="${g.relatedToId ? '' : 'display:none;'}">
+            <div class="field-section-label">Тип связи</div>
+            <select id="edit-relation-type" class="select-field">
+              ${relTypeOpts}
+            </select>
+          </div>
+          <button type="submit" id="editSubmitBtn" class="btn-primary w-full" style="margin-top:4px;">Сохранить</button>
+        </form>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+
+  sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sheet.querySelector('#edit-side').value = btn.getAttribute('data-side');
+    });
+  });
+
+  sheet.querySelector('#edit-related-to').addEventListener('change', e => {
+    sheet.querySelector('#edit-rel-type-wrap').style.display = e.target.value ? '' : 'none';
+  });
+
+  let startY = 0;
+  sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+  sheet.addEventListener('touchmove', e => {
+    if (e.touches[0].clientY - startY > 60) close();
+  }, { passive: true });
+
+  sheet.querySelector('#edit-form').addEventListener('submit', async ev => {
+    ev.preventDefault();
+    const btn = sheet.querySelector('#editSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Сохраняем...';
+
+    const name = sheet.querySelector('#edit-name').value.trim();
+    const phone = sheet.querySelector('#edit-phone').value.trim();
+    const notes = sheet.querySelector('#edit-notes').value.trim();
+    const side = sheet.querySelector('#edit-side').value || 'SHARED';
+    const relatedToRaw = sheet.querySelector('#edit-related-to').value;
+    const relatedToId = relatedToRaw ? parseInt(relatedToRaw) : null;
+    const relationType = relatedToId ? (sheet.querySelector('#edit-relation-type').value || null) : null;
+
+    try {
+      const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${g.id}`, {
+        name, phone: phone || null, notes: notes || null,
+        side, relatedToId, relationType,
+      });
+      allGuests = allGuests.map(x => x.id === g.id ? updated : x);
+      syncAllCaches();
+      renderStats();
+      renderList();
+      toast('Изменения сохранены');
+      close();
+    } catch (err) {
+      toast(err.message || 'Ошибка', false);
+      btn.disabled = false;
+      btn.textContent = 'Сохранить';
+    }
+  });
+
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  });
+}
+
 // ─── Event delegation (row clicks) ────────────────────────────────────────────
 function wireListDelegation() {
   document.getElementById('guest-list').addEventListener('click', (e) => {
@@ -639,6 +823,10 @@ window.submitAddGuest = async function (e) {
   const name   = document.getElementById('add-name').value.trim();
   const phone_ = document.getElementById('add-phone').value.trim();
   const notes  = document.getElementById('add-notes').value.trim();
+  const side   = document.getElementById('add-side').value || 'SHARED';
+  const relatedToRaw = document.getElementById('add-related-to').value;
+  const relatedToId  = relatedToRaw ? parseInt(relatedToRaw) : null;
+  const relationType = relatedToId ? (document.getElementById('add-relation-type').value || null) : null;
 
   if (!name) { document.getElementById('add-name').focus(); return; }
 
@@ -650,11 +838,13 @@ window.submitAddGuest = async function (e) {
   try {
     const guest = await api('POST', `/api/organizer/events/${eventId}/guests`, {
       name, phone: phone_ || null, notes: notes || null,
+      side, relatedToId, relationType,
     });
 
     closeAddSheet();
 
     allGuests = [guest, ...allGuests];
+    window._allGuestsRef = allGuests;
     syncAllCaches();
     renderStats();
     renderList();
@@ -683,6 +873,7 @@ function applyEventMeta(event) {
 }
 
 function renderAll() {
+  window._allGuestsRef = allGuests;
   renderStats();
   if (allGuests.length > 0) syncToolbar();
   renderList();

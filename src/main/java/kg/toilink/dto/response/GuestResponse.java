@@ -14,13 +14,21 @@ public record GuestResponse(
         String notes,
         UUID token,
         String rsvpStatus,
+        String side,
+        Long relatedToId,
+        String relationType,
+        String relatedToName,
         LocalDateTime createdAt
 ) {
     public static GuestResponse from(Guest g) {
-        return from(g, null);
+        return from(g, null, null);
     }
 
     public static GuestResponse from(Guest g, String rsvpStatus) {
+        return from(g, rsvpStatus, null);
+    }
+
+    public static GuestResponse from(Guest g, String rsvpStatus, String relatedToName) {
         return new GuestResponse(
                 g.getId(),
                 g.getEvent().getId(),
@@ -30,6 +38,10 @@ public record GuestResponse(
                 g.getNotes(),
                 g.getToken(),
                 rsvpStatus,
+                g.getSide(),
+                g.getRelatedToId(),
+                g.getRelationType(),
+                relatedToName,
                 g.getCreatedAt()
         );
     }
