@@ -1099,21 +1099,20 @@ body {
 .rsvp-input {
     width: 100%;
     padding: 16px 16px 10px;
-    border: 1px solid #e2e2e2;
+    border: 1.5px solid #e2e2e2;
     border-radius: 14px;
-    background: #fdfdfd;
+    background: #ffffff;
     font-family: inherit;
     font-size: 1rem;
     color: var(--text-main);
     outline: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) inset;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .rsvp-input:focus {
     border-color: var(--primary-green);
-    background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(var(--primary-green-rgb), 0.10);
 }
 
 
