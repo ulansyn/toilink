@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -79,5 +80,23 @@ class RsvpServiceTest {
         assertEquals("PUBLIC_LINK", savedGuest.getSource());
         assertEquals("Айжан", savedGuest.getName());
         assertEquals(null, savedGuest.getToken());
+    }
+
+    @Test
+    void rejectsDeletedGuestToken() {
+        UUID token = UUID.randomUUID();
+        Event event = Event.builder()
+                .id(1L)
+                .slug("event")
+                .status("PUBLISHED")
+                .title("Event")
+                .build();
+
+        when(eventRepository.findBySlug("event")).thenReturn(Optional.of(event));
+        when(guestRepository.findByTokenAndDeletedAtIsNull(token)).thenReturn(Optional.empty());
+
+        RsvpRequest request = new RsvpRequest(token, null, "ATTENDING", 1, null);
+
+        assertThrows(BadRequestException.class, () -> rsvpService.rsvp("event", request));
     }
 }

@@ -20,7 +20,7 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
     @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.deletedAt IS NULL ORDER BY g.createdAt DESC")
     List<Guest> findAllByEventId(@Param("eventId") Long eventId);
 
-    Optional<Guest> findByToken(UUID token);
+    Optional<Guest> findByTokenAndDeletedAtIsNull(UUID token);
 
     Optional<Guest> findByEventIdAndNameAndSource(Long eventId, String name, String source);
     @Query("SELECT COUNT(g) FROM Guest g WHERE g.event.id = :eventId AND g.deletedAt IS NULL")

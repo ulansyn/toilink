@@ -73,7 +73,7 @@ public class EventService {
 
         Template template = null;
         if (req.templateId() != null) {
-            template = templateRepository.findById(req.templateId())
+            template = templateRepository.findByIdAndIsActiveTrue(req.templateId())
                     .orElseThrow(() -> NotFoundException.template(req.templateId()));
         }
 

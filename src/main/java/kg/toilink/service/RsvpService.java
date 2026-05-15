@@ -65,7 +65,7 @@ public class RsvpService {
 
     private Guest resolveGuest(Event event, RsvpRequest req) {
         if (req.guestToken() != null) {
-            Guest guest = guestRepository.findByToken(req.guestToken())
+            Guest guest = guestRepository.findByTokenAndDeletedAtIsNull(req.guestToken())
                     .orElseThrow(() -> new BadRequestException("Invalid guest token"));
             if (!guest.getEvent().getId().equals(event.getId())) {
                 throw new BadRequestException("Guest token does not belong to this event");
