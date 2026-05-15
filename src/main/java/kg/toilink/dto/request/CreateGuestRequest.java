@@ -18,8 +18,9 @@ public record CreateGuestRequest(
         @Pattern(regexp = "GROOM|BRIDE|SHARED|OTHER", message = "Side must be GROOM, BRIDE, SHARED or OTHER")
         String side,
 
-        Long relatedToId,
+        @Pattern(regexp = "ATTENDING|DECLINED|MAYBE", message = "Status must be ATTENDING, DECLINED or MAYBE")
+        String rsvpStatus,
 
-        @Size(max = 30)
-        String relationType
+        @Size(max = 100)
+        String companionName
 ) {}

@@ -55,26 +55,42 @@ public class GuestService {
     @Transactional
     public GuestResponse addGuest(Long eventId, CreateGuestRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
+        String side = req.side() != null ? req.side() : "SHARED";
 
-        Guest guest = Guest.builder()
+        Guest primary = guestRepository.save(Guest.builder()
                 .event(event)
                 .name(req.name())
                 .phone(req.phone())
                 .source(Boolean.TRUE.equals(req.personalInvite()) ? "PERSONAL_LINK" : "MANUAL")
                 .notes(req.notes())
-                .side(req.side() != null ? req.side() : "SHARED")
-                .relatedToId(req.relatedToId())
-                .relationType(req.relationType())
-                .build();
+                .side(side)
+                .build());
 
-        Guest saved = guestRepository.save(guest);
-        String relatedToName = resolveRelatedName(saved.getRelatedToId());
-        return GuestResponse.from(saved, null, relatedToName);
+        if (req.rsvpStatus() != null && !req.rsvpStatus().isBlank()) {
+            rsvpResponseRepository.save(RsvpResponse.builder()
+                    .guest(primary).event(event).status(req.rsvpStatus()).groupSize(1).build());
+        }
+
+        if (req.companionName() != null && !req.companionName().isBlank()) {
+            Guest companion = guestRepository.save(Guest.builder()
+                    .event(event)
+                    .name(req.companionName().trim())
+                    .source("MANUAL")
+                    .side(side)
+                    .relatedToId(primary.getId())
+                    .relationType("SPOUSE")
+                    .build());
+            primary.setRelatedToId(companion.getId());
+            primary.setRelationType("SPOUSE");
+            primary = guestRepository.save(primary);
+        }
+
+        return GuestResponse.from(primary, req.rsvpStatus(), resolveRelatedName(primary.getRelatedToId()));
     }
 
     @Transactional
     public GuestResponse updateGuest(Long eventId, Long guestId, UpdateGuestRequest req, String phone) {
-        verifyOwnership(eventId, phone);
+        Event event = verifyOwnership(eventId, phone);
         Guest guest = guestRepository.findById(guestId)
                 .orElseThrow(() -> NotFoundException.guest(guestId));
         if (!guest.getEvent().getId().equals(eventId)) {
@@ -87,10 +103,30 @@ public class GuestService {
         if (req.side() != null) guest.setSide(req.side());
         guest.setRelatedToId(req.relatedToId());
         guest.setRelationType(req.relatedToId() != null ? req.relationType() : null);
-
         Guest saved = guestRepository.save(guest);
-        String relatedToName = resolveRelatedName(saved.getRelatedToId());
-        return GuestResponse.from(saved, null, relatedToName);
+
+        String finalStatus = applyRsvpStatus(saved, event, req.rsvpStatus());
+        return GuestResponse.from(saved, finalStatus, resolveRelatedName(saved.getRelatedToId()));
+    }
+
+    private String applyRsvpStatus(Guest guest, Event event, String rsvpStatus) {
+        if (rsvpStatus == null) {
+            // null = don't change; return current status
+            return rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
+                    .map(RsvpResponse::getStatus).orElse(null);
+        }
+        if ("NONE".equals(rsvpStatus)) {
+            rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
+                    .ifPresent(rsvpResponseRepository::delete);
+            return null;
+        }
+        rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
+                .ifPresentOrElse(
+                        r -> { r.setStatus(rsvpStatus); rsvpResponseRepository.save(r); },
+                        () -> rsvpResponseRepository.save(RsvpResponse.builder()
+                                .guest(guest).event(event).status(rsvpStatus).groupSize(1).build())
+                );
+        return rsvpStatus;
     }
 
     private String resolveRelatedName(Long relatedToId) {

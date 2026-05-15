@@ -694,22 +694,25 @@
         </div>
 
         <div>
-          <div class="field-section-label">Связан с гостем (необязательно)</div>
-          <select id="add-related-to" class="select-field">
-            <option value="">— не связан —</option>
-          </select>
+          <div class="field-section-label">Статус</div>
+          <div class="seg-control" id="add-status-control">
+            <button type="button" class="seg-btn active" data-status="">Ждём</button>
+            <button type="button" class="seg-btn" data-status="ATTENDING">Придёт</button>
+            <button type="button" class="seg-btn" data-status="DECLINED">Не придёт</button>
+          </div>
+          <input type="hidden" id="add-status" value=""/>
         </div>
 
-        <div id="add-rel-type-wrap" style="display:none;">
-          <div class="field-section-label">Тип связи</div>
-          <select id="add-relation-type" class="select-field">
-            <option value="SPOUSE">Супруг / супруга</option>
-            <option value="FAMILY">Семья</option>
-            <option value="CHILD">Ребёнок</option>
-            <option value="FRIEND">Друг / подруга</option>
-            <option value="COMPANION">Сопровождающий</option>
-            <option value="OTHER">Другое</option>
-          </select>
+        <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:4px 0;">
+          <input type="checkbox" id="add-companion-check" style="width:18px; height:18px; accent-color:#F93B7A; cursor:pointer;"/>
+          <span style="font-size:14px; font-weight:500; color:#1E2820;">Придёт с супругом / супругой</span>
+        </label>
+
+        <div id="add-companion-wrap" style="display:none;">
+          <div class="input-wrap">
+            <input id="add-companion-name" type="text" placeholder="Имя" class="field"/>
+            <label for="add-companion-name" class="lbl">Имя супруга / супруги</label>
+          </div>
         </div>
 
         <button type="submit" id="addSubmitBtn" class="btn-primary w-full mt-2">
@@ -739,11 +742,6 @@
     document.getElementById(id + 'Backdrop').classList.remove('open');
   }
   window.openAddSheet = function () {
-    // populate related-to select from current guests list
-    const sel = document.getElementById('add-related-to');
-    const guests = window._allGuestsRef || [];
-    sel.innerHTML = '<option value="">— не связан —</option>' +
-      guests.map(g => `<option value="${g.id}">${(g.name || 'Аноним').replace(/[<>&"]/g, c => ({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c]))}</option>`).join('');
     openSheetById('add');
     setTimeout(() => document.getElementById('add-name')?.focus(), 260);
   };
@@ -753,7 +751,13 @@
     // reset side to SHARED
     document.querySelectorAll('#add-side-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.side === 'SHARED'));
     document.getElementById('add-side').value = 'SHARED';
-    document.getElementById('add-rel-type-wrap').style.display = 'none';
+    // reset status to Ждём
+    document.querySelectorAll('#add-status-control .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.status === ''));
+    document.getElementById('add-status').value = '';
+    // reset companion
+    document.getElementById('add-companion-check').checked = false;
+    document.getElementById('add-companion-wrap').style.display = 'none';
+    document.getElementById('add-companion-name').value = '';
   };
 
   // Side segmented control
@@ -765,9 +769,20 @@
     document.getElementById('add-side').value = btn.dataset.side;
   });
 
-  // Show/hide relation type when related guest selected
-  document.getElementById('add-related-to').addEventListener('change', e => {
-    document.getElementById('add-rel-type-wrap').style.display = e.target.value ? '' : 'none';
+  // Status segmented control
+  document.getElementById('add-status-control').addEventListener('click', e => {
+    const btn = e.target.closest('.seg-btn');
+    if (!btn) return;
+    document.querySelectorAll('#add-status-control .seg-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('add-status').value = btn.dataset.status;
+  });
+
+  // Companion checkbox
+  document.getElementById('add-companion-check').addEventListener('change', e => {
+    document.getElementById('add-companion-wrap').style.display = e.target.checked ? '' : 'none';
+    if (e.target.checked) setTimeout(() => document.getElementById('add-companion-name')?.focus(), 50);
+    else document.getElementById('add-companion-name').value = '';
   });
 
   document.addEventListener('keydown', e => {

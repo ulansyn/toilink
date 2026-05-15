@@ -633,6 +633,8 @@ function openEditSheet(g) {
 
   const SIDES = [['GROOM', 'Жених'], ['BRIDE', 'Невеста'], ['SHARED', 'Общий']];
   const currentSide = g.side || 'SHARED';
+  const currentStatus = g.rsvpStatus || '';
+  const STATUSES = [['', 'Ждём'], ['ATTENDING', 'Придёт'], ['DECLINED', 'Не придёт'], ['MAYBE', 'Возможно']];
 
   sheet.innerHTML = `
     <div class="sheet-inner" style="overflow-y:auto;">
@@ -654,6 +656,13 @@ function openEditSheet(g) {
           <div class="input-wrap">
             <input id="edit-notes" type="text" value="${escapeHtml(g.notes || '')}" placeholder="Заметка" class="field"/>
             <label class="lbl">Заметка</label>
+          </div>
+          <div>
+            <div class="field-section-label">Статус</div>
+            <div class="seg-control" id="edit-status-control" style="flex-wrap:wrap;">
+              ${STATUSES.map(([v, l]) => `<button type="button" class="seg-btn${currentStatus === v ? ' active' : ''}" data-status="${v}" style="flex:1 1 40%;">${l}</button>`).join('')}
+            </div>
+            <input type="hidden" id="edit-status" value="${currentStatus}"/>
           </div>
           <div>
             <div class="field-section-label">Сторона</div>
@@ -693,6 +702,14 @@ function openEditSheet(g) {
   backdrop.onclick = close;
   document.addEventListener('keydown', onEsc);
 
+  sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sheet.querySelector('#edit-status').value = btn.getAttribute('data-status');
+    });
+  });
+
   sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(b => b.classList.remove('active'));
@@ -724,13 +741,17 @@ function openEditSheet(g) {
     const relatedToRaw = sheet.querySelector('#edit-related-to').value;
     const relatedToId = relatedToRaw ? parseInt(relatedToRaw) : null;
     const relationType = relatedToId ? (sheet.querySelector('#edit-relation-type').value || null) : null;
+    // '' = Ждём (clear), send as 'NONE' so backend distinguishes from null (no change)
+    const statusRaw = sheet.querySelector('#edit-status').value;
+    const rsvpStatus = statusRaw === '' ? 'NONE' : statusRaw;
 
     try {
       const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${g.id}`, {
         name, phone: phone || null, notes: notes || null,
-        side, relatedToId, relationType,
+        side, relatedToId, relationType, rsvpStatus,
       });
       allGuests = allGuests.map(x => x.id === g.id ? updated : x);
+      window._allGuestsRef = allGuests;
       syncAllCaches();
       renderStats();
       renderList();
@@ -820,15 +841,16 @@ function wireToolbar() {
 // ─── Add guest submit ─────────────────────────────────────────────────────────
 window.submitAddGuest = async function (e) {
   e.preventDefault();
-  const name   = document.getElementById('add-name').value.trim();
-  const phone_ = document.getElementById('add-phone').value.trim();
-  const notes  = document.getElementById('add-notes').value.trim();
-  const side   = document.getElementById('add-side').value || 'SHARED';
-  const relatedToRaw = document.getElementById('add-related-to').value;
-  const relatedToId  = relatedToRaw ? parseInt(relatedToRaw) : null;
-  const relationType = relatedToId ? (document.getElementById('add-relation-type').value || null) : null;
+  const name         = document.getElementById('add-name').value.trim();
+  const phone_       = document.getElementById('add-phone').value.trim();
+  const notes        = document.getElementById('add-notes').value.trim();
+  const side         = document.getElementById('add-side').value || 'SHARED';
+  const rsvpStatus   = document.getElementById('add-status').value || null;
+  const withCompanion = document.getElementById('add-companion-check').checked;
+  const companionName = withCompanion ? document.getElementById('add-companion-name').value.trim() : null;
 
   if (!name) { document.getElementById('add-name').focus(); return; }
+  if (withCompanion && !companionName) { document.getElementById('add-companion-name').focus(); return; }
 
   const btn = document.getElementById('addSubmitBtn');
   const origHtml = btn.innerHTML;
@@ -836,27 +858,23 @@ window.submitAddGuest = async function (e) {
   btn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 018-8V2.5M20 12a8 8 0 01-8 8v1.5"/></svg> Добавляем...';
 
   try {
-    const guest = await api('POST', `/api/organizer/events/${eventId}/guests`, {
+    await api('POST', `/api/organizer/events/${eventId}/guests`, {
       name, phone: phone_ || null, notes: notes || null,
-      side, relatedToId, relationType,
+      side, rsvpStatus, companionName,
     });
 
     closeAddSheet();
 
-    allGuests = [guest, ...allGuests];
+    // Reload full list so companion also appears
+    const [event, guests] = await fetchData();
+    eventData = event;
+    allGuests = guests;
     window._allGuestsRef = allGuests;
     syncAllCaches();
-    renderStats();
-    renderList();
+    applyEventMeta(event);
+    renderAll();
 
-    if (hasPersonalLink(guest) && eventData?.slug) {
-      const url = buildEventUrl(eventData, guest.token);
-      navigator.clipboard.writeText(url)
-        .then(() => toast('Гость добавлен. Ссылка скопирована'))
-        .catch(() => toast('Гость добавлен'));
-    } else {
-      toast('Гость добавлен');
-    }
+    toast(companionName ? 'Добавлено 2 гостя' : 'Гость добавлен');
   } catch (err) {
     toast(err.message || 'Ошибка', false);
   } finally {

@@ -19,5 +19,8 @@ public record UpdateGuestRequest(
         Long relatedToId,
 
         @Size(max = 30)
-        String relationType
+        String relationType,
+
+        // null = no change; "NONE" = clear status; ATTENDING/DECLINED/MAYBE = set
+        String rsvpStatus
 ) {}
