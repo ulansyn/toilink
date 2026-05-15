@@ -613,36 +613,18 @@ function openEditSheet(g) {
   sheet.id = 'editSheet';
   sheet.className = 'bs-sheet';
 
-  const relOpts = allGuests
-    .filter(x => x.id !== g.id)
-    .map(x => `<option value="${x.id}"${g.relatedToId === x.id ? ' selected' : ''}>${escapeHtml(x.name || 'Аноним')}</option>`)
-    .join('');
-
-  const REL_TYPES = [
-    ['SPOUSE', 'Супруг / супруга'],
-    ['FAMILY', 'Семья'],
-    ['CHILD', 'Ребёнок'],
-    ['FRIEND', 'Друг / подруга'],
-    ['COMPANION', 'Сопровождающий'],
-    ['OTHER', 'Другое'],
-  ];
-
-  const relTypeOpts = REL_TYPES
-    .map(([val, lbl]) => `<option value="${val}"${g.relationType === val ? ' selected' : ''}>${lbl}</option>`)
-    .join('');
-
-  const SIDES = [['GROOM', 'Жених'], ['BRIDE', 'Невеста'], ['SHARED', 'Общий']];
-  const currentSide = g.side || 'SHARED';
+  const currentSide   = g.side || 'SHARED';
   const currentStatus = g.rsvpStatus || '';
-  const STATUSES = [['', 'Ждём'], ['ATTENDING', 'Придёт'], ['DECLINED', 'Не придёт'], ['MAYBE', 'Возможно']];
+  const SIDES    = [['GROOM', 'Жених'], ['BRIDE', 'Невеста'], ['SHARED', 'Общий']];
+  const STATUSES = [['', 'Ждём'], ['ATTENDING', 'Придёт'], ['DECLINED', 'Не придёт']];
 
   sheet.innerHTML = `
     <div class="sheet-inner" style="overflow-y:auto;">
       <div class="drag-pill"></div>
       <div class="px-6 md:px-0 pt-3 md:pt-0">
-        <div class="text-center mb-5">
-          <div style="font-size:10px; letter-spacing:.3em; text-transform:uppercase; color:#9B8B7A; font-weight:600; margin-bottom:6px;">Редактировать</div>
-          <h2 class="font-cormorant" style="font-size:28px; font-style:italic; font-weight:600; color:#1E2820;">${escapeHtml(g.name || 'Гость')}</h2>
+        <div class="text-center mb-6">
+          <div class="text-[10px] tracking-[0.3em] uppercase text-muted font-medium mb-2">Редактировать</div>
+          <h2 class="font-cormorant text-[28px] md:text-[32px] italic font-semibold text-ink">${escapeHtml(g.name || 'Гость')}</h2>
         </div>
         <form id="edit-form" class="flex flex-col gap-3">
           <div class="input-wrap">
@@ -651,18 +633,11 @@ function openEditSheet(g) {
           </div>
           <div class="input-wrap">
             <input id="edit-phone" type="tel" value="${escapeHtml(g.phone || '')}" placeholder="Телефон" class="field"/>
-            <label class="lbl">Телефон</label>
+            <label class="lbl">Телефон (для WhatsApp)</label>
           </div>
           <div class="input-wrap">
             <input id="edit-notes" type="text" value="${escapeHtml(g.notes || '')}" placeholder="Заметка" class="field"/>
             <label class="lbl">Заметка</label>
-          </div>
-          <div>
-            <div class="field-section-label">Статус</div>
-            <div class="seg-control" id="edit-status-control" style="flex-wrap:wrap;">
-              ${STATUSES.map(([v, l]) => `<button type="button" class="seg-btn${currentStatus === v ? ' active' : ''}" data-status="${v}" style="flex:1 1 40%;">${l}</button>`).join('')}
-            </div>
-            <input type="hidden" id="edit-status" value="${currentStatus}"/>
           </div>
           <div>
             <div class="field-section-label">Сторона</div>
@@ -672,19 +647,13 @@ function openEditSheet(g) {
             <input type="hidden" id="edit-side" value="${currentSide}"/>
           </div>
           <div>
-            <div class="field-section-label">Связан с гостем (необязательно)</div>
-            <select id="edit-related-to" class="select-field">
-              <option value="">— не связан —</option>
-              ${relOpts}
-            </select>
+            <div class="field-section-label">Статус</div>
+            <div class="seg-control" id="edit-status-control">
+              ${STATUSES.map(([v, l]) => `<button type="button" class="seg-btn${currentStatus === v ? ' active' : ''}" data-status="${v}">${l}</button>`).join('')}
+            </div>
+            <input type="hidden" id="edit-status" value="${currentStatus}"/>
           </div>
-          <div id="edit-rel-type-wrap" style="${g.relatedToId ? '' : 'display:none;'}">
-            <div class="field-section-label">Тип связи</div>
-            <select id="edit-relation-type" class="select-field">
-              ${relTypeOpts}
-            </select>
-          </div>
-          <button type="submit" id="editSubmitBtn" class="btn-primary w-full" style="margin-top:4px;">Сохранить</button>
+          <button type="submit" id="editSubmitBtn" class="btn-primary w-full mt-2">Сохранить</button>
         </form>
       </div>
     </div>`;
@@ -702,24 +671,20 @@ function openEditSheet(g) {
   backdrop.onclick = close;
   document.addEventListener('keydown', onEsc);
 
-  sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      sheet.querySelector('#edit-status').value = btn.getAttribute('data-status');
-    });
-  });
-
   sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       sheet.querySelectorAll('#edit-side-control .seg-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      sheet.querySelector('#edit-side').value = btn.getAttribute('data-side');
+      sheet.querySelector('#edit-side').value = btn.dataset.side;
     });
   });
 
-  sheet.querySelector('#edit-related-to').addEventListener('change', e => {
-    sheet.querySelector('#edit-rel-type-wrap').style.display = e.target.value ? '' : 'none';
+  sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      sheet.querySelectorAll('#edit-status-control .seg-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      sheet.querySelector('#edit-status').value = btn.dataset.status;
+    });
   });
 
   let startY = 0;
@@ -734,21 +699,18 @@ function openEditSheet(g) {
     btn.disabled = true;
     btn.textContent = 'Сохраняем...';
 
-    const name = sheet.querySelector('#edit-name').value.trim();
-    const phone = sheet.querySelector('#edit-phone').value.trim();
-    const notes = sheet.querySelector('#edit-notes').value.trim();
-    const side = sheet.querySelector('#edit-side').value || 'SHARED';
-    const relatedToRaw = sheet.querySelector('#edit-related-to').value;
-    const relatedToId = relatedToRaw ? parseInt(relatedToRaw) : null;
-    const relationType = relatedToId ? (sheet.querySelector('#edit-relation-type').value || null) : null;
-    // '' = Ждём (clear), send as 'NONE' so backend distinguishes from null (no change)
     const statusRaw = sheet.querySelector('#edit-status').value;
-    const rsvpStatus = statusRaw === '' ? 'NONE' : statusRaw;
 
     try {
       const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${g.id}`, {
-        name, phone: phone || null, notes: notes || null,
-        side, relatedToId, relationType, rsvpStatus,
+        name:        sheet.querySelector('#edit-name').value.trim(),
+        phone:       sheet.querySelector('#edit-phone').value.trim() || null,
+        notes:       sheet.querySelector('#edit-notes').value.trim() || null,
+        side:        sheet.querySelector('#edit-side').value || 'SHARED',
+        // preserve existing relation — don't clear it from the edit form
+        relatedToId: g.relatedToId ?? null,
+        relationType: g.relationType ?? null,
+        rsvpStatus:  statusRaw === '' ? 'NONE' : statusRaw,
       });
       allGuests = allGuests.map(x => x.id === g.id ? updated : x);
       window._allGuestsRef = allGuests;
