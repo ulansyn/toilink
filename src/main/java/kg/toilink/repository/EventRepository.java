@@ -66,4 +66,6 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     long countByStatusAndDeletedAtIsNull(String status);
 
     boolean existsBySlug(String slug);
+
+    boolean existsBySlugAndIdNot(String slug, Long id);
 }

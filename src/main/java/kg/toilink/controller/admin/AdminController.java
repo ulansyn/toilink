@@ -29,6 +29,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.regex.Pattern;
+import tools.jackson.databind.ObjectMapper;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -36,6 +38,7 @@ import java.util.Map;
 public class AdminController {
 
     private static final int MAX_PAGE_SIZE = 100;
+    private static final Pattern SLUG_PATTERN = Pattern.compile("[a-z0-9а-яёңүө-]+");
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -45,6 +48,7 @@ public class AdminController {
     private final PaymentRepository paymentRepository;
     private final AdminAuditLogRepository auditLogRepository;
     private final LandingSettingsService landingSettingsService;
+    private final ObjectMapper objectMapper;
 
     @GetMapping("/dashboard")
     public AdminDashboardResponse dashboard() {
@@ -173,9 +177,15 @@ public class AdminController {
             validateEventStatus(body.status());
             event.setStatus(body.status());
         }
-        if (body.title() != null) event.setTitle(body.title().trim());
-        if (body.slug() != null && !body.slug().isBlank()) event.setSlug(body.slug().trim());
-        if (body.location() != null) event.setLocation(body.location().trim());
+        if (body.title() != null) event.setTitle(validateLength(body.title(), "Название события", 200, true));
+        if (body.slug() != null && !body.slug().isBlank()) {
+            String slug = validateSlug(body.slug());
+            if (!slug.equals(event.getSlug()) && eventRepository.existsBySlugAndIdNot(slug, id)) {
+                throw new BadRequestException("Slug уже занят: " + slug);
+            }
+            event.setSlug(slug);
+        }
+        if (body.location() != null) event.setLocation(validateLength(body.location(), "Локация", 500, false));
         eventRepository.save(event);
         audit(admin, request, "EVENT_UPDATE", "EVENT", id, body.reason());
         return AdminEventResponse.from(event);
@@ -228,13 +238,13 @@ public class AdminController {
                 ? slugify(body.name())
                 : body.templatePath().trim();
         Template template = Template.builder()
-                .name(body.name().trim())
+                .name(validateLength(body.name(), "Название шаблона", 100, true))
                 .description(body.description() != null ? body.description().trim() : "")
-                .thumbnailUrl(body.thumbnailUrl() != null ? body.thumbnailUrl().trim() : null)
-                .category(body.category() != null && !body.category().isBlank() ? body.category().trim() : "WEDDING")
-                .templatePath(templatePath)
+                .thumbnailUrl(body.thumbnailUrl() != null ? validateLength(body.thumbnailUrl(), "Обложка", 500, false) : null)
+                .category(body.category() != null && !body.category().isBlank() ? validateLength(body.category(), "Категория", 50, true) : "WEDDING")
+                .templatePath(validateLength(templatePath, "Путь шаблона", 100, true))
                 .blocksSchema(body.blocksSchema() != null && !body.blocksSchema().isBlank()
-                        ? body.blocksSchema()
+                        ? validateJson(body.blocksSchema(), "Схема блоков")
                         : defaultTemplateSchema())
                 .sortOrder(body.sortOrder() != null ? body.sortOrder() : 100)
                 .isActive(Boolean.TRUE.equals(body.active()))
@@ -257,12 +267,12 @@ public class AdminController {
                                                 HttpServletRequest request) {
         Template template = templateRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.template(id));
-        if (body.name() != null) template.setName(body.name().trim());
+        if (body.name() != null) template.setName(validateLength(body.name(), "Название шаблона", 100, true));
         if (body.description() != null) template.setDescription(body.description().trim());
-        if (body.thumbnailUrl() != null) template.setThumbnailUrl(body.thumbnailUrl().trim());
-        if (body.category() != null) template.setCategory(body.category().trim());
-        if (body.templatePath() != null) template.setTemplatePath(body.templatePath().trim());
-        if (body.blocksSchema() != null) template.setBlocksSchema(body.blocksSchema());
+        if (body.thumbnailUrl() != null) template.setThumbnailUrl(validateLength(body.thumbnailUrl(), "Обложка", 500, false));
+        if (body.category() != null) template.setCategory(validateLength(body.category(), "Категория", 50, true));
+        if (body.templatePath() != null) template.setTemplatePath(validateLength(body.templatePath(), "Путь шаблона", 100, true));
+        if (body.blocksSchema() != null) template.setBlocksSchema(validateJson(body.blocksSchema(), "Схема блоков"));
         if (body.sortOrder() != null) template.setSortOrder(body.sortOrder());
         if (body.active() != null) template.setActive(body.active());
         templateRepository.save(template);
@@ -356,6 +366,40 @@ public class AdminController {
     private void validateEventStatus(String status) {
         if (!status.equals("DRAFT") && !status.equals("PUBLISHED") && !status.equals("CLOSED")) {
             throw new BadRequestException("Invalid event status: " + status);
+        }
+    }
+
+    private String validateSlug(String value) {
+        String slug = value.trim().toLowerCase();
+        if (slug.isBlank()) {
+            throw new BadRequestException("Slug обязателен");
+        }
+        if (slug.length() > 50) {
+            throw new BadRequestException("Slug не должен превышать 50 символов");
+        }
+        if (!SLUG_PATTERN.matcher(slug).matches()) {
+            throw new BadRequestException("Slug может содержать только буквы, цифры и дефис");
+        }
+        return slug;
+    }
+
+    private String validateLength(String value, String fieldName, int max, boolean required) {
+        String trimmed = value.trim();
+        if (required && trimmed.isBlank()) {
+            throw new BadRequestException(fieldName + " обязательно");
+        }
+        if (trimmed.length() > max) {
+            throw new BadRequestException(fieldName + " не должен превышать " + max + " символов");
+        }
+        return trimmed;
+    }
+
+    private String validateJson(String value, String fieldName) {
+        try {
+            objectMapper.readTree(value);
+            return value;
+        } catch (Exception e) {
+            throw new BadRequestException(fieldName + " содержит некорректный JSON");
         }
     }
 
