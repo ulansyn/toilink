@@ -37,3 +37,5 @@ databaseChangeLog:
       file: db/changelog/migrations/019-create-landing-settings.yaml
   - include:
       file: db/changelog/migrations/020-add-guest-side-and-relations.yaml
+  - include:
+      file: db/changelog/migrations/021-create-seating-tables.yaml
