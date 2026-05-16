@@ -50,12 +50,33 @@ window.__landingConfig = null;
 
     function lApplyMeta(meta = {}) {
         if (meta.title) document.title = meta.title;
-        const desc = document.querySelector('meta[name="description"]');
+        const desc    = document.querySelector('meta[name="description"]');
         const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (desc && meta.description) desc.setAttribute('content', meta.description);
-        if (ogTitle && meta.ogTitle) ogTitle.setAttribute('content', meta.ogTitle);
-        if (ogDesc && meta.ogDescription) ogDesc.setAttribute('content', meta.ogDescription);
+        const ogDesc  = document.querySelector('meta[property="og:description"]');
+        const ogImg   = document.querySelector('meta[property="og:image"]');
+        if (desc    && meta.description)   desc.setAttribute('content', meta.description);
+        if (ogTitle && meta.ogTitle)        ogTitle.setAttribute('content', meta.ogTitle);
+        if (ogDesc  && meta.ogDescription) ogDesc.setAttribute('content', meta.ogDescription);
+        if (ogImg   && meta.ogImage)        ogImg.setAttribute('content', meta.ogImage);
+    }
+
+    function lApplyBrand(brand = {}) {
+        if (brand.primaryColor || brand.gradientEnd) {
+            let style = document.getElementById('l-brand-override');
+            if (!style) {
+                style = document.createElement('style');
+                style.id = 'l-brand-override';
+                document.head.appendChild(style);
+            }
+            const p = brand.primaryColor || '#F93B7A';
+            const g = brand.gradientEnd  || '#FF6D45';
+            style.textContent = `:root{--color-accent:${p};--color-accent-2:${g};--color-accent-gradient:linear-gradient(135deg,${p} 0%,${g} 100%);}`;
+        }
+        if (brand.logoText) {
+            document.querySelectorAll(
+                'header a[href="/"] span.font-bold, [data-l-section="footer"] .flex.items-center span.font-bold'
+            ).forEach(el => { el.textContent = brand.logoText; });
+        }
     }
 
     function lApplyHero(hero = {}) {
@@ -74,6 +95,12 @@ window.__landingConfig = null;
                 </span>
             `).join('');
         }
+        const heroSection = lSection('hero');
+        if (heroSection && hero.bgImage !== undefined) {
+            heroSection.style.backgroundImage   = hero.bgImage ? `url(${hero.bgImage})` : '';
+            heroSection.style.backgroundSize    = hero.bgImage ? 'cover' : '';
+            heroSection.style.backgroundPosition = hero.bgImage ? 'center' : '';
+        }
     }
 
     function lApplyMiniFeatures(items) {
@@ -81,6 +108,12 @@ window.__landingConfig = null;
         document.querySelectorAll('[data-l-section="miniFeatures"] > div span').forEach((el, i) => {
             if (items[i]?.title) el.innerHTML = lLines(items[i].title);
         });
+    }
+
+    function lApplyPhoneMockup(mockup = {}) {
+        if (!mockup.screenshotUrl) return;
+        const img = document.querySelector('.ip-screenshot');
+        if (img) img.src = mockup.screenshotUrl;
     }
 
     function lApplyStats(stats = {}) {
@@ -207,7 +240,9 @@ window.__landingConfig = null;
                 <div class="flex items-center gap-1 mb-3" style="color:#F59E0B;">★★★★★</div>
                 <p class="text-[14px] md:text-[15px] leading-relaxed text-gray-800">«${lEsc(item.text)}»</p>
                 <div class="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
-                    <div class="avatar" style="background:#FCE7F3; color:#9D174D;">${lEsc(item.avatar || 'T')}</div>
+                    ${item.photoUrl
+                        ? `<img src="${lEsc(item.photoUrl)}" class="avatar" style="object-fit:cover;" alt="${lEsc(item.name)}" onerror="this.style.display='none'">`
+                        : `<div class="avatar" style="background:#FCE7F3; color:#9D174D;">${lEsc(item.avatar || 'T')}</div>`}
                     <div>
                         <div class="font-semibold text-[13px] text-gray-900">${lEsc(item.name)}</div>
                         <div class="text-[11px] text-gray-500">${lEsc(item.meta)}</div>
@@ -297,27 +332,72 @@ window.__landingConfig = null;
         }
     }
 
+    function lApplyComparison(comparison = {}) {
+        lApplySimpleHeader('comparison', comparison);
+        if (!Array.isArray(comparison.rows) || comparison.rows.length === 0) return;
+        const grid = document.querySelector('[data-l-section="comparison"] .grid');
+        if (!grid) return;
+        // Preserve the header row (first 3 children: empty cell + WhatsApp + ToiLink)
+        const headerCells = Array.from(grid.children).slice(0, 3);
+        grid.innerHTML = '';
+        headerCells.forEach(c => grid.appendChild(c));
+
+        comparison.rows.forEach((row, i) => {
+            const last = i === comparison.rows.length - 1;
+            const bdr  = last ? '' : 'border-b ';
+
+            const renderCell = (val, accent) => {
+                const bg  = accent ? ' style="background:rgba(249,59,122,0.04);"' : '';
+                const cls = `p-3 md:p-4 ${bdr}border-gray-100 text-center${accent ? '' : ' border-r'}`;
+                if (val === 'yes') {
+                    const stroke = accent ? '#10B981' : '#D1D5DB';
+                    const sw     = accent ? 3 : 2.5;
+                    const sz     = accent ? 20 : 18;
+                    return `<div class="${cls}"${bg}><svg class="mx-auto" width="${sz}" height="${sz}" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>`;
+                }
+                if (val === 'no') {
+                    return `<div class="${cls}"${bg}><svg class="mx-auto" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>`;
+                }
+                const textCls = accent ? 'text-[12px] md:text-[14px] font-bold text-emerald-600' : 'text-[11px] md:text-[13px] text-gray-500';
+                return `<div class="${cls} ${textCls}"${bg}>${lEsc(val)}</div>`;
+            };
+
+            grid.insertAdjacentHTML('beforeend',
+                `<div class="p-3 md:p-4 ${bdr}border-r border-gray-100 text-[12px] md:text-[14px] font-medium text-gray-700">${lEsc(row.feature)}</div>` +
+                renderCell(row.whatsapp ?? '', false) +
+                renderCell(row.toilink  ?? '', true)
+            );
+        });
+    }
+
     function lApplyFooter(footer = {}) {
         lSetText('[data-l-section="footer"] .md\\:col-span-2 p', footer.text);
         const contacts = document.querySelectorAll('[data-l-section="footer"] .space-y-2\\.5 li');
         if (contacts[4] && footer.phone) contacts[4].textContent = footer.phone;
         if (contacts[5] && footer.email) contacts[5].textContent = footer.email;
-        if (contacts[6] && footer.city) contacts[6].textContent = footer.city;
+        if (contacts[6] && footer.city)  contacts[6].textContent = footer.city;
         lSetText('[data-l-section="footer"] .mt-10 p', footer.copyright);
+        // Social icon links (Instagram, WhatsApp, Telegram)
+        const socials = document.querySelectorAll('[data-l-section="footer"] .mt-5 a');
+        if (socials[0] && footer.instagram !== undefined) socials[0].href = footer.instagram || '#';
+        if (socials[1] && footer.whatsapp  !== undefined) socials[1].href = footer.whatsapp  || '#';
+        if (socials[2] && footer.telegram  !== undefined) socials[2].href = footer.telegram  || '#';
     }
 
     function applyLandingConfig(config) {
         window.__landingConfig = config;
+        lApplyBrand(config.brand);
         lApplyMeta(config.meta);
         lApplySectionVisibility(config.sections);
         lApplyHero(config.hero);
         lApplyMiniFeatures(config.miniFeatures);
+        lApplyPhoneMockup(config.phoneMockup);
         lApplyStats(config.stats);
         lRenderTrust(config.trust);
         lRenderCategories(config.categories);
         lApplyHow(config.how);
         lApplyFeatureCopy(config.features);
-        lApplySimpleHeader('comparison', config.comparison);
+        lApplyComparison(config.comparison);
         lApplySimpleHeader('templates', config.templates);
         lRenderReviews(config.reviews);
         lRenderPricing(config.pricing);
@@ -327,6 +407,7 @@ window.__landingConfig = null;
     }
 
     lIdle(() => {
+        if (window.__leEditMode) return;
         fetch('/api/public/landing', { credentials: 'omit' })
             .then(res => res.ok ? res.json() : null)
             .then(config => { if (config) applyLandingConfig(config); })

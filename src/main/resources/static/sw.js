@@ -35,6 +35,7 @@ const PRECACHE_ASSETS = [
   '/js/initAuth.js',
   '/js/dashboard.js',
   '/js/guests.js',
+  '/js/landing-editor.js',
   '/js/mobile-editor.js',
   '/js/wizard.js',
   '/js/wizard-bridge.js',
