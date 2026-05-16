@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -79,16 +81,37 @@ public class SeatingTableService {
     }
 
     @Transactional
-    public void bulkAssign(Long eventId, BulkSeatingRequest req, String phone) {
-        verifyOwnership(eventId, phone);
-        if (req.assignments() == null || req.assignments().isEmpty()) return;
+    public List<TableResponse> bulkAssign(Long eventId, BulkSeatingRequest req, String phone) {
+        Event event = verifyOwnership(eventId, phone);
+        if (req.assignments() == null) throw new BadRequestException("assignments is required");
 
+        // 1) Create new tables, map tempId → real id
+        Map<Long, Long> tempToReal = new HashMap<>();
+        List<TableResponse> created = new ArrayList<>();
+        if (req.newTables() != null) {
+            for (BulkSeatingRequest.NewTable nt : req.newTables()) {
+                if (nt.tempId() == null || nt.tempId() >= 0)
+                    throw new BadRequestException("newTables.tempId must be negative");
+                SeatingTable t = tableRepository.save(SeatingTable.builder()
+                        .event(event)
+                        .name(nt.name().trim())
+                        .capacity(nt.capacity())
+                        .build());
+                tempToReal.put(nt.tempId(), t.getId());
+                created.add(TableResponse.from(t, 0));
+            }
+        }
+
+        if (req.assignments().isEmpty()) return created;
+
+        // 2) Collect guest + table IDs (resolving temp refs)
         Set<Long> guestIds = new HashSet<>();
         Set<Long> tableIds = new HashSet<>();
         for (BulkSeatingRequest.Assignment a : req.assignments()) {
             if (a.guestId() == null) throw new BadRequestException("guestId is required");
             guestIds.add(a.guestId());
-            if (a.tableId() != null) tableIds.add(a.tableId());
+            Long resolved = resolveTableId(a.tableId(), tempToReal);
+            if (resolved != null) tableIds.add(resolved);
         }
 
         List<Guest> guests = guestRepository.findAllByEventIdAndIdIn(eventId, guestIds);
@@ -104,12 +127,24 @@ public class SeatingTableService {
             }
         }
 
+        // 3) Apply assignments
         Map<Long, Guest> byId = guests.stream().collect(Collectors.toMap(Guest::getId, g -> g));
         for (BulkSeatingRequest.Assignment a : req.assignments()) {
             Guest g = byId.get(a.guestId());
-            g.setTableId(a.tableId());
+            g.setTableId(resolveTableId(a.tableId(), tempToReal));
         }
         guestRepository.saveAll(guests);
+        return created;
+    }
+
+    private Long resolveTableId(Long raw, Map<Long, Long> tempToReal) {
+        if (raw == null) return null;
+        if (raw < 0) {
+            Long real = tempToReal.get(raw);
+            if (real == null) throw new BadRequestException("Unknown tempId: " + raw);
+            return real;
+        }
+        return raw;
     }
 
     private SeatingTable findTable(Long eventId, Long tableId) {

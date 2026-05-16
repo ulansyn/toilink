@@ -756,6 +756,7 @@ function buildReport(state, groups, oversized, lockedOverflow, declinedFreed, un
       sideMix: { BRIDE: bride, GROOM: groom, SHARED: shared },
       gender: { female: wF, male: wM },
       score: tableScore(state, t.id),
+      virtual: !!t.virtual,
     };
   });
 
@@ -833,19 +834,45 @@ function runSeating(input) {
   const activeGuests = pf.activeGuests;
   const guestById = new Map(activeGuests.map(g => [g.id, g]));
 
+  // Auto-create virtual tables if capacity insufficient
+  const allowCreate = options.allowCreateTables !== false;
+  const defaultCap = options.defaultTableSize || DEFAULT_CAPACITY;
+  let workingTables = tables.slice();
+  let newTables = [];
+  if (allowCreate && activeGuests.length > 0) {
+    const currentCap = workingTables.reduce((s, t) => s + (t.capacity || defaultCap), 0);
+    // Aim for 85% fill (comfort zone) so we don't pack to the brim
+    const targetCap = Math.ceil(activeGuests.length / 0.85);
+    const deficit = targetCap - currentCap;
+    if (deficit > 0) {
+      const needed = Math.ceil(deficit / defaultCap);
+      const baseNum = workingTables.length;
+      for (let i = 0; i < needed; i++) {
+        const t = {
+          id: -(i + 1), // temp id (negative)
+          name: `Стол ${baseNum + i + 1}`,
+          capacity: defaultCap,
+          virtual: true,
+        };
+        workingTables.push(t);
+        newTables.push({ tempId: t.id, name: t.name, capacity: t.capacity });
+      }
+    }
+  }
+
   // Groups
   const { groups } = buildGroups(activeGuests);
   annotateGroups(groups, guestById, pf.hardReset);
 
   // Preflight warnings
-  const oversizedGroups = findOversizedGroups(groups, tables);
-  const lockedOverflow = findLockedOverflow(tables, guestById, groups);
+  const oversizedGroups = findOversizedGroups(groups, workingTables);
+  const lockedOverflow = findLockedOverflow(workingTables, guestById, groups);
 
   // Zoning
-  const zoneByTable = planZones(tables, groups, guestById);
+  const zoneByTable = planZones(workingTables, groups, guestById);
 
   // Build state with locked already placed
-  const state = buildState(tables, groups, guestById, zoneByTable);
+  const state = buildState(workingTables, groups, guestById, zoneByTable);
 
   // Multi-restart SA
   const N = activeGuests.length;
@@ -905,13 +932,14 @@ function runSeating(input) {
     bestScore,
     { _declinedWithTable: declinedFreed },
   );
+  report.newTables = newTables;
   report.meta = {
     iterations,
     restarts,
     seed,
     activeGuestCount: activeGuests.length,
     declinedCount: guests.length - activeGuests.length - (options.includePending === false ? guests.filter(g => (g.rsvpStatus == null || g.rsvpStatus === 'PENDING') && g.rsvpStatus !== 'DECLINED').length : 0),
-    options: { includePending: options.includePending !== false, hardReset: !!options.hardReset },
+    options: { includePending: options.includePending !== false, hardReset: !!options.hardReset, allowCreateTables: allowCreate },
   };
   return report;
 }

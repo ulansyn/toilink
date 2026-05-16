@@ -357,6 +357,8 @@
 
     .seat-report-warn { padding: 6px 10px; background: rgba(212,156,92,.10); border-radius: 8px; font-size: 12.5px; color: #7C5520; margin-bottom: 4px; }
     .seat-report-ok { padding: 6px 10px; background: rgba(26,61,32,.06); border-radius: 8px; font-size: 12.5px; color: #1A3D20; font-weight: 500; }
+    .srt-virtual { background: rgba(249,59,122,.06); border: 1px dashed rgba(249,59,122,.25); }
+    .srt-new { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #F93B7A; background: rgba(249,59,122,.10); padding: 1px 6px; border-radius: 100px; margin-left: 4px; vertical-align: 1px; }
 
     /* Action sheet row (inside bottom sheet) */
     .action-row {
@@ -946,6 +948,13 @@
             <div class="seat-toggle-sub">Гости без ответа на RSVP тоже получат место</div>
           </div>
         </label>
+        <label class="seat-toggle" style="margin-top:8px;">
+          <input type="checkbox" id="seat-auto-create" checked/>
+          <div>
+            <div class="seat-toggle-label">Создавать столы автоматически</div>
+            <div class="seat-toggle-sub">Если мест не хватает — добавим новые столы по 12 мест</div>
+          </div>
+        </label>
       </div>
 
       <div class="mb-4">
@@ -1105,6 +1114,6 @@
 
 <script src="/js/initAuth.js?v=rsvp3"></script>
 <script src="/js/guests.js?v=guests3"></script>
-<script src="/js/seating-ui.js?v=seat1"></script>
+<script src="/js/seating-ui.js?v=seat2"></script>
 </body>
 </html>

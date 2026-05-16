@@ -39,17 +39,27 @@
 
     // Reset controls
     sheet.querySelector('#seat-include-pending').checked = true;
+    sheet.querySelector('#seat-auto-create').checked = true;
     setSeatMode('soft');
 
-    // Compute preflight warnings (preview only — no full algorithm yet)
-    const warnings = previewWarnings(guests, tables);
-    renderPreflight(warnings);
+    refreshPreflight();
 
     sheet.querySelector('#seat-progress').style.display = 'none';
     sheet.querySelector('#seat-run-btn').disabled = false;
 
     sheet.classList.add('open');
     backdrop.classList.add('open');
+  }
+
+  function refreshPreflight() {
+    const sheet = document.getElementById('seatLaunchSheet');
+    if (!sheet || !sheet.classList.contains('open') && sheet.style.display !== '') {/* no-op */}
+    const guests = window._allGuestsRef || [];
+    const tables = window._allTablesRef || [];
+    const includePending = sheet.querySelector('#seat-include-pending').checked;
+    const autoCreate = sheet.querySelector('#seat-auto-create').checked;
+    const w = previewWarnings(guests, tables, includePending);
+    renderPreflight(w, autoCreate);
   }
 
   function closeLaunchSheet() {
@@ -80,9 +90,13 @@
   }
 
   // ─── Preflight (fast scan, no full algorithm) ─────────────────────────────
-  function previewWarnings(guests, tables) {
-    // Find groups via Union-Find (mirror of algorithm's logic)
-    const active = guests.filter(g => g.rsvpStatus !== 'DECLINED');
+  function previewWarnings(guests, tables, includePending) {
+    // Active = will be seated by algorithm
+    const active = guests.filter(g => {
+      if (g.rsvpStatus === 'DECLINED') return false;
+      if (!includePending && (g.rsvpStatus == null || g.rsvpStatus === 'PENDING')) return false;
+      return true;
+    });
     const idToIdx = new Map();
     active.forEach((g, i) => idToIdx.set(g.id, i));
     const parent = active.map((_, i) => i);
@@ -111,13 +125,34 @@
 
     const declinedWithTable = guests.filter(g => g.rsvpStatus === 'DECLINED' && g.tableId != null).length;
 
-    return { oversized, overflow, declinedWithTable };
+    // Capacity deficit → will be auto-created
+    const totalCapacity = tables.reduce((s, t) => s + (t.capacity || 12), 0);
+    const targetCapacity = Math.ceil(active.length / 0.85);
+    const deficit = Math.max(0, targetCapacity - totalCapacity);
+    const newTablesNeeded = deficit > 0 ? Math.ceil(deficit / 12) : 0;
+
+    return { oversized, overflow, declinedWithTable, newTablesNeeded, activeCount: active.length };
   }
 
-  function renderPreflight(w) {
+  function renderPreflight(w, autoCreate) {
     const box = document.getElementById('seat-preflight');
     if (!box) return;
     const items = [];
+    if (w.newTablesNeeded > 0) {
+      if (autoCreate) {
+        items.push(`
+          <div class="seat-warn seat-warn-soft">
+            <div class="seat-warn-title">Не хватает мест</div>
+            <div class="seat-warn-body">Будет создано ${w.newTablesNeeded} ${pluralize(w.newTablesNeeded, ['новый стол','новых стола','новых столов'])} по 12 мест.</div>
+          </div>`);
+      } else {
+        items.push(`
+          <div class="seat-warn">
+            <div class="seat-warn-title">Не хватает мест</div>
+            <div class="seat-warn-body">~${w.newTablesNeeded} ${pluralize(w.newTablesNeeded, ['стол','стола','столов'])} не хватает. Часть гостей останутся без места — или включите авто-создание столов ниже.</div>
+          </div>`);
+      }
+    }
     if (w.overflow.length > 0) {
       items.push(`
         <div class="seat-warn seat-warn-strong">
@@ -149,6 +184,7 @@
   async function runSeating() {
     const launchSheet = document.getElementById('seatLaunchSheet');
     const includePending = launchSheet.querySelector('#seat-include-pending').checked;
+    const allowCreateTables = launchSheet.querySelector('#seat-auto-create').checked;
     const mode = launchSheet.querySelector('#seat-mode').value || 'soft';
     const hardReset = mode === 'hard';
 
@@ -172,7 +208,7 @@
       capacity: t.capacity || 12,
     }));
 
-    currentOptions = { includePending, hardReset };
+    currentOptions = { includePending, hardReset, allowCreateTables };
     const progressBar = launchSheet.querySelector('#seat-progress-bar');
     const progressBox = launchSheet.querySelector('#seat-progress');
     const runBtn = launchSheet.querySelector('#seat-run-btn');
@@ -182,7 +218,7 @@
     runBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 12a8 8 0 018-8V2.5M20 12a8 8 0 01-8 8v1.5"/></svg> Рассаживаем...';
 
     try {
-      const result = await runInWorker({ guests, tables, options: { includePending, hardReset } }, frac => {
+      const result = await runInWorker({ guests, tables, options: { includePending, hardReset, allowCreateTables } }, frac => {
         progressBar.style.width = `${Math.round(frac * 100)}%`;
       });
       currentResult = result;
@@ -226,10 +262,11 @@
       const fill = Math.round((t.seated / Math.max(1, t.capacity)) * 100);
       const zoneLabel = t.zone === 'BRIDE' ? 'Невеста' : t.zone === 'GROOM' ? 'Жених' : 'Общий';
       const zoneColor = t.zone === 'BRIDE' ? '#C71F5C' : t.zone === 'GROOM' ? '#2F4DAF' : '#7C5520';
+      const newBadge = t.virtual ? ` <span class="srt-new">новый</span>` : '';
       return `
-        <div class="seat-report-table">
+        <div class="seat-report-table${t.virtual ? ' srt-virtual' : ''}">
           <div class="srt-head">
-            <span class="srt-name">${escapeHtml(t.name)}</span>
+            <span class="srt-name">${escapeHtml(t.name)}${newBadge}</span>
             <span class="srt-zone" style="color:${zoneColor};">${zoneLabel}</span>
             <span class="srt-fill">${t.seated}/${t.capacity}</span>
           </div>
@@ -244,6 +281,10 @@
 
     // Warnings
     const warns = [];
+    if (result.newTables && result.newTables.length > 0) {
+      const names = result.newTables.map(t => `«${t.name}»`).join(', ');
+      warns.push(`Создадим ${result.newTables.length} ${pluralize(result.newTables.length, ['новый стол','новых стола','новых столов'])}: ${names}`);
+    }
     if (result.separatedGroups.length > 0) {
       warns.push(`${result.separatedGroups.length} ${pluralize(result.separatedGroups.length, ['группа разделена','группы разделены','групп разделено'])}`);
     }
@@ -285,19 +326,38 @@
 
     try {
       const eid = window.eventId || (new URLSearchParams(location.search)).get('id');
-      await window.api('PUT', `/api/organizer/events/${eid}/seating`, {
+      const resp = await window.api('PUT', `/api/organizer/events/${eid}/seating`, {
+        newTables: (currentResult.newTables || []).map(t => ({ tempId: t.tempId, name: t.name, capacity: t.capacity })),
         assignments: currentResult.assignments,
       });
-      // Update local state in-memory to reflect new tableIds
-      const byId = new Map(currentResult.assignments.map(a => [a.guestId, a.tableId]));
+
+      // Build tempId → realId map from server response (in order of newTables sent)
+      const tempToReal = new Map();
+      const created = resp?.createdTables || [];
+      (currentResult.newTables || []).forEach((nt, i) => {
+        if (created[i]) tempToReal.set(nt.tempId, created[i].id);
+      });
+
+      // Append created tables to local state
+      if (created.length > 0) {
+        window._allTablesRef = [...(window._allTablesRef || []), ...created];
+      }
+
+      // Resolve tempIds in assignments → update guests
+      const resolved = new Map();
+      for (const a of currentResult.assignments) {
+        const realTid = a.tableId != null && a.tableId < 0 ? (tempToReal.get(a.tableId) || null) : a.tableId;
+        resolved.set(a.guestId, realTid);
+      }
       window._allGuestsRef = window._allGuestsRef.map(g =>
-        byId.has(g.id) ? { ...g, tableId: byId.get(g.id), tableName: byId.get(g.id) ? (window._allTablesRef.find(t => t.id === byId.get(g.id))?.name ?? null) : null } : g
+        resolved.has(g.id)
+          ? { ...g, tableId: resolved.get(g.id), tableName: resolved.get(g.id) ? (window._allTablesRef.find(t => t.id === resolved.get(g.id))?.name ?? null) : null }
+          : g
       );
       window.allGuests = window._allGuestsRef;
-      window.toast?.('Рассадка применена');
+      window.toast?.(created.length > 0 ? `Рассадка применена · ${created.length} ${pluralize(created.length, ['стол создан','стола создано','столов создано'])}` : 'Рассадка применена');
       closeReportSheet();
       window.syncAllCaches?.();
-      // Re-render whichever tab is open
       if (window.renderTables) window.renderTables();
       if (window.renderList) window.renderList();
     } catch (err) {
@@ -324,6 +384,8 @@
       const btn = e.target.closest('.seg-btn');
       if (btn) setSeatMode(btn.dataset.mode);
     });
+    document.getElementById('seat-include-pending')?.addEventListener('change', refreshPreflight);
+    document.getElementById('seat-auto-create')?.addEventListener('change', refreshPreflight);
 
     document.getElementById('seat-report-close')?.addEventListener('click', closeReportSheet);
     document.getElementById('seat-apply-btn')?.addEventListener('click', applyResult);

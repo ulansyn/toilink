@@ -1,6 +1,6 @@
 // Worker for smart seating — loads algorithm module via importScripts.
 'use strict';
-importScripts('seating-algorithm.js?v=1');
+importScripts('seating-algorithm.js?v=2');
 
 self.addEventListener('message', (ev) => {
   const { type, payload } = ev.data || {};
