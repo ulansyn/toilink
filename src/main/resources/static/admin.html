@@ -1451,6 +1451,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h6M7 16h8"/></svg>
           Лендинг
         </button>
+        <button class="nav-link" data-section="pricing">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Тарифы
+        </button>
         <button class="nav-link" data-section="payments">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
           Оплаты
@@ -1758,6 +1762,56 @@
         <textarea id="landingJson" hidden></textarea>
       </section>
 
+      <section class="section" id="section-pricing">
+        <div class="topbar">
+          <div>
+            <div class="eyebrow">Монетизация</div>
+            <h1>Тарифы</h1>
+          </div>
+          <div class="top-actions">
+            <button class="ghost-btn" onclick="loadPricing()">Обновить</button>
+          </div>
+        </div>
+
+        <section class="dash-card" style="max-width:760px;">
+          <div class="chart-head">
+            <div>
+              <div class="chart-title">Активация события</div>
+              <div class="chart-sub">Эта сумма попадёт в новые заказы, paywall и публичный блок тарифов.</div>
+            </div>
+            <div id="pricingUpdatedAt" class="muted nowrap"></div>
+          </div>
+
+          <form id="pricingForm" onsubmit="savePricing(event)" style="display:grid;gap:14px;margin-top:18px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+              <div class="field">
+                <label>Название</label>
+                <input id="pricingName" class="input" placeholder="Активация события"/>
+              </div>
+              <div class="field">
+                <label>Цена</label>
+                <input id="pricingAmount" class="input" type="number" min="1" step="1" placeholder="990"/>
+              </div>
+              <div class="field">
+                <label>Валюта</label>
+                <input id="pricingCurrency" class="input" maxlength="10" placeholder="KGS"/>
+              </div>
+              <div class="field">
+                <label>На экране</label>
+                <input id="pricingDisplayCurrency" class="input" maxlength="20" placeholder="сом"/>
+              </div>
+            </div>
+            <div class="landing-preview-row">
+              <strong>Текущий тариф</strong>
+              <span id="pricingCurrent">—</span>
+            </div>
+            <div class="top-actions" style="justify-content:flex-start;">
+              <button class="primary-btn accent-btn" type="submit">Сохранить тариф</button>
+            </div>
+          </form>
+        </section>
+      </section>
+
       <section class="section" id="section-payments">
         <div class="topbar">
           <div>
@@ -1816,6 +1870,7 @@ const state = {
   templatesPage: 0,
   paymentsPage: 0,
   auditPage: 0,
+  pricing: null,
   activeSection: 'dashboard',
   landingConfig: null,
   landingActiveSection: 'hero',
@@ -1829,6 +1884,7 @@ const sectionLoaders = {
   events: loadEvents,
   templates: loadTemplates,
   landing: loadLanding,
+  pricing: loadPricing,
   payments: loadPayments,
   audit: loadAudit
 };
@@ -3348,6 +3404,43 @@ async function saveLanding() {
   loadAuditIfOpen();
 }
 
+async function loadPricing() {
+  const p = await apiJson(`${API}/pricing/activation`);
+  if (!p) return;
+  state.pricing = p;
+  const amount = Number(p.amount || 0);
+  const amountText = amount.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+  document.getElementById('pricingName').value = p.name || 'Активация события';
+  document.getElementById('pricingAmount').value = amount ? String(Math.round(amount)) : '';
+  document.getElementById('pricingCurrency').value = p.currency || 'KGS';
+  document.getElementById('pricingDisplayCurrency').value = p.displayCurrency || 'сом';
+  setText('pricingCurrent', `${amountText} ${p.displayCurrency || p.currency || 'KGS'} · ${p.name || 'Активация события'}`);
+  setText('pricingUpdatedAt', p.updatedAt ? `Обновлён ${fmtDateTime(p.updatedAt)}` : '');
+}
+
+async function savePricing(e) {
+  e?.preventDefault();
+  const amount = Number(document.getElementById('pricingAmount').value);
+  if (!Number.isFinite(amount) || amount <= 0) {
+    toast('Укажите цену больше нуля');
+    return;
+  }
+  const payload = {
+    name: document.getElementById('pricingName').value.trim() || 'Активация события',
+    amount,
+    currency: document.getElementById('pricingCurrency').value.trim() || 'KGS',
+    displayCurrency: document.getElementById('pricingDisplayCurrency').value.trim() || 'сом',
+    reason: 'Изменение тарифа активации'
+  };
+  const res = await apiJson(`${API}/pricing/activation`, jsonOptions(payload, 'PUT'));
+  if (!res) return;
+  toast('Тариф сохранён');
+  state.pricing = res;
+  await loadPricing();
+  if (state.landingConfig) loadLanding();
+  loadAuditIfOpen();
+}
+
 async function loadPayments() {
   showSkeleton('paymentsTable', 8);
   const query = new URLSearchParams({
@@ -3370,12 +3463,12 @@ function paymentRow(p) {
       <td class="mono muted">${esc(p.id)}</td>
       <td class="nowrap">${phone ? `<span class="copy-cell" data-copy="${attr(phone)}" title="Скопировать">${esc(phone)}</span>` : '—'}</td>
       <td>${esc(p.event?.title || '—')}</td>
-      <td><strong>${fmtMoney(p.amount, p.currency)}</strong></td>
+      <td><strong>${fmtMoney(p.amount, p.displayCurrency || p.currency)}</strong></td>
       <td>${esc(p.method || '—')}</td>
       <td>${paymentBadge(p.status)}</td>
       <td class="muted nowrap">${fmtDate(p.createdAt)}</td>
       <td><div class="row-actions">
-        ${['PENDING','AWAITING_CONFIRMATION'].includes(p.status)
+        ${p.status === 'AWAITING_CONFIRMATION'
           ? `<button class="tiny-btn good" onclick="confirmPayment(${Number(p.id)})">Подтв.</button>
              <button class="tiny-btn danger" onclick="rejectPayment(${Number(p.id)})">Откл.</button>`
           : `<span class="muted nowrap">${fmtDate(p.confirmedAt) || esc(p.rejectedReason || '—')}</span>`}
@@ -3454,7 +3547,7 @@ function statusBadge(status) {
 
 function paymentBadge(status) {
   const tones = {
-    PENDING: 'yellow',
+    PENDING: 'gray',
     AWAITING_CONFIRMATION: 'yellow',
     CONFIRMED: 'green',
     REJECTED: 'red',

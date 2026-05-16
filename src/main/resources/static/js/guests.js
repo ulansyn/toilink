@@ -1036,7 +1036,7 @@ window.submitAddGuest = async function (e) {
   try {
     await api('POST', `/api/organizer/events/${eventId}/guests`, {
       name, phone: phone_ || null, notes: notes || null,
-      side, rsvpStatus, companionName,
+      side, rsvpStatus, companionName, personalInvite: true,
     });
 
     closeAddSheet();

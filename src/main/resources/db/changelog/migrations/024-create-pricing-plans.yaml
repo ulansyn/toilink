@@ -1,0 +1,96 @@
+databaseChangeLog:
+  - changeSet:
+      id: 024-create-pricing-plans
+      author: codex
+      changes:
+        - createTable:
+            tableName: pricing_plans
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pricing_plans_pkey
+              - column:
+                  name: code
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_pricing_plans_code
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: amount
+                  type: numeric(12,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: currency
+                  type: varchar(10)
+                  defaultValue: KGS
+                  constraints:
+                    nullable: false
+              - column:
+                  name: display_currency
+                  type: varchar(20)
+                  defaultValue: сом
+                  constraints:
+                    nullable: false
+              - column:
+                  name: active
+                  type: boolean
+                  defaultValueBoolean: true
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - insert:
+            tableName: pricing_plans
+            columns:
+              - column:
+                  name: code
+                  value: ACTIVATION
+              - column:
+                  name: name
+                  value: Активация события
+              - column:
+                  name: amount
+                  valueNumeric: 990
+              - column:
+                  name: currency
+                  value: KGS
+              - column:
+                  name: display_currency
+                  value: сом
+              - column:
+                  name: active
+                  valueBoolean: true
+  - changeSet:
+      id: 024-add-payment-display-currency
+      author: codex
+      changes:
+        - addColumn:
+            tableName: payments
+            columns:
+              - column:
+                  name: display_currency
+                  type: varchar(20)
+                  defaultValue: сом
+        - sql:
+            sql: "UPDATE payments SET display_currency = CASE WHEN currency = 'KGS' OR currency IS NULL THEN 'сом' ELSE currency END WHERE display_currency IS NULL"

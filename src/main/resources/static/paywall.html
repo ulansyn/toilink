@@ -1019,8 +1019,8 @@
                         </div>
                         <div class="price-label">Разовая активация сайта</div>
                         <div class="price-row">
-                            <div class="price">990</div>
-                            <div class="currency">сом</div>
+                            <div class="price" id="activationPrice">...</div>
+                            <div class="currency" id="activationCurrency">сом</div>
                         </div>
                         <div class="price-note">Ссылка, RSVP и кабинет гостей. Без подписки.</div>
                     </div>
@@ -1049,7 +1049,7 @@
                         <div class="order-row">
                             <div>
                                 <div class="order-label">Номер заказа</div>
-                                <div class="order-value" id="orderNum">TL-00000</div>
+                                <div class="order-value" id="orderNum">Создаем заказ...</div>
                             </div>
                             <button class="copy-btn" type="button" onclick="copyOrder(event)" aria-label="Скопировать номер заказа">
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
@@ -1072,7 +1072,7 @@
                 <div class="steps">
                     <div class="step">
                         <span class="step-num">1</span>
-                        <span>Оплачиваете 990 сом по QR или переводом через банк.</span>
+	                        <span id="paymentStepText">Оплачиваете по QR или переводом через банк.</span>
                     </div>
                     <div class="step">
                         <span class="step-num">2</span>
@@ -1093,7 +1093,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite">Номер заказа скопирован</div>
 
 <script>
-    const ACTIVATION_PRICE = 990;
+    const FALLBACK_DISPLAY_CURRENCY = 'сом';
     const SUPPORT_PHONE = '996700000000';
 
     let payment = null;
@@ -1102,9 +1102,33 @@
         return new URLSearchParams(location.search).get('event') || null;
     }
 
+    function getEventIdNumber() {
+        const id = Number(getEventId());
+        return Number.isFinite(id) && id > 0 ? id : null;
+    }
+
+    function formatAmount(amount) {
+        const value = Number(amount);
+        if (!Number.isFinite(value)) return '';
+        return value.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+    }
+
+    function paymentAmountText() {
+        return payment ? formatAmount(payment.amount) : '';
+    }
+
+    function paymentCurrencyText() {
+        return payment?.displayCurrency || (payment?.currency === 'KGS' ? 'сом' : payment?.currency) || FALLBACK_DISPLAY_CURRENCY;
+    }
+
+    function paymentPriceText() {
+        const amount = paymentAmountText();
+        return amount ? `${amount} ${paymentCurrencyText()}` : 'стоимость активации';
+    }
+
     function waText() {
         const order = payment ? 'TL-' + payment.id : '—';
-        return `Здравствуйте! Я оплатил(а) ${ACTIVATION_PRICE} сом за активацию сайта ToiLink.\nНомер заказа: ${order}`;
+        return `Здравствуйте! Я оплатил(а) ${paymentPriceText()} за активацию сайта ToiLink.\nНомер заказа: ${order}`;
     }
 
     function waLink()      { return `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText())}`; }
@@ -1114,9 +1138,14 @@
         return `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(t)}`;
     }
 
-    function render() {
-        document.getElementById('orderNum').textContent = payment ? 'TL-' + payment.id : '…';
-        document.getElementById('supportLink').href = supportLink();
+	    function render() {
+	        document.getElementById('orderNum').textContent = payment ? 'TL-' + payment.id : 'Создаем заказ...';
+	        document.getElementById('supportLink').href = supportLink();
+	        document.getElementById('activationPrice').textContent = paymentAmountText() || '...';
+	        document.getElementById('activationCurrency').textContent = paymentCurrencyText();
+	        document.getElementById('paymentStepText').textContent = payment
+	            ? `Оплачиваете ${paymentPriceText()} по QR или переводом через банк.`
+	            : 'Оплачиваете по QR или переводом через банк.';
 
         const banner    = document.getElementById('statusBanner');
         const waBtn     = document.getElementById('waBtn');
@@ -1124,12 +1153,17 @@
         const waSvg     = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.463 3.488A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>';
 
         const s = payment?.status;
-        if (s === 'AWAITING_CONFIRMATION' || s === 'PENDING') {
+        if (s === 'AWAITING_CONFIRMATION') {
             banner.style.cssText = 'display:;background:rgba(37,99,235,0.07);color:#1D4ED8;border-radius:.875rem;padding:.875rem 1rem;margin-bottom:.5rem;font-size:.8125rem;line-height:1.5;';
             banner.innerHTML = '<strong>⏳ Оплата на проверке</strong><br>Мы получили вашу заявку и проверяем оплату. Активируем в течение нескольких часов.';
             waBtn.style.display = ''; waBtn.href = waLink(); waBtn.onclick = null;
             waBtn.innerHTML = waSvg + ' Написать повторно в WhatsApp';
             if (microcopy) microcopy.style.display = 'none';
+        } else if (s === 'PENDING') {
+            banner.style.display = 'none';
+            waBtn.style.display = ''; waBtn.href = '#'; waBtn.onclick = onWaBtnClick;
+            waBtn.innerHTML = waSvg + ' Я оплатил, активируйте сайт';
+            if (microcopy) microcopy.style.display = '';
         } else if (s === 'REJECTED') {
             banner.style.cssText = 'display:;background:rgba(239,68,68,0.07);color:#B91C1C;border-radius:.875rem;padding:.875rem 1rem;margin-bottom:.5rem;font-size:.8125rem;line-height:1.5;';
             banner.innerHTML = `<strong>❌ Оплата отклонена</strong><br>${payment.rejectedReason || 'Свяжитесь с поддержкой для уточнения.'}`;
@@ -1146,6 +1180,26 @@
             waBtn.style.display = ''; waBtn.href = waLink(); waBtn.onclick = null;
             waBtn.innerHTML = waSvg + ' Я оплатил, активируйте сайт';
             if (microcopy) microcopy.style.display = '';
+        }
+    }
+
+    async function onWaBtnClick(e) {
+        e.preventDefault();
+        if (!payment?.id) { showToast('Загружаем заказ...'); return; }
+        try {
+            const res = await fetch(`/api/organizer/payments/${payment.id}/submit`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.message || 'Не удалось отправить оплату на проверку');
+            }
+            payment = await res.json();
+            render();
+            window.open(waLink(), '_blank', 'noopener');
+        } catch (err) {
+            showToast(err.message || 'Ошибка');
         }
     }
 
@@ -1167,38 +1221,58 @@
         }).catch(() => showToast('Не удалось скопировать'));
     }
 
-    async function onRetry(e) {
-        e.preventDefault();
-        // REJECTED — сбрасываем payment чтобы POST создал новый
-        payment = null;
-        try {
-            const res = await fetch('/api/organizer/payments', {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventId: getEventId() ? Number(getEventId()) : null })
-            });
-            if (res.ok) payment = await res.json();
-        } catch (_) {}
-        render();
-        if (payment) window.open(waLink(), '_blank', 'noopener');
-    }
+	    async function onRetry(e) {
+	        e.preventDefault();
+	        try {
+	            payment = await createPayment();
+	        } catch (err) {
+	            showToast(err.message || 'Ошибка');
+	        }
+	        render();
+	        if (payment) window.open(waLink(), '_blank', 'noopener');
+	    }
+
+	    async function fetchLatestPayment() {
+	        const eventId = getEventIdNumber();
+	        const res = await fetch(`/api/organizer/payments/event/${eventId}/latest`, {
+	            credentials: 'include'
+	        });
+	        if (res.status === 204) return null;
+	        if (!res.ok) {
+	            const data = await res.json().catch(() => ({}));
+	            throw new Error(data.message || 'Не удалось загрузить заказ');
+	        }
+	        return res.json();
+	    }
+
+	    async function createPayment() {
+	        const res = await fetch('/api/organizer/payments', {
+	            method: 'POST', credentials: 'include',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify({ eventId: getEventIdNumber() })
+	        });
+	        if (!res.ok) {
+	            const data = await res.json().catch(() => ({}));
+	            throw new Error(data.message || 'Не удалось создать заказ');
+	        }
+	        return res.json();
+	    }
 
     async function initPaywall() {
         const me = await fetch('/api/auth/me', { credentials: 'include' })
             .then(r => r.ok ? r.json() : null).catch(() => null);
         if (!me) { location.replace('/login.html'); return; }
+        if (!getEventIdNumber()) { location.replace('/index.html'); return; }
 
-        try {
-            const res = await fetch('/api/organizer/payments', {
-                method: 'POST', credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ eventId: getEventId() ? Number(getEventId()) : null })
-            });
-            if (res.ok) payment = await res.json();
-        } catch (_) {}
+	        try {
+	            payment = await fetchLatestPayment();
+	            if (!payment) payment = await createPayment();
+	        } catch (err) {
+	            showToast(err.message || 'Ошибка');
+	        }
 
-        render();
-    }
+	        render();
+	    }
 
     initPaywall();
 </script>

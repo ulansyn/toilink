@@ -987,16 +987,19 @@ async function updatePaymentStrip(events) {
   const hasDraft = Array.isArray(events) && events.some(e => e.status === 'DRAFT');
   if (!hasDraft) { strip.style.display = 'none'; return; }
 
-  // Check if there's already a pending payment — don't show "Активировать" if so
-  let hasPending = false;
+  const draftEvent = events.find(e => e.status === 'DRAFT');
+  if (!draftEvent) { strip.style.display = 'none'; return; }
+
+  // Only a submitted payment should block activation UI. PENDING means the user opened paywall but has not clicked "paid" yet.
+  let isAwaitingReview = false;
   try {
     const payments = await fetch('/api/organizer/payments', { credentials: 'include' })
       .then(r => r.ok ? r.json() : []);
-    hasPending = payments.some(p => p.status === 'AWAITING_CONFIRMATION' || p.status === 'PENDING');
+    isAwaitingReview = payments.some(p => p.eventId === draftEvent.id && p.status === 'AWAITING_CONFIRMATION');
   } catch (_) {}
 
   strip.style.display = 'flex';
-  strip.innerHTML = hasPending
+  strip.innerHTML = isAwaitingReview
     ? `<div>
         <p style="font-size:0.8125rem;font-weight:600;color:#fff;margin:0">Оплата на проверке</p>
         <p style="font-size:0.75rem;color:rgba(255,255,255,0.55);margin:0.125rem 0 0">Мы проверяем оплату — активируем в течение нескольких часов</p>
@@ -1006,7 +1009,7 @@ async function updatePaymentStrip(events) {
         <p style="font-size:0.8125rem;font-weight:600;color:#fff;margin:0">Ваш сайт не активирован</p>
         <p style="font-size:0.75rem;color:rgba(255,255,255,0.55);margin:0.125rem 0 0">Гости не могут открыть ссылку</p>
        </div>
-       <a href="/paywall.html?event=${events.find(e => e.status === 'DRAFT')?.id || ''}" style="flex-shrink:0;background:linear-gradient(135deg,#F93B7A,#FF6D45);color:#fff;border-radius:999px;padding:0.375rem 1rem;font-size:0.8125rem;font-weight:600;white-space:nowrap;text-decoration:none">Активировать</a>`;
+       <a href="/paywall.html?event=${draftEvent.id}" style="flex-shrink:0;background:linear-gradient(135deg,#F93B7A,#FF6D45);color:#fff;border-radius:999px;padding:0.375rem 1rem;font-size:0.8125rem;font-weight:600;white-space:nowrap;text-decoration:none">Активировать</a>`;
 }
 
 init();

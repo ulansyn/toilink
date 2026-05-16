@@ -639,11 +639,13 @@
 
   function pick(id, category, type) {
     document.getElementById('loadCover').classList.add('show');
+    const workingTemplateId = 'template-1';
     try {
       sessionStorage.setItem('tl_from_catalog', '1');
-      localStorage.setItem('tl_selected_template', 'template-' + id);
+      localStorage.setItem('tl_selected_template', workingTemplateId);
       localStorage.setItem('tl_template_selection', JSON.stringify({
-        templateId: 'template-' + id,
+        templateId: workingTemplateId,
+        catalogTemplateId: 'template-' + id,
         category: category || 'WEDDING',
         type: type || 'SITE',
       }));

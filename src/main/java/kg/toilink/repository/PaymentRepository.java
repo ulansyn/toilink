@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -19,6 +20,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStatusOrderByCreatedAtDesc(String status);
 
     List<Payment> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    Optional<Payment> findFirstByUserIdAndEventIdOrderByCreatedAtDesc(Long userId, Long eventId);
 
     @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND p.status IN ('PENDING','AWAITING_CONFIRMATION') ORDER BY p.createdAt DESC")
     List<Payment> findActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId);

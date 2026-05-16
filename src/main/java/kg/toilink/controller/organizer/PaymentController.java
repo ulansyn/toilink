@@ -1,18 +1,21 @@
 package kg.toilink.controller.organizer;
 
 import kg.toilink.entity.Payment;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.entity.User;
+import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.PaymentRepository;
 import kg.toilink.repository.UserRepository;
+import kg.toilink.service.PricingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,7 @@ public class PaymentController {
     private final PaymentRepository paymentRepository;
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final PricingService pricingService;
 
     /**
      * Идемпотентное создание платежа: если для этого события уже есть активный
@@ -37,25 +41,63 @@ public class PaymentController {
         User user = userRepository.findByPhone(principal.getUsername())
                 .orElseThrow(() -> new NotFoundException("User not found"));
 
-        if (body.eventId() != null) {
-            List<Payment> existing = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId());
-            if (!existing.isEmpty()) return toMap(existing.get(0));
+        if (body.eventId() == null) {
+            throw new BadRequestException("Event id is required for payment");
         }
 
+        List<Payment> existing = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId());
+        if (!existing.isEmpty()) return toMap(existing.get(0));
+
+        PricingPlan plan = pricingService.activationPlan();
         Payment p = new Payment();
         p.setUser(user);
-        p.setAmount(new BigDecimal("990"));
-        p.setCurrency("KGS");
+        p.setPlanId(plan.getId());
+        p.setAmount(plan.getAmount());
+        p.setCurrency(plan.getCurrency());
+        p.setDisplayCurrency(plan.getDisplayCurrency());
         p.setMethod("QR");
-        p.setStatus("AWAITING_CONFIRMATION");
-
-        if (body.eventId() != null) {
-            eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
-                    .filter(e -> e.getUser().getId().equals(user.getId()))
-                    .ifPresent(p::setEvent);
-        }
+        p.setStatus("PENDING");
+        p.setEvent(eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
+                .filter(e -> e.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> NotFoundException.event(body.eventId())));
 
         return toMap(paymentRepository.save(p));
+    }
+
+    @PostMapping("/{id}/submit")
+    @Transactional
+    public Map<String, Object> submitForReview(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserDetails principal) {
+        User user = userRepository.findByPhone(principal.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        Payment payment = paymentRepository.findById(id)
+                .filter(p -> p.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
+
+        if ("CONFIRMED".equals(payment.getStatus())) {
+            return toMap(payment);
+        }
+        if (!"PENDING".equals(payment.getStatus()) && !"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+            throw new BadRequestException("Payment cannot be submitted from status: " + payment.getStatus());
+        }
+
+        payment.setStatus("AWAITING_CONFIRMATION");
+        payment.setRejectedReason(null);
+        return toMap(paymentRepository.save(payment));
+    }
+
+    @GetMapping("/event/{eventId}/latest")
+    public ResponseEntity<Map<String, Object>> latestForEvent(@PathVariable Long eventId,
+                                                              @AuthenticationPrincipal UserDetails principal) {
+        User user = userRepository.findByPhone(principal.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        eventRepository.findByIdAndDeletedAtIsNull(eventId)
+                .filter(e -> e.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> NotFoundException.event(eventId));
+
+        return paymentRepository.findFirstByUserIdAndEventIdOrderByCreatedAtDesc(user.getId(), eventId)
+                .map(payment -> ResponseEntity.ok(toMap(payment)))
+                .orElseGet(() -> ResponseEntity.noContent().build());
     }
 
     @GetMapping
@@ -71,6 +113,10 @@ public class PaymentController {
         m.put("id", p.getId());
         m.put("status", p.getStatus());
         m.put("amount", p.getAmount());
+        m.put("currency", p.getCurrency());
+        m.put("displayCurrency", p.getDisplayCurrency() != null
+                ? p.getDisplayCurrency()
+                : pricingService.displayCurrencyFor(p.getPlanId(), p.getCurrency()));
         m.put("eventId", p.getEvent() != null ? p.getEvent().getId() : null);
         m.put("rejectedReason", p.getRejectedReason());
         m.put("createdAt", p.getCreatedAt());

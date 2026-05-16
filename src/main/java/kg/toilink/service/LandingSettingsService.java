@@ -1,6 +1,7 @@
 package kg.toilink.service;
 
 import kg.toilink.entity.LandingSettings;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.repository.LandingSettingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ArrayNode;
+import tools.jackson.databind.node.ObjectNode;
 
 @Service
 @RequiredArgsConstructor
@@ -17,11 +20,13 @@ public class LandingSettingsService {
 
     private final LandingSettingsRepository repository;
     private final ObjectMapper objectMapper;
+    private final PricingService pricingService;
 
     public String getMainContentJson() {
-        return repository.findBySettingsKey(DEFAULT_KEY)
+        String contentJson = repository.findBySettingsKey(DEFAULT_KEY)
                 .map(LandingSettings::getContentJson)
                 .orElseGet(this::defaultContentJson);
+        return applyCurrentPricing(contentJson);
     }
 
     @Transactional
@@ -52,6 +57,7 @@ public class LandingSettingsService {
     }
 
     public String defaultContentJson() {
+        PricingPlan activationPlan = pricingService.activationPlan();
         return """
                 {
                   "meta": {
@@ -166,7 +172,7 @@ public class LandingSettingsService {
                     "subtitle": "Начните бесплатно. Премиум — один раз для одного события, без подписок.",
                     "plans": [
                       {"name": "Старт", "tag": "бесплатно", "description": "Попробовать без риска", "price": "0", "currency": "сом", "note": "навсегда · без карты", "cta": "Начать бесплатно", "features": ["До 50 гостей", "RSVP-кнопки и список гостей", "3 базовых шаблона", "Маленький логотип ToiLink"]},
-                      {"name": "Премиум", "tag": "для тоя", "description": "Идеально для большого события", "price": "990", "currency": "сом", "oldPrice": "1 990", "note": "разово за всё событие · скидка 50%", "badge": "★ выбирают 87%", "cta": "Создать приглашение", "features": ["Гостей — без ограничений", "Все 12 премиум-шаблонов", "Без водяного знака", "Экспорт списка гостей в Excel", "Уведомления о новых RSVP", "Поддержка 24/7 в WhatsApp"]}
+	                      {"name": "Премиум", "tag": "для тоя", "description": "Идеально для большого события", "price": "__ACTIVATION_PRICE__", "currency": "__ACTIVATION_CURRENCY__", "oldPrice": "1 990", "note": "разово за всё событие · скидка 50%", "badge": "★ выбирают 87%", "cta": "Создать приглашение", "features": ["Гостей — без ограничений", "Все 12 премиум-шаблонов", "Без водяного знака", "Экспорт списка гостей в Excel", "Уведомления о новых RSVP", "Поддержка 24/7 в WhatsApp"]}
                     ],
                     "badges": ["Гарантия возврата 7 дней", "Доступ — мгновенно", "Поддержка на русском и кыргызском"]
                   },
@@ -198,6 +204,24 @@ public class LandingSettingsService {
                     "copyright": "© 2026 ToiLink. Все права защищены."
                   }
                 }
-                """;
+	                """
+                .replace("__ACTIVATION_PRICE__", pricingService.formatPrice(activationPlan.getAmount()))
+                .replace("__ACTIVATION_CURRENCY__", activationPlan.getDisplayCurrency());
+    }
+
+    private String applyCurrentPricing(String contentJson) {
+        try {
+            JsonNode node = objectMapper.readTree(contentJson);
+            if (!(node instanceof ObjectNode root)) return contentJson;
+            PricingPlan activationPlan = pricingService.activationPlan();
+            JsonNode plans = root.path("pricing").path("plans");
+            if (plans instanceof ArrayNode arrayNode && arrayNode.size() > 1 && arrayNode.get(1) instanceof ObjectNode premiumPlan) {
+                premiumPlan.put("price", pricingService.formatPrice(activationPlan.getAmount()));
+                premiumPlan.put("currency", activationPlan.getDisplayCurrency());
+            }
+            return objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
+        } catch (Exception e) {
+            return contentJson;
+        }
     }
 }

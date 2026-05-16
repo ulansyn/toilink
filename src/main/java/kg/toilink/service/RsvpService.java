@@ -49,7 +49,7 @@ public class RsvpService {
 
         // Spouse companion: only when event explicitly allows it (blocksConfig.rsvp.allowCompanion === true)
         if (isCompanionAllowed(event)) {
-            manageSpouseCompanion(guest, event, req.spouseName());
+            manageSpouseCompanion(guest, event, req.spouseName(), req.status());
         }
 
         rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
@@ -163,7 +163,7 @@ public class RsvpService {
      * - spouseName blank/null → delete existing auto-companion (manual companions added by organizer are untouched).
      * Companion inherits side from primary.
      */
-    private void manageSpouseCompanion(Guest primary, Event event, String spouseName) {
+    private void manageSpouseCompanion(Guest primary, Event event, String spouseName, String status) {
         Guest existingAuto = findAutoCompanion(primary);
 
         if (spouseName != null && !spouseName.isBlank()) {
@@ -175,6 +175,7 @@ public class RsvpService {
                     existingAuto.setSide(primary.getSide());
                     guestRepository.save(existingAuto);
                 }
+                syncCompanionRsvp(existingAuto, event, status);
                 return;
             }
             Guest companion = guestRepository.save(Guest.builder()
@@ -185,6 +186,7 @@ public class RsvpService {
                     .relatedToId(primary.getId())
                     .relationType("SPOUSE")
                     .build());
+            syncCompanionRsvp(companion, event, status);
             primary.setRelatedToId(companion.getId());
             primary.setRelationType("SPOUSE");
             guestRepository.save(primary);
@@ -200,6 +202,24 @@ public class RsvpService {
             }
             guestRepository.delete(existingAuto);
         }
+    }
+
+    private void syncCompanionRsvp(Guest companion, Event event, String status) {
+        if (status == null || status.isBlank()) return;
+        rsvpResponseRepository.findByGuestIdAndEventId(companion.getId(), event.getId())
+                .ifPresentOrElse(
+                        existing -> {
+                            existing.setStatus(status);
+                            existing.setGroupSize(1);
+                            rsvpResponseRepository.save(existing);
+                        },
+                        () -> rsvpResponseRepository.save(RsvpResponse.builder()
+                                .guest(companion)
+                                .event(event)
+                                .status(status)
+                                .groupSize(1)
+                                .build())
+                );
     }
 
     /** Returns the auto-created companion linked to the primary guest, if any. */

@@ -73,7 +73,7 @@ public class GuestService {
                 .event(event)
                 .name(req.name())
                 .phone(req.phone())
-                .source(Boolean.TRUE.equals(req.personalInvite()) ? "PERSONAL_LINK" : "MANUAL")
+                .source(Boolean.FALSE.equals(req.personalInvite()) ? "MANUAL" : "PERSONAL_LINK")
                 .notes(req.notes())
                 .side(side)
                 .build());
@@ -92,6 +92,10 @@ public class GuestService {
                     .relatedToId(primary.getId())
                     .relationType("SPOUSE")
                     .build());
+            if (req.rsvpStatus() != null && !req.rsvpStatus().isBlank()) {
+                rsvpResponseRepository.save(RsvpResponse.builder()
+                        .guest(companion).event(event).status(req.rsvpStatus()).groupSize(1).build());
+            }
             primary.setRelatedToId(companion.getId());
             primary.setRelationType("SPOUSE");
             primary = guestRepository.save(primary);

@@ -41,6 +41,13 @@ spring:
 app:
   upload-dir: uploads
 
+toilink:
+  pricing:
+    activation:
+      amount: ${TOILINK_ACTIVATION_PRICE:990}
+      currency: ${TOILINK_ACTIVATION_CURRENCY:KGS}
+      display-currency: ${TOILINK_ACTIVATION_DISPLAY_CURRENCY:сом}
+
 logging:
   level:
     liquibase: INFO

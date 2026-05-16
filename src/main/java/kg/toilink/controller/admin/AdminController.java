@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import kg.toilink.entity.AdminAuditLog;
 import kg.toilink.entity.Event;
 import kg.toilink.entity.Payment;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.entity.Template;
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
@@ -16,6 +17,7 @@ import kg.toilink.repository.RsvpResponseRepository;
 import kg.toilink.repository.TemplateRepository;
 import kg.toilink.repository.UserRepository;
 import kg.toilink.service.LandingSettingsService;
+import kg.toilink.service.PricingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -49,6 +51,7 @@ public class AdminController {
     private final PaymentRepository paymentRepository;
     private final AdminAuditLogRepository auditLogRepository;
     private final LandingSettingsService landingSettingsService;
+    private final PricingService pricingService;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/dashboard")
@@ -68,7 +71,7 @@ public class AdminController {
                 rsvpResponseRepository.countByRespondedAtAfter(todayStart),
                 rsvpResponseRepository.countByRespondedAtAfter(weekStart),
                 templateRepository.countByIsActiveTrue(),
-                paymentRepository.countByStatusIn(List.of("AWAITING_CONFIRMATION", "PENDING")),
+                paymentRepository.countByStatus("AWAITING_CONFIRMATION"),
                 paymentRepository.countByStatus("CONFIRMED"),
                 paymentRepository.countByStatusAndCreatedAtAfter("CONFIRMED", todayStart),
                 paymentRepository.sumConfirmed(),
@@ -334,6 +337,9 @@ public class AdminController {
                                                HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
+        if ("REJECTED".equals(payment.getStatus())) {
+            throw new BadRequestException("Отклонённую оплату нельзя подтвердить. Попросите клиента создать новую заявку.");
+        }
         payment.setStatus("CONFIRMED");
         payment.setConfirmedAt(LocalDateTime.now());
         payment.setConfirmedBy(currentAdminId(admin));
@@ -361,6 +367,9 @@ public class AdminController {
                                               HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
+        if ("CONFIRMED".equals(payment.getStatus())) {
+            throw new BadRequestException("Подтверждённую оплату нельзя отклонить");
+        }
         String reason = body != null ? body.reason() : null;
         if (reason == null || reason.isBlank()) {
             throw new BadRequestException("Причина отклонения обязательна");
@@ -392,6 +401,29 @@ public class AdminController {
         String contentJson = landingSettingsService.updateMainContentJson(body.contentJson());
         audit(admin, request, "LANDING_UPDATE", "LANDING", null, body.reason());
         return new AdminLandingResponse(contentJson);
+    }
+
+    @GetMapping("/pricing/activation")
+    public AdminPricingPlanResponse getActivationPricing() {
+        return AdminPricingPlanResponse.from(pricingService.activationPlan());
+    }
+
+    @PutMapping("/pricing/activation")
+    @Transactional
+    public AdminPricingPlanResponse updateActivationPricing(@RequestBody AdminPricingUpdateRequest body,
+                                                            @AuthenticationPrincipal UserDetails admin,
+                                                            HttpServletRequest request) {
+        if (body == null) {
+            throw new BadRequestException("Данные тарифа обязательны");
+        }
+        PricingPlan plan = pricingService.updateActivationPlan(
+                body.amount(),
+                body.currency(),
+                body.displayCurrency(),
+                body.name()
+        );
+        audit(admin, request, "PRICING_UPDATE", "PRICING_PLAN", plan.getId(), body.reason());
+        return AdminPricingPlanResponse.from(plan);
     }
 
     private PageRequest pageRequest(int page, int size) {
@@ -554,6 +586,40 @@ public class AdminController {
 
     public record AdminLandingResponse(String contentJson) {}
 
+    public record AdminPricingUpdateRequest(
+            String name,
+            BigDecimal amount,
+            String currency,
+            String displayCurrency,
+            String reason
+    ) {}
+
+    public record AdminPricingPlanResponse(
+            Long id,
+            String code,
+            String name,
+            BigDecimal amount,
+            String currency,
+            String displayCurrency,
+            boolean active,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        static AdminPricingPlanResponse from(PricingPlan plan) {
+            return new AdminPricingPlanResponse(
+                    plan.getId(),
+                    plan.getCode(),
+                    plan.getName(),
+                    plan.getAmount(),
+                    plan.getCurrency(),
+                    plan.getDisplayCurrency(),
+                    plan.isActive(),
+                    plan.getCreatedAt(),
+                    plan.getUpdatedAt()
+            );
+        }
+    }
+
     public record SmallUserResponse(Long id, String phone, String name, String role) {
         static SmallUserResponse from(User user) {
             if (user == null) return null;
@@ -690,6 +756,7 @@ public class AdminController {
             Long planId,
             BigDecimal amount,
             String currency,
+            String displayCurrency,
             String method,
             String status,
             String externalRef,
@@ -711,6 +778,7 @@ public class AdminController {
                     payment.getPlanId(),
                     payment.getAmount(),
                     payment.getCurrency(),
+                    payment.getDisplayCurrency(),
                     payment.getMethod(),
                     payment.getStatus(),
                     payment.getExternalRef(),
