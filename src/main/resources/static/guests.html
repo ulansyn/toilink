@@ -531,11 +531,15 @@
     /* Table cards */
     .table-card {
       background: #fff;
-      border-radius: 18px;
-      border: 1px solid rgba(249,59,122,0.12);
-      padding: 12px;
-      box-shadow: 0 2px 12px rgba(249,59,122,0.05), 0 1px 4px rgba(0,0,0,0.03);
-      transition: border-color .2s, box-shadow .2s;
+      border-radius: 20px;
+      border: 1px solid rgba(249,59,122,0.10);
+      padding: 14px 14px 12px;
+      box-shadow: 0 2px 14px rgba(249,59,122,0.06), 0 1px 3px rgba(0,0,0,0.03);
+      transition: border-color .2s, box-shadow .2s, transform .15s;
+      display: flex; flex-direction: column;
+    }
+    .table-card:hover {
+      box-shadow: 0 6px 20px rgba(249,59,122,0.10), 0 1px 3px rgba(0,0,0,0.04);
     }
     .table-card.drag-over {
       border-color: #F93B7A;
@@ -544,26 +548,97 @@
     }
     .table-card-chips {
       display: flex; flex-wrap: wrap; gap: 6px;
-      min-height: 36px; padding: 4px 0 8px;
+      min-height: 32px; padding: 4px 0 8px;
+      flex: 1;
+    }
+    .table-empty-hint {
+      font-size: 12.5px; color: #9B8B7A; font-style: italic;
+      padding: 8px 4px; line-height: 1.35;
     }
     .guest-chip {
       display: inline-flex; align-items: center; gap: 5px;
       background: #F5F2EE; border-radius: 100px;
-      padding: 4px 10px 4px 4px;
+      padding: 3px 10px 3px 3px;
       font-size: 12px; font-weight: 500; color: #1E2820;
       cursor: grab; user-select: none; touch-action: none;
       border: 1px solid rgba(30,40,32,.06);
       transition: background .12s, box-shadow .1s;
       -webkit-user-select: none;
+      max-width: 100%;
     }
     .guest-chip:active { background: #EBE6DE; }
     .guest-chip.is-dragging { opacity: 0.35; cursor: grabbing; }
-    .chip-avatar {
-      width: 20px; height: 20px; border-radius: 50%;
-      display: inline-flex; align-items: center; justify-content: center;
-      font-size: 10px; font-weight: 700; flex-shrink: 0;
+    .guest-chip.overflow-chip {
+      background: #F0EDE8; color: #8A7F76;
+      cursor: pointer; padding: 4px 6px;
     }
-    .chip-name { max-width: 64px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .chip-avatar {
+      width: 22px; height: 22px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 0 0 1.5px transparent inset;
+    }
+    .guest-chip.side-bride .chip-avatar { box-shadow: 0 0 0 1.5px #F93B7A inset; }
+    .guest-chip.side-groom .chip-avatar { box-shadow: 0 0 0 1.5px #4A6FD8 inset; }
+    .chip-name {
+      max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-variant: tabular-nums;
+    }
+    /* Dense mode: hide name on narrow screens to fit more guests */
+    @media (max-width: 520px) {
+      .table-card-chips.is-dense .chip-name { display: none; }
+      .table-card-chips.is-dense .guest-chip { padding: 2px 3px; }
+      .table-card-chips.is-dense .chip-avatar { width: 26px; height: 26px; font-size: 12px; }
+    }
+    /* Table header layout */
+    .table-card-title {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-weight: 600; font-size: 20px; color: #1E2820; line-height: 1.15;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .table-card-meta {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 11.5px; color: #8B857A; margin-top: 3px;
+      font-variant-numeric: tabular-nums;
+    }
+    .table-card-meta .meta-overfull { color: #C71F5C; font-weight: 600; }
+    .table-card-actions { display: flex; gap: 2px; flex-shrink: 0; align-items: flex-start; }
+
+    /* Side mix dots in header */
+    .side-mix { display: inline-flex; gap: 4px; }
+    .mix-dot {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-width: 16px; height: 16px; padding: 0 4px;
+      border-radius: 100px; font-size: 10px; font-weight: 700;
+    }
+    .mix-dot.bride { background: #FFE0EC; color: #C71F5C; }
+    .mix-dot.groom { background: #DDE5FF; color: #2F4DAF; }
+    .mix-dot.shared { background: #F0EDE8; color: #7C5520; }
+
+    /* Fill bar */
+    .table-fill {
+      height: 4px; background: #F0EDE8; border-radius: 100px;
+      overflow: hidden; margin-bottom: 10px;
+    }
+    .table-fill-bar {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, #F93B7A, #FF6D45);
+      transition: width .4s ease;
+    }
+    .table-fill-bar.is-overfull { background: #C71F5C; }
+
+    /* Add guests button */
+    .table-add-btn {
+      width: 100%; margin-top: 10px;
+      padding: 9px;
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 12.5px; font-weight: 600; color: #F93B7A;
+      background: rgba(249,59,122,.04);
+      border: 1px dashed rgba(249,59,122,.30);
+      border-radius: 12px;
+      cursor: pointer; transition: background .15s, border-color .15s;
+    }
+    .table-add-btn:hover { background: rgba(249,59,122,.08); border-color: rgba(249,59,122,.50); }
     .chip-ghost {
       position: fixed; pointer-events: none; z-index: 200;
       background: #fff; border-radius: 100px;
@@ -583,31 +658,28 @@
     }
     .tables-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: 1fr;
       gap: 12px;
     }
-    @media (min-width: 600px) {
-      .tables-grid { grid-template-columns: repeat(3, 1fr); }
+    @media (min-width: 640px) {
+      .tables-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    }
+    @media (min-width: 1024px) {
+      .tables-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
     }
     .table-card-header {
-      display: flex; align-items: flex-start; gap: 8px;
-      padding-bottom: 10px; margin-bottom: 6px;
+      display: flex; align-items: flex-start; gap: 10px;
+      padding-bottom: 10px; margin-bottom: 8px;
       border-bottom: 1px solid rgba(249,59,122,0.08);
     }
     .table-num-badge {
-      width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+      width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
       background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-      color: #fff; font-size: 15px; font-weight: 700; letter-spacing: -0.5px;
+      color: #fff; font-size: 16px; font-weight: 700; letter-spacing: -0.5px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(249,59,122,.30);
+      box-shadow: 0 4px 12px rgba(249,59,122,.28);
       font-family: 'Cormorant Garamond', serif; font-style: italic;
     }
-    .seat-dots { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 0 4px; }
-    .seat-dot {
-      width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
-      background: #E8E2DB; transition: background .25s;
-    }
-    .seat-dot.filled { background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%); }
 
     /* Bottom nav */
     .nav-bar {
@@ -1113,7 +1185,7 @@
 </script>
 
 <script src="/js/initAuth.js?v=rsvp3"></script>
-<script src="/js/guests.js?v=guests3"></script>
+<script src="/js/guests.js?v=guests4"></script>
 <script src="/js/seating-ui.js?v=seat3"></script>
 </body>
 </html>

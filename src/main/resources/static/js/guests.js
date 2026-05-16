@@ -1021,47 +1021,67 @@ function switchTab(tab) {
   }
 }
 
-const POOL_CHIP_LIMIT  = 10;
-const CARD_CHIP_LIMIT  = 6;
+const POOL_CHIP_LIMIT  = 14;
+
+function shortGuestName(name) {
+  if (!name) return 'Аноним';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0];
+  return `${parts[0]} ${parts[1][0]}.`;
+}
 
 function guestChip(g, fromTableId) {
   const p = avatarPalette(g.name || 'A');
   const initial = (g.name || 'A')[0].toUpperCase();
-  return `<div class="guest-chip" data-guest-id="${g.id}" data-from-table="${fromTableId ?? ''}" title="${escapeHtml(g.name || 'Аноним')}">
+  const side = g.side === 'BRIDE' ? 'bride' : g.side === 'GROOM' ? 'groom' : 'shared';
+  return `<div class="guest-chip side-${side}" data-guest-id="${g.id}" data-from-table="${fromTableId ?? ''}" title="${escapeHtml(g.name || 'Аноним')}">
     <span class="chip-avatar" style="background:${p.bg};color:${p.fg};">${initial}</span>
-    <span class="chip-name">${escapeHtml(g.name || 'Аноним')}</span>
+    <span class="chip-name">${escapeHtml(shortGuestName(g.name))}</span>
   </div>`;
 }
 
 function overflowChip(count, tableId) {
-  return `<div class="guest-chip" style="background:#F0EDE8;color:#8A7F76;cursor:pointer;"
-               data-action="assign-guests" data-table-id="${tableId ?? ''}">
+  return `<div class="guest-chip overflow-chip" data-action="assign-guests" data-table-id="${tableId ?? ''}">
     <span style="font-size:12px;font-weight:600;padding:0 4px;">+${count}</span>
   </div>`;
 }
 
 function renderTableCard(t, idx) {
   const guests = allGuests.filter(g => g.tableId === t.id);
-  const overfull = t.capacity && guests.length > t.capacity;
+  const capacity = t.capacity || 12;
+  const overfull = guests.length > capacity;
+  const fillPct = Math.min(100, Math.round((guests.length / capacity) * 100));
 
-  const seatDots = (t.capacity && t.capacity <= 20)
-    ? `<div class="seat-dots">${Array.from({length: t.capacity}, (_, i) =>
-        `<div class="seat-dot${i < guests.length ? ' filled' : ''}"></div>`).join('')}</div>`
-    : '';
+  // Side mix
+  let bride = 0, groom = 0, shared = 0;
+  for (const g of guests) {
+    if (g.side === 'BRIDE') bride++;
+    else if (g.side === 'GROOM') groom++;
+    else shared++;
+  }
 
-  const subLine = t.capacity
-    ? `${guests.length} из ${t.capacity} мест${overfull ? ' · <span style="color:#C71F5C;">Переполнен</span>' : ''}`
-    : `${guests.length} ${pluralize(guests.length, ['гость','гостя','гостей'])}`;
+  const mixDots = guests.length === 0 ? '' : `
+    <span class="side-mix">
+      ${bride ? `<span class="mix-dot bride" title="Невеста · ${bride}">${bride}</span>` : ''}
+      ${groom ? `<span class="mix-dot groom" title="Жених · ${groom}">${groom}</span>` : ''}
+      ${shared ? `<span class="mix-dot shared" title="Общие · ${shared}">${shared}</span>` : ''}
+    </span>`;
+
+  // Compact mode when many guests (>=9) — hide names on mobile, show only avatars
+  const compactClass = guests.length >= 9 ? ' is-dense' : '';
 
   return `
     <div class="table-card fade-in" data-drop-table="${t.id}">
       <div class="table-card-header">
         <div class="table-num-badge">${idx + 1}</div>
-        <div class="flex-1 min-w-0 pt-0.5">
-          <div class="font-cormorant italic text-[20px] font-semibold text-ink leading-tight">${escapeHtml(t.name)}</div>
-          <div class="text-[11px] text-muted mt-0.5">${subLine}</div>
+        <div class="flex-1 min-w-0">
+          <div class="table-card-title">${escapeHtml(t.name)}</div>
+          <div class="table-card-meta">
+            <span class="${overfull ? 'meta-overfull' : ''}">${guests.length}/${capacity}</span>
+            ${mixDots}
+          </div>
         </div>
-        <div class="flex items-center gap-0.5 flex-shrink-0">
+        <div class="table-card-actions">
           <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" title="Редактировать">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
@@ -1070,16 +1090,13 @@ function renderTableCard(t, idx) {
           </button>
         </div>
       </div>
-      ${seatDots}
-      <div class="table-card-chips" data-drop-table="${t.id}">
+      <div class="table-fill"><div class="table-fill-bar${overfull ? ' is-overfull' : ''}" style="width:${fillPct}%"></div></div>
+      <div class="table-card-chips${compactClass}" data-drop-table="${t.id}">
         ${guests.length === 0
-          ? `<span class="text-[12px] text-muted italic self-center pl-1">Перетащите гостей сюда</span>`
-          : guests.slice(0, CARD_CHIP_LIMIT).map(g => guestChip(g, t.id)).join('')
-            + (guests.length > CARD_CHIP_LIMIT ? overflowChip(guests.length - CARD_CHIP_LIMIT, t.id) : '')}
+          ? `<span class="table-empty-hint">Перетащите гостей сюда или нажмите «Добавить»</span>`
+          : guests.map(g => guestChip(g, t.id)).join('')}
       </div>
-      <button class="w-full mt-3 py-2 text-[13px] font-medium text-accent rounded-xl flex items-center justify-center gap-1"
-              style="border:1px dashed rgba(249,59,122,.35);background:rgba(249,59,122,.03);"
-              data-action="assign-guests" data-table-id="${t.id}">
+      <button class="table-add-btn" data-action="assign-guests" data-table-id="${t.id}">
         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
         <span>Добавить</span>
       </button>
