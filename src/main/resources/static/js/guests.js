@@ -886,6 +886,13 @@ function applyEventMeta(event) {
 
 function renderAll() {
   window._allGuestsRef = allGuests;
+  window._allTablesRef = allTables;
+  window.eventId = eventId;
+  window.api = api;
+  window.toast = toast;
+  window.renderTables = renderTables;
+  window.renderList = renderList;
+  window.syncAllCaches = syncAllCaches;
   if (state.tab === 'tables') {
     renderTables();
   } else {
@@ -1014,6 +1021,71 @@ function switchTab(tab) {
   }
 }
 
+const POOL_CHIP_LIMIT  = 10;
+const CARD_CHIP_LIMIT  = 6;
+
+function guestChip(g, fromTableId) {
+  const p = avatarPalette(g.name || 'A');
+  const initial = (g.name || 'A')[0].toUpperCase();
+  return `<div class="guest-chip" data-guest-id="${g.id}" data-from-table="${fromTableId ?? ''}" title="${escapeHtml(g.name || 'Аноним')}">
+    <span class="chip-avatar" style="background:${p.bg};color:${p.fg};">${initial}</span>
+    <span class="chip-name">${escapeHtml(g.name || 'Аноним')}</span>
+  </div>`;
+}
+
+function overflowChip(count, tableId) {
+  return `<div class="guest-chip" style="background:#F0EDE8;color:#8A7F76;cursor:pointer;"
+               data-action="assign-guests" data-table-id="${tableId ?? ''}">
+    <span style="font-size:12px;font-weight:600;padding:0 4px;">+${count}</span>
+  </div>`;
+}
+
+function renderTableCard(t, idx) {
+  const guests = allGuests.filter(g => g.tableId === t.id);
+  const overfull = t.capacity && guests.length > t.capacity;
+
+  const seatDots = (t.capacity && t.capacity <= 20)
+    ? `<div class="seat-dots">${Array.from({length: t.capacity}, (_, i) =>
+        `<div class="seat-dot${i < guests.length ? ' filled' : ''}"></div>`).join('')}</div>`
+    : '';
+
+  const subLine = t.capacity
+    ? `${guests.length} из ${t.capacity} мест${overfull ? ' · <span style="color:#C71F5C;">Переполнен</span>' : ''}`
+    : `${guests.length} ${pluralize(guests.length, ['гость','гостя','гостей'])}`;
+
+  return `
+    <div class="table-card fade-in" data-drop-table="${t.id}">
+      <div class="table-card-header">
+        <div class="table-num-badge">${idx + 1}</div>
+        <div class="flex-1 min-w-0 pt-0.5">
+          <div class="font-cormorant italic text-[20px] font-semibold text-ink leading-tight">${escapeHtml(t.name)}</div>
+          <div class="text-[11px] text-muted mt-0.5">${subLine}</div>
+        </div>
+        <div class="flex items-center gap-0.5 flex-shrink-0">
+          <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" title="Редактировать">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          </button>
+          <button class="row-icon-btn" data-action="delete-table" data-table-id="${t.id}" title="Удалить" style="color:#B8412E;">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
+          </button>
+        </div>
+      </div>
+      ${seatDots}
+      <div class="table-card-chips" data-drop-table="${t.id}">
+        ${guests.length === 0
+          ? `<span class="text-[12px] text-muted italic self-center pl-1">Перетащите гостей сюда</span>`
+          : guests.slice(0, CARD_CHIP_LIMIT).map(g => guestChip(g, t.id)).join('')
+            + (guests.length > CARD_CHIP_LIMIT ? overflowChip(guests.length - CARD_CHIP_LIMIT, t.id) : '')}
+      </div>
+      <button class="w-full mt-3 py-2 text-[13px] font-medium text-accent rounded-xl flex items-center justify-center gap-1"
+              style="border:1px dashed rgba(249,59,122,.35);background:rgba(249,59,122,.03);"
+              data-action="assign-guests" data-table-id="${t.id}">
+        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        <span>Добавить</span>
+      </button>
+    </div>`;
+}
+
 function renderTables() {
   const container = document.getElementById('tables-list');
   if (!container) return;
@@ -1041,41 +1113,350 @@ function renderTables() {
     observeFadeIn();
     return;
   }
-  const seated = allGuests.filter(g => g.tableId).length;
+
+  const unassigned = allGuests.filter(g => !g.tableId);
+  const seated = allGuests.length - unassigned.length;
+  const pct = allGuests.length ? Math.round(seated / allGuests.length * 100) : 0;
+
   container.innerHTML = `
-    <div class="flex items-center justify-between mb-4">
-      <span class="font-cormorant italic text-[22px] md:text-[26px] font-semibold text-ink">Рассадка</span>
-      <span class="text-muted text-[13px]">${seated} из ${allGuests.length} распределено</span>
+    <div class="mb-5">
+      <div class="flex items-end justify-between mb-2">
+        <span class="font-cormorant italic text-[22px] md:text-[26px] font-semibold text-ink">Рассадка</span>
+        <span class="text-muted text-[13px]">${seated} / ${allGuests.length} гостей</span>
+      </div>
+      <div class="w-full h-1.5 rounded-full" style="background:#F0EDE8;">
+        <div class="h-1.5 rounded-full transition-all duration-500"
+             style="width:${pct}%;background:linear-gradient(90deg,#F93B7A,#FF6D45);"></div>
+      </div>
+      <button type="button"
+              onclick="window.SmartSeating?.openLaunch()"
+              class="smart-seat-btn mt-4 w-full">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        Расставить гостей
+      </button>
     </div>
-    <div class="space-y-2">${allTables.map(tableCard).join('')}</div>`;
+    <div class="unassigned-pool mb-4 fade-in" data-drop-table="">
+      <div class="flex items-center gap-2 mb-2.5">
+        <svg class="w-3.5 h-3.5 text-muted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span class="text-[12px] font-medium text-muted uppercase tracking-wider">Без стола</span>
+        <span class="chip-sm" style="background:#F0EDE8;color:#8A7F76;">${unassigned.length}</span>
+      </div>
+      <div class="flex flex-wrap gap-2 min-h-[32px]">
+        ${unassigned.length === 0
+          ? `<span class="text-[12px] text-muted italic">Все гости распределены 🎉</span>`
+          : unassigned.slice(0, POOL_CHIP_LIMIT).map(g => guestChip(g, null)).join('')
+            + (unassigned.length > POOL_CHIP_LIMIT
+                ? `<span class="text-[12px] text-muted self-center pl-1">+${unassigned.length - POOL_CHIP_LIMIT} ещё — используй кнопку «Добавить» на столе</span>`
+                : '')}
+      </div>
+    </div>
+    <div class="tables-grid">
+      ${allTables.map((t, i) => renderTableCard(t, i)).join('')}
+    </div>`;
   observeFadeIn();
 }
 
-function tableCard(t) {
-  const seated = allGuests.filter(g => g.tableId === t.id).length;
-  const capLabel = t.capacity ? `${seated} / ${t.capacity} мест` : `${seated} ${pluralize(seated, ['гость','гостя','гостей'])}`;
-  const overfull = t.capacity && seated > t.capacity;
-  return `
-    <div class="guest-row fade-in" data-action="table-detail" data-table-id="${t.id}">
-      <div class="avatar flex-shrink-0" style="width:40px;height:40px;border-radius:12px;background:#EEF2FF;color:#4F46E5;font-size:15px;">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
-      </div>
-      <div class="guest-row-main">
-        <div class="guest-row-top">
-          <span class="guest-row-name">${escapeHtml(t.name)}</span>
-          ${overfull ? `<span class="chip-sm" style="background:#FFE0EC;color:#C71F5C;">Переполнен</span>` : ''}
+async function moveGuestToTable(guestId, newTableId, oldTableId) {
+  const g = allGuests.find(x => x.id === guestId);
+  if (!g) return;
+  const newTid = newTableId || null;
+  if (g.tableId === newTid) return;
+
+  const prevTableId = g.tableId;
+  allGuests = allGuests.map(x => x.id === guestId
+    ? { ...x, tableId: newTid, tableName: newTid ? (allTables.find(t => t.id === newTid)?.name ?? null) : null }
+    : x);
+  renderTables();
+
+  try {
+    const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${guestId}`, {
+      name: g.name, phone: g.phone || null, notes: g.notes || null,
+      side: g.side || 'SHARED', relatedToId: g.relatedToId ?? null,
+      relationType: g.relationType ?? null,
+      rsvpStatus: g.rsvpStatus ?? null,
+      tableId: newTid,
+    });
+    allGuests = allGuests.map(x => x.id === guestId ? updated : x);
+    window._allGuestsRef = allGuests;
+    syncAllCaches();
+  } catch (err) {
+    allGuests = allGuests.map(x => x.id === guestId ? { ...x, tableId: prevTableId } : x);
+    renderTables();
+    toast(err.message || 'Ошибка', false);
+  }
+}
+
+function openAssignSheet(tableId) {
+  document.getElementById('assignSheetBackdrop')?.remove();
+  document.getElementById('assignSheetEl')?.remove();
+
+  const table = allTables.find(t => t.id === tableId);
+  if (!table) return;
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'assignSheetBackdrop';
+  backdrop.className = 'bs-backdrop';
+  const sheet = document.createElement('div');
+  sheet.id = 'assignSheetEl';
+  sheet.className = 'bs-sheet';
+
+  const preSelected = new Set(allGuests.filter(g => g.tableId === tableId).map(g => g.id));
+  const selected = new Set(preSelected);
+  const pool = allGuests.filter(g => !g.tableId || g.tableId === tableId);
+
+  function buildRows(query = '') {
+    const q = query.toLowerCase();
+    const rows = pool.filter(g => !q || (g.name || '').toLowerCase().includes(q));
+    if (rows.length === 0) return `<p class="text-center text-muted py-6 text-[13px]">Ничего не найдено</p>`;
+    return rows.map(g => {
+      const p = avatarPalette(g.name || 'A');
+      const chk = selected.has(g.id);
+      return `<label class="flex items-center gap-3 py-2.5 cursor-pointer" style="border-bottom:1px solid #F0EDE8;" data-guest-row="${g.id}">
+        <div class="avatar flex-shrink-0" style="width:36px;height:36px;border-radius:10px;background:${p.bg};color:${p.fg};font-size:16px;">${(g.name||'A')[0].toUpperCase()}</div>
+        <span class="flex-1 text-[14px] font-medium text-ink">${escapeHtml(g.name || 'Аноним')}</span>
+        <div class="w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0"
+             style="border-color:${chk ? '#F93B7A' : '#D1C9BF'};background:${chk ? '#F93B7A' : 'transparent'};">
+          ${chk ? `<svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ''}
         </div>
-        <div class="guest-row-sub">${capLabel}</div>
-      </div>
-      <div class="guest-row-actions">
-        <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" title="Редактировать">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-        </button>
-        <button class="row-icon-btn" data-action="delete-table" data-table-id="${t.id}" title="Удалить" style="color:#B8412E;">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
-        </button>
+      </label>`;
+    }).join('');
+  }
+
+  sheet.innerHTML = `
+    <div class="sheet-inner" style="max-height:85vh;display:flex;flex-direction:column;">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0 flex-1 min-h-0 flex flex-col">
+        <div class="flex items-center gap-3 mb-4">
+          <p class="font-cormorant italic text-[22px] font-semibold text-ink flex-1">${escapeHtml(table.name)}</p>
+          <button id="assign-close" class="row-icon-btn text-muted">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="relative mb-3">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="assign-search" type="text" placeholder="Поиск гостя..." class="w-full pl-9 pr-4 py-2.5 rounded-xl text-[14px]" style="border:1.5px solid #E8E2DB;background:#FAF8F5;outline:none;">
+        </div>
+        ${pool.length === 0
+          ? `<p class="text-center text-muted py-6 text-[13px]">Все гости уже за другими столами</p>`
+          : `<div id="assign-list" style="overflow-y:auto;flex:1;">${buildRows()}</div>`}
+        <button id="assign-confirm-btn" class="btn-primary w-full mt-4">Готово</button>
       </div>
     </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open'); backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+  sheet.querySelector('#assign-close').addEventListener('click', close);
+
+  const listEl = sheet.querySelector('#assign-list');
+  const searchEl = sheet.querySelector('#assign-search');
+
+  listEl?.addEventListener('click', e => {
+    const row = e.target.closest('[data-guest-row]');
+    if (!row) return;
+    const gid = parseInt(row.getAttribute('data-guest-row'));
+    if (selected.has(gid)) selected.delete(gid); else selected.add(gid);
+    listEl.innerHTML = buildRows(searchEl?.value ?? '');
+  });
+
+  searchEl?.addEventListener('input', () => { if (listEl) listEl.innerHTML = buildRows(searchEl.value); });
+
+  sheet.querySelector('#assign-confirm-btn').addEventListener('click', async () => {
+    const btn = sheet.querySelector('#assign-confirm-btn');
+    btn.disabled = true; btn.textContent = 'Сохраняем...';
+    try {
+      const toAdd    = [...selected].filter(id => !preSelected.has(id));
+      const toRemove = [...preSelected].filter(id => !selected.has(id));
+      if (toAdd.length === 0 && toRemove.length === 0) { close(); return; }
+
+      const makeReq = (guestId, newTid) => {
+        const g = allGuests.find(x => x.id === guestId);
+        if (!g) return Promise.resolve(null);
+        return api('PUT', `/api/organizer/events/${eventId}/guests/${guestId}`, {
+          name: g.name, phone: g.phone || null, notes: g.notes || null,
+          side: g.side || 'SHARED', relatedToId: g.relatedToId ?? null,
+          relationType: g.relationType ?? null,
+          rsvpStatus: g.rsvpStatus ?? null,
+          tableId: newTid,
+        });
+      };
+
+      const results = await Promise.all([
+        ...toAdd.map(id => makeReq(id, tableId)),
+        ...toRemove.map(id => makeReq(id, null)),
+      ]);
+
+      const byId = Object.fromEntries(results.filter(Boolean).map(r => [r.id, r]));
+      allGuests = allGuests.map(g => byId[g.id] ?? g);
+      window._allGuestsRef = allGuests;
+      syncAllCaches();
+      renderTables();
+      close();
+      toast('Рассадка обновлена');
+    } catch (err) {
+      toast(err.message || 'Ошибка', false);
+      btn.disabled = false; btn.textContent = 'Готово';
+    }
+  });
+
+  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
+}
+
+function openChipActions(g, fromTableId) {
+  document.getElementById('chipActionsBackdrop')?.remove();
+  document.getElementById('chipActionsSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'chipActionsBackdrop';
+  backdrop.className = 'bs-backdrop';
+  const sheet = document.createElement('div');
+  sheet.id = 'chipActionsSheet';
+  sheet.className = 'bs-sheet';
+
+  const p = avatarPalette(g.name || 'A');
+  const tableOptions = allTables
+    .filter(t => t.id !== fromTableId)
+    .map(t => `<button class="w-full text-left px-4 py-3 text-[14px] font-medium text-ink hover:bg-[#FAF8F5] rounded-xl flex items-center gap-3" data-move-to="${t.id}">
+      <svg class="w-4 h-4 text-muted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
+      ${escapeHtml(t.name)}
+    </button>`).join('');
+
+  sheet.innerHTML = `
+    <div class="sheet-inner" style="max-height:70vh;overflow-y:auto;">
+      <div class="drag-pill"></div>
+      <div class="px-5 md:px-0">
+        <div class="flex items-center gap-3 mb-4 pb-3" style="border-bottom:1px solid #F0EDE8;">
+          <div class="avatar flex-shrink-0" style="width:40px;height:40px;border-radius:12px;background:${p.bg};color:${p.fg};font-size:18px;">${(g.name||'A')[0].toUpperCase()}</div>
+          <span class="font-medium text-ink flex-1">${escapeHtml(g.name || 'Аноним')}</span>
+        </div>
+        ${tableOptions.length > 0 ? `
+          <p class="text-[11px] uppercase tracking-wider text-muted mb-2 font-medium">Переместить за стол</p>
+          <div class="space-y-0.5 mb-3">${tableOptions}</div>` : ''}
+        ${fromTableId != null ? `
+          <button id="chip-unassign-btn" class="w-full text-left px-4 py-3 text-[14px] font-medium rounded-xl flex items-center gap-3" style="color:#B8412E;">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+            Снять со стола
+          </button>` : ''}
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open'); backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+  backdrop.onclick = close;
+  document.addEventListener('keydown', onEsc);
+
+  sheet.querySelectorAll('[data-move-to]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const toId = parseInt(btn.getAttribute('data-move-to'));
+      close();
+      await moveGuestToTable(g.id, toId, fromTableId);
+    });
+  });
+
+  sheet.querySelector('#chip-unassign-btn')?.addEventListener('click', async () => {
+    close();
+    await moveGuestToTable(g.id, null, fromTableId);
+    toast('Гость откреплён от стола');
+  });
+
+  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
+}
+
+function wireDragAndDrop() {
+  const container = document.getElementById('tables-list');
+  if (!container) return;
+
+  const THRESHOLD = 8;
+
+  container.addEventListener('pointerdown', e => {
+    const chip = e.target.closest('.guest-chip');
+    if (!chip) return;
+
+    const guestId = parseInt(chip.getAttribute('data-guest-id'));
+    const fromTableRaw = chip.getAttribute('data-from-table');
+    const fromTable = fromTableRaw ? parseInt(fromTableRaw) : null;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    let ghost = null;
+    let activeTarget = null;
+    let moved = false;
+
+    function getDropTarget(x, y) {
+      if (ghost) ghost.style.display = 'none';
+      const el = document.elementFromPoint(x, y);
+      if (ghost) ghost.style.display = '';
+      return el ? el.closest('[data-drop-table]') : null;
+    }
+
+    function clearHighlight() {
+      container.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+      activeTarget = null;
+    }
+
+    function cleanup() {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onUp);
+      document.removeEventListener('pointercancel', cleanup);
+      if (ghost) { ghost.remove(); ghost = null; }
+      clearHighlight();
+      chip.classList.remove('is-dragging');
+    }
+
+    function onMove(ev) {
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (!moved && Math.hypot(dx, dy) < THRESHOLD) return;
+
+      if (!moved) {
+        moved = true;
+        const rect = chip.getBoundingClientRect();
+        ghost = chip.cloneNode(true);
+        ghost.className = 'guest-chip chip-ghost';
+        ghost.style.width = rect.width + 'px';
+        document.body.appendChild(ghost);
+        chip.classList.add('is-dragging');
+      }
+
+      ghost.style.left = (ev.clientX - 20) + 'px';
+      ghost.style.top  = (ev.clientY - 15) + 'px';
+
+      const dropEl = getDropTarget(ev.clientX, ev.clientY);
+      if (dropEl !== activeTarget) {
+        clearHighlight();
+        if (dropEl) { dropEl.classList.add('drag-over'); activeTarget = dropEl; }
+      }
+    }
+
+    function onUp(ev) {
+      const dropEl = moved ? getDropTarget(ev.clientX, ev.clientY) : null;
+      cleanup();
+      if (!moved) return;
+      if (dropEl) {
+        const rawVal = dropEl.getAttribute('data-drop-table');
+        const newTableId = rawVal ? parseInt(rawVal) : null;
+        if (newTableId !== fromTable) moveGuestToTable(guestId, newTableId, fromTable);
+      }
+    }
+
+    document.addEventListener('pointermove', onMove);
+    document.addEventListener('pointerup', onUp);
+    document.addEventListener('pointercancel', cleanup);
+  });
 }
 
 window.openTableSheet = function (table = null) {
@@ -1123,101 +1504,6 @@ window.submitTableForm = async function (e) {
     btn.textContent = origText;
   }
 };
-
-function openTableDetail(table) {
-  document.getElementById('tableDetailBackdrop')?.remove();
-  document.getElementById('tableDetailSheet')?.remove();
-
-  const backdrop = document.createElement('div');
-  backdrop.id = 'tableDetailBackdrop';
-  backdrop.className = 'bs-backdrop';
-  const sheet = document.createElement('div');
-  sheet.id = 'tableDetailSheet';
-  sheet.className = 'bs-sheet';
-
-  const assigned = allGuests.filter(g => g.tableId === table.id);
-  const capLine  = table.capacity
-    ? `${assigned.length} из ${table.capacity} мест`
-    : `${assigned.length} ${pluralize(assigned.length, ['гость','гостя','гостей'])}`;
-
-  const guestRows = assigned.map(g => {
-    const p = avatarPalette(g.name || 'A');
-    return `<div class="flex items-center gap-3 py-2.5" style="border-bottom:1px solid #F0EDE8;">
-      <div class="avatar flex-shrink-0" style="width:36px;height:36px;border-radius:10px;background:${p.bg};color:${p.fg};font-size:16px;">${(g.name || 'A')[0].toUpperCase()}</div>
-      <div class="flex-1 min-w-0">
-        <span class="text-[14px] font-medium text-ink">${escapeHtml(g.name || 'Аноним')}</span>
-        ${chipFor(g.rsvpStatus)}
-      </div>
-      <button class="row-icon-btn" data-unassign="${g.id}" title="Снять со стола">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
-      </button>
-    </div>`;
-  }).join('');
-
-  sheet.innerHTML = `
-    <div class="sheet-inner" style="overflow-y:auto; max-height:80vh;">
-      <div class="drag-pill"></div>
-      <div class="px-5 md:px-0 pt-2 md:pt-0">
-        <div class="flex items-center gap-3 mb-4 pb-4" style="border-bottom:1px solid #F0EDE8;">
-          <div class="avatar flex-shrink-0" style="width:48px;height:48px;border-radius:14px;background:#EEF2FF;color:#4F46E5;font-size:12px;">
-            <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 14h18M5 6h14a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/></svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="font-cormorant italic text-[22px] font-semibold text-ink leading-tight">${escapeHtml(table.name)}</p>
-            <p class="text-[12px] text-muted mt-0.5">${capLine}</p>
-          </div>
-        </div>
-        ${assigned.length === 0
-          ? `<p class="text-center text-muted py-8 font-cormorant italic text-[16px]">Нет гостей за этим столом</p>`
-          : `<div class="mb-4">${guestRows}</div>`}
-        <p class="text-[12px] text-muted mt-4 text-center">Чтобы добавить гостя — откройте его карточку и выберите стол</p>
-      </div>
-    </div>`;
-
-  document.body.appendChild(backdrop);
-  document.body.appendChild(sheet);
-
-  function close() {
-    sheet.classList.remove('open');
-    backdrop.classList.remove('open');
-    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 400);
-    document.removeEventListener('keydown', onEsc);
-  }
-  function onEsc(e) { if (e.key === 'Escape') close(); }
-  backdrop.onclick = close;
-  document.addEventListener('keydown', onEsc);
-  let startY = 0;
-  sheet.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
-  sheet.addEventListener('touchmove', e => { if (e.touches[0].clientY - startY > 60) close(); }, { passive: true });
-
-  sheet.querySelectorAll('[data-unassign]').forEach(btn => {
-    btn.addEventListener('click', async () => {
-      const gid = parseInt(btn.getAttribute('data-unassign'));
-      const g   = allGuests.find(x => x.id === gid);
-      if (!g) return;
-      try {
-        const updated = await api('PUT', `/api/organizer/events/${eventId}/guests/${gid}`, {
-          name: g.name, phone: g.phone || null, notes: g.notes || null,
-          side: g.side || 'SHARED', relatedToId: g.relatedToId ?? null,
-          relationType: g.relationType ?? null,
-          rsvpStatus: g.rsvpStatus ?? null,
-          tableId: null,
-        });
-        allGuests = allGuests.map(x => x.id === gid ? updated : x);
-        allTables = allTables.map(t => t.id === table.id ? { ...t, guestCount: Math.max(0, (t.guestCount || 1) - 1) } : t);
-        window._allGuestsRef = allGuests;
-        syncAllCaches();
-        close();
-        renderTables();
-        toast('Гость откреплён от стола');
-      } catch (err) {
-        toast(err.message || 'Ошибка', false);
-      }
-    });
-  });
-
-  requestAnimationFrame(() => { backdrop.classList.add('open'); sheet.classList.add('open'); });
-}
 
 function confirmDeleteTable(table) {
   document.getElementById('confirmTableBackdrop')?.remove();
@@ -1287,17 +1573,36 @@ function wireTabs() {
 }
 
 function wireTablesContainer() {
-  document.getElementById('tables-list').addEventListener('click', e => {
+  const container = document.getElementById('tables-list');
+  container.addEventListener('click', e => {
     const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    const tableId = parseInt(btn.getAttribute('data-table-id'));
-    const table   = allTables.find(t => t.id === tableId);
-    if (!table) return;
-    const act = btn.getAttribute('data-action');
-    if (act === 'edit-table')   { e.stopPropagation(); window.openTableSheet(table); }
-    else if (act === 'delete-table') { e.stopPropagation(); confirmDeleteTable(table); }
-    else if (act === 'table-detail') openTableDetail(table);
+    if (btn) {
+      const act = btn.getAttribute('data-action');
+      if (act === 'assign-guests') {
+        e.stopPropagation();
+        openAssignSheet(parseInt(btn.getAttribute('data-table-id')));
+        return;
+      }
+      if (act === 'edit-table' || act === 'delete-table') {
+        e.stopPropagation();
+        const tableId = parseInt(btn.getAttribute('data-table-id'));
+        const table   = allTables.find(t => t.id === tableId);
+        if (!table) return;
+        if (act === 'edit-table') window.openTableSheet(table);
+        else confirmDeleteTable(table);
+        return;
+      }
+    }
+    const chip = e.target.closest('.guest-chip[data-guest-id]');
+    if (chip) {
+      const gid = parseInt(chip.getAttribute('data-guest-id'));
+      const fromTableRaw = chip.getAttribute('data-from-table');
+      const fromTableId = fromTableRaw ? parseInt(fromTableRaw) : null;
+      const g = allGuests.find(x => x.id === gid);
+      if (g) openChipActions(g, fromTableId);
+    }
   });
+  wireDragAndDrop();
 }
 
 window.openCurrentAddSheet = function () {
