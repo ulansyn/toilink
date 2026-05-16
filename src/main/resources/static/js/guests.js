@@ -114,10 +114,44 @@ function chipFor(status) {
   }
 }
 
+// Static color palette by index — keeps chip colors stable per group.
+const GROUP_CHIP_PALETTES = [
+  { bg: '#E8EEFF', fg: '#2F4DAF' },
+  { bg: '#FFE8F5', fg: '#C71F5C' },
+  { bg: '#E6F4EA', fg: '#1A6E3A' },
+  { bg: '#FFF1E0', fg: '#8A4A20' },
+  { bg: '#F3E7F0', fg: '#70345A' },
+];
+
+function getGuestGroupsArr(event) {
+  if (!event?.guestGroups) return [];
+  if (Array.isArray(event.guestGroups)) return event.guestGroups;
+  try {
+    const parsed = JSON.parse(event.guestGroups);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+function findGroupByCode(code) {
+  const groups = getGuestGroupsArr(eventData);
+  return groups.find(g => g && g.code === code) || null;
+}
+
 function sideChip(side) {
-  if (side === 'GROOM') return `<span class="chip-sm" style="background:#E8EEFF; color:#2F4DAF; font-size:10px;">Жених</span>`;
-  if (side === 'BRIDE') return `<span class="chip-sm" style="background:#FFE8F5; color:#C71F5C; font-size:10px;">Невеста</span>`;
-  return '';
+  if (!side) return '';
+  // Legacy values (GROOM/BRIDE/SHARED/OTHER) — backward compat for old guests.
+  const legacy = { GROOM: 'Жених', BRIDE: 'Невеста' };
+  let label = legacy[side];
+  let idx = side === 'GROOM' ? 0 : side === 'BRIDE' ? 1 : null;
+  if (!label) {
+    const group = findGroupByCode(side);
+    if (!group) return '';
+    label = group.label || group.code;
+    const groups = getGuestGroupsArr(eventData);
+    idx = groups.findIndex(g => g.code === side);
+  }
+  const palette = GROUP_CHIP_PALETTES[(idx ?? 0) % GROUP_CHIP_PALETTES.length];
+  return `<span class="chip-sm" style="background:${palette.bg}; color:${palette.fg}; font-size:10px;">${escapeHtml(label)}</span>`;
 }
 
 function relationLabel(g) {
@@ -217,7 +251,85 @@ function renderStats() {
       <span class="num">${c.num}</span>
     </button>`).join('');
 
+  renderGroupStats();
   observeFadeIn();
+}
+
+// Per-group counters: rendered only when event has guestGroups defined.
+function renderGroupStats() {
+  const host = document.getElementById('group-stats');
+  if (!host) return;
+  const groups = getGuestGroupsArr(eventData);
+  if (groups.length === 0) {
+    host.classList.add('hidden');
+    host.innerHTML = '';
+    return;
+  }
+
+  // Always show "Без группы" as a trailing bucket for guests with empty side
+  const rows = [
+    ...groups.filter(g => g && g.code).map((g, i) => ({
+      code: g.code,
+      label: g.label || g.code,
+      palette: GROUP_CHIP_PALETTES[i % GROUP_CHIP_PALETTES.length],
+    })),
+    { code: '__empty__', label: 'Без группы', palette: { bg: '#F0EBE3', fg: '#6B6056' } },
+  ];
+
+  const counters = rows.map(row => {
+    let attending = 0, declined = 0, maybe = 0, noReply = 0, total = 0;
+    const matchesLegacy = (side) => {
+      // Map legacy enum values to new codes for wedding events
+      if (side === 'GROOM') return row.code === 'groom';
+      if (side === 'BRIDE') return row.code === 'bride';
+      return false;
+    };
+    for (const g of allGuests) {
+      const side = g.side || '';
+      const isEmpty = !side || side === 'SHARED' || side === 'OTHER';
+      const inRow = row.code === '__empty__' ? isEmpty
+        : (side === row.code || matchesLegacy(side));
+      if (!inRow) continue;
+      total++;
+      if (g.rsvpStatus === 'ATTENDING') attending++;
+      else if (g.rsvpStatus === 'DECLINED') declined++;
+      else if (g.rsvpStatus === 'MAYBE') maybe++;
+      else noReply++;
+    }
+    return { ...row, total, attending, declined, maybe, noReply };
+  });
+
+  // Hide entirely if all rows are empty (event has groups defined but no matching guests yet).
+  if (counters.every(c => c.total === 0)) {
+    host.classList.add('hidden');
+    host.innerHTML = '';
+    return;
+  }
+
+  host.classList.remove('hidden');
+  host.innerHTML = `
+    <div class="rounded-2xl border border-line bg-paper p-4 md:p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <div class="font-cormorant italic text-[20px] md:text-[22px] font-semibold text-ink">По группам</div>
+        <div class="text-[11px] text-muted">Распределение гостей</div>
+      </div>
+      <div class="flex flex-col gap-2">
+        ${counters.filter(c => c.total > 0 || c.code !== '__empty__').map(c => `
+          <div class="flex items-center justify-between gap-3 py-2 px-3 rounded-xl bg-white border border-line">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="chip-sm" style="background:${c.palette.bg}; color:${c.palette.fg};">${escapeHtml(c.label)}</span>
+              <span class="text-[12px] text-muted">всего ${c.total}</span>
+            </div>
+            <div class="flex items-center gap-3 text-[12px] whitespace-nowrap">
+              <span style="color:#1A6E3A;">✓ ${c.attending}</span>
+              <span style="color:#C71F5C;">✕ ${c.declined}</span>
+              <span style="color:#7C5520;">? ${c.noReply + c.maybe}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
 }
 
 function setFilter(key) {
@@ -886,15 +998,6 @@ function applyEventMeta(event) {
 }
 
 // ─── Share links section ──────────────────────────────────────────────────────
-function parseGuestGroups(event) {
-  if (!event?.guestGroups) return [];
-  if (Array.isArray(event.guestGroups)) return event.guestGroups;
-  try {
-    const parsed = JSON.parse(event.guestGroups);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch { return []; }
-}
-
 function renderShareLinks(event) {
   const host = document.getElementById('share-links');
   if (!host) return;
@@ -903,7 +1006,7 @@ function renderShareLinks(event) {
     host.innerHTML = '';
     return;
   }
-  const groups = parseGuestGroups(event);
+  const groups = getGuestGroupsArr(event);
   const baseUrl = `${location.origin}/e/${event.slug}`;
   // Always include the общая link at the end
   const items = [
