@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import tools.jackson.databind.ObjectMapper;
@@ -67,11 +68,40 @@ public class AdminController {
                 rsvpResponseRepository.countByRespondedAtAfter(todayStart),
                 rsvpResponseRepository.countByRespondedAtAfter(weekStart),
                 templateRepository.countByIsActiveTrue(),
-                paymentRepository.countByStatus("AWAITING_CONFIRMATION") + paymentRepository.countByStatus("PENDING"),
+                paymentRepository.countByStatusIn(List.of("AWAITING_CONFIRMATION", "PENDING")),
+                paymentRepository.countByStatus("CONFIRMED"),
                 paymentRepository.countByStatusAndCreatedAtAfter("CONFIRMED", todayStart),
                 paymentRepository.sumConfirmed(),
                 paymentRepository.sumConfirmedAfter(todayStart)
         );
+    }
+
+    @GetMapping("/dashboard/chart")
+    public List<Map<String, Object>> revenueChart(@RequestParam(defaultValue = "30") int days) {
+        LocalDateTime since = LocalDate.now().minusDays(days - 1).atStartOfDay();
+        List<Object[]> rows = paymentRepository.dailyRevenue(since);
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(Map.of(
+                "date", row[0].toString(),
+                "revenue", ((Number) row[1]).doubleValue(),
+                "count", ((Number) row[2]).longValue()
+            ));
+        }
+        return result;
+    }
+
+    @GetMapping("/dashboard/payment-methods")
+    public List<Map<String, Object>> paymentMethods() {
+        List<Object[]> rows = paymentRepository.methodBreakdown();
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(Map.of(
+                "method", row[0].toString(),
+                "count", ((Number) row[1]).longValue()
+            ));
+        }
+        return result;
     }
 
     @GetMapping("/users")
@@ -312,6 +342,13 @@ public class AdminController {
         if (externalRef != null) payment.setExternalRef(externalRef);
         if (body != null && body.notes() != null) payment.setNotes(body.notes());
         paymentRepository.save(payment);
+
+        Event linkedEvent = payment.getEvent();
+        if (linkedEvent != null && "DRAFT".equals(linkedEvent.getStatus())) {
+            linkedEvent.setStatus("PUBLISHED");
+            eventRepository.save(linkedEvent);
+        }
+
         audit(admin, request, "PAYMENT_CONFIRM", "PAYMENT", id, body != null ? body.reason() : null);
         return AdminPaymentResponse.from(payment);
     }
@@ -477,6 +514,7 @@ public class AdminController {
             long rsvpsWeek,
             long templatesActive,
             long paymentsPending,
+            long paymentsConfirmedTotal,
             long paymentsConfirmedToday,
             BigDecimal revenueTotal,
             BigDecimal revenueToday

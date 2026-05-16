@@ -490,7 +490,7 @@ function buildLpCta(event, s, eventUrl) {
     return { tone: 'dark', eyebrow: 'Внимание', icon: ICONS.lock,
       title: 'Сайт пока не активирован',
       desc: 'Гости видят пустую страницу. Активируйте, чтобы они смогли подтвердить участие.',
-      cta: 'Активировать', href: '/paywall.html' };
+      cta: 'Активировать', href: `/paywall.html?event=${event.id}` };
   }
   if (total === 0) {
     return { tone: 'pink', eyebrow: 'Что дальше', icon: ICONS.users,

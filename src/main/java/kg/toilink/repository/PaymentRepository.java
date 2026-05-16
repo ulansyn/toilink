@@ -46,4 +46,27 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     long countByStatus(String status);
 
     long countByStatusAndCreatedAtAfter(String status, LocalDateTime after);
+
+    long countByStatusIn(List<String> statuses);
+
+    @Query(value = """
+            SELECT DATE(confirmed_at) AS day,
+                   COALESCE(SUM(amount), 0) AS revenue,
+                   COUNT(*) AS cnt
+            FROM payments
+            WHERE status = 'CONFIRMED'
+              AND confirmed_at >= :since
+            GROUP BY DATE(confirmed_at)
+            ORDER BY DATE(confirmed_at)
+            """, nativeQuery = true)
+    List<Object[]> dailyRevenue(@Param("since") LocalDateTime since);
+
+    @Query(value = """
+            SELECT COALESCE(method, 'other') AS method, COUNT(*) AS cnt
+            FROM payments
+            WHERE status = 'CONFIRMED'
+            GROUP BY method
+            ORDER BY cnt DESC
+            """, nativeQuery = true)
+    List<Object[]> methodBreakdown();
 }
