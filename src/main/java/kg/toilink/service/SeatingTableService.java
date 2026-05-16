@@ -1,11 +1,14 @@
 package kg.toilink.service;
 
+import kg.toilink.dto.request.BulkSeatingRequest;
 import kg.toilink.dto.request.CreateTableRequest;
 import kg.toilink.dto.request.UpdateTableRequest;
 import kg.toilink.dto.response.TableResponse;
 import kg.toilink.entity.Event;
+import kg.toilink.entity.Guest;
 import kg.toilink.entity.SeatingTable;
 import kg.toilink.entity.User;
+import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
@@ -14,8 +17,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,6 +76,40 @@ public class SeatingTableService {
         SeatingTable table = findTable(eventId, tableId);
         guestRepository.clearTableId(tableId);
         tableRepository.delete(table);
+    }
+
+    @Transactional
+    public void bulkAssign(Long eventId, BulkSeatingRequest req, String phone) {
+        verifyOwnership(eventId, phone);
+        if (req.assignments() == null || req.assignments().isEmpty()) return;
+
+        Set<Long> guestIds = new HashSet<>();
+        Set<Long> tableIds = new HashSet<>();
+        for (BulkSeatingRequest.Assignment a : req.assignments()) {
+            if (a.guestId() == null) throw new BadRequestException("guestId is required");
+            guestIds.add(a.guestId());
+            if (a.tableId() != null) tableIds.add(a.tableId());
+        }
+
+        List<Guest> guests = guestRepository.findAllByEventIdAndIdIn(eventId, guestIds);
+        if (guests.size() != guestIds.size())
+            throw new BadRequestException("Some guests do not belong to this event");
+
+        if (!tableIds.isEmpty()) {
+            List<SeatingTable> tables = tableRepository.findAllByEventIdOrderByCreatedAtAsc(eventId);
+            Set<Long> validTableIds = tables.stream().map(SeatingTable::getId).collect(Collectors.toSet());
+            for (Long tid : tableIds) {
+                if (!validTableIds.contains(tid))
+                    throw new BadRequestException("Table " + tid + " does not belong to event " + eventId);
+            }
+        }
+
+        Map<Long, Guest> byId = guests.stream().collect(Collectors.toMap(Guest::getId, g -> g));
+        for (BulkSeatingRequest.Assignment a : req.assignments()) {
+            Guest g = byId.get(a.guestId());
+            g.setTableId(a.tableId());
+        }
+        guestRepository.saveAll(guests);
     }
 
     private SeatingTable findTable(Long eventId, Long tableId) {

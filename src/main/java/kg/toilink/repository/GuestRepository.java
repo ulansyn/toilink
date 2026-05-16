@@ -49,4 +49,7 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
     @Modifying
     @Query("UPDATE Guest g SET g.tableId = NULL WHERE g.tableId = :tableId")
     void clearTableId(@Param("tableId") Long tableId);
+
+    @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.id IN :ids AND g.deletedAt IS NULL")
+    List<Guest> findAllByEventIdAndIdIn(@Param("eventId") Long eventId, @Param("ids") Collection<Long> ids);
 }
