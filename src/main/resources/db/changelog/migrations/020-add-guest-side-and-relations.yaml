@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 020-add-guest-side-and-relations
+      author: toilink
+      changes:
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: side
+                  type: varchar(20)
+                  defaultValue: SHARED
+                  constraints:
+                    nullable: false
+              - column:
+                  name: related_to_id
+                  type: bigint
+              - column:
+                  name: relation_type
+                  type: varchar(30)
+        - addForeignKeyConstraint:
+            baseTableName: guests
+            baseColumnNames: related_to_id
+            constraintName: fk_guests_related_to
+            referencedTableName: guests
+            referencedColumnNames: id
+            onDelete: SET NULL

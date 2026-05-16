@@ -11,6 +11,17 @@ function guestToken() {
   return new URLSearchParams(location.search).get('token');
 }
 
+function previewToken() {
+  return new URLSearchParams(location.search).get('preview');
+}
+
+function buildPublicEventApiUrl(currentSlug) {
+  const url = new URL(`${BASE_URL}/api/public/events/${currentSlug}`, location.origin);
+  const preview = previewToken();
+  if (preview) url.searchParams.set('preview', preview);
+  return url.toString();
+}
+
 function formatDate(iso) {
   if (!iso) return null;
   const d = new Date(iso);
@@ -34,11 +45,16 @@ function observeFadeIn() {
 }
 
 // ─── Countdown ────────────────────────────────────────────────────────────────
+let _countdownTimer = null;
 function startCountdown(iso, container) {
   const target = new Date(iso).getTime();
   function tick() {
     const diff = target - Date.now();
-    if (diff <= 0) { container.innerHTML = '<span class="text-sage">Событие началось!</span>'; return; }
+    if (diff <= 0) {
+      container.innerHTML = '<span class="text-sage">Событие началось!</span>';
+      if (_countdownTimer) { clearInterval(_countdownTimer); _countdownTimer = null; }
+      return;
+    }
     const d = Math.floor(diff / 86400000);
     const h = Math.floor((diff % 86400000) / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
@@ -53,9 +69,14 @@ function startCountdown(iso, container) {
         `).join('<div class="font-cormorant text-3xl text-sage self-start mt-1">·</div>')}
       </div>`;
   }
+  if (_countdownTimer) clearInterval(_countdownTimer);
   tick();
-  setInterval(tick, 1000);
+  _countdownTimer = setInterval(tick, 1000);
 }
+
+window.addEventListener('pagehide', () => {
+  if (_countdownTimer) { clearInterval(_countdownTimer); _countdownTimer = null; }
+});
 
 // ─── Block renderers ──────────────────────────────────────────────────────────
 const blockRenderers = {
@@ -160,13 +181,19 @@ function renderRsvp(event) {
   const container = document.getElementById('rsvp');
   if (!container) return;
 
+  const isDraft = event.status === 'DRAFT';
   const isClosed = event.status === 'CLOSED';
   const deadlinePassed = event.rsvpDeadline && new Date(event.rsvpDeadline) < new Date();
 
-  if (isClosed || deadlinePassed) {
+  if (isDraft || isClosed || deadlinePassed) {
+    const title = isDraft ? 'Предпросмотр приглашения' : 'Приём ответов завершён';
+    const subtitle = isDraft
+      ? 'Событие ещё не опубликовано, поэтому ответы гостей пока отключены.'
+      : 'Спасибо за внимание к приглашению.';
     container.innerHTML = `
       <div class="text-center py-6 text-[#1E2820]/40">
-        <p class="text-lg">Приём ответов завершён</p>
+        <p class="text-lg">${title}</p>
+        <p class="text-sm mt-2">${subtitle}</p>
       </div>`;
     return;
   }
@@ -237,9 +264,9 @@ window.selectStatus = function(status) {
   });
   const active = document.getElementById('btn-' + status);
   if (active) {
-    const cls = active.dataset.activeClass.split(' ');
+    const cls = (active.dataset.activeClass || '').split(' ').filter(Boolean);
     active.classList.remove('border-[#E5E0D8]', 'text-[#1E2820]/60');
-    active.classList.add(...cls);
+    if (cls.length) active.classList.add(...cls);
   }
 };
 
@@ -250,13 +277,17 @@ window.submitRsvp = async function(slug) {
   }
   const name = document.getElementById('rsvp-name')?.value?.trim() || null;
   const comment = document.getElementById('rsvp-comment')?.value?.trim() || null;
+  const savedToken = (() => {
+    try { return localStorage.getItem(`rsvp:${slug}:token`); } catch (_) { return null; }
+  })();
+  const token = guestToken() || savedToken || null;
 
   try {
     const res = await fetch(`${BASE_URL}/api/public/events/${slug}/rsvp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        guestToken: guestToken() || null,
+        guestToken: token,
         name,
         status: selectedStatus,
         groupSize,
@@ -264,6 +295,10 @@ window.submitRsvp = async function(slug) {
       }),
     });
     if (!res.ok) throw new Error((await res.json()).message || 'Ошибка');
+    const data = await res.json().catch(() => ({}));
+    if (data.guestToken) {
+      try { localStorage.setItem(`rsvp:${slug}:token`, data.guestToken); } catch (_) {}
+    }
     showConfirmation(selectedStatus);
   } catch (e) {
     showToast(e.message);
@@ -307,7 +342,7 @@ function renderEventMeta(event) {
 async function init() {
   const s = slug();
   try {
-    const res = await fetch(`${BASE_URL}/api/public/events/${s}`);
+    const res = await fetch(buildPublicEventApiUrl(s));
     if (!res.ok) { renderError(); return; }
     const event = await res.json();
     renderEventMeta(event);

@@ -24,7 +24,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;700&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;700&display=block"
         rel="stylesheet">
 
     <!-- Template CSS -->
@@ -248,6 +248,21 @@
         var rawDate = /*[[${eventDate}]]*/ '';
         var rawBlocksConfig = /*[[${eventBlocksConfig}]]*/ '{}';
         var eventSlug = /*[[${eventSlug}]]*/ '';
+        var eventStatus = /*[[${eventStatus}]]*/ '';
+        var rsvpDeadline = /*[[${eventRsvpDeadline}]]*/ '';
+        var rawGuestGroups = /*[[${eventGuestGroups}]]*/ '[]';
+        var prefilledGroupCode = /*[[${prefilledGroupCode}]]*/ '';
+
+        var guestGroups = [];
+        try { guestGroups = JSON.parse(rawGuestGroups) || []; } catch(e) {}
+
+        window.EVENT_META = {
+            slug: eventSlug,
+            status: eventStatus,
+            rsvpDeadline: rsvpDeadline,
+            guestGroups: guestGroups,
+            prefilledGroupCode: prefilledGroupCode || null
+        };
 
         var blocksConfig = {};
         try { blocksConfig = JSON.parse(rawBlocksConfig); } catch(e) {}
@@ -346,6 +361,7 @@
             rsvp: {
                 heading: 'Анкета гостя',
                 subtitle: 'Пожалуйста, подтвердите ваше присутствие',
+                allowCompanion: rsvp.allowCompanion !== false,
                 fields: {
                     name: { label: 'Ваше имя и фамилия', placeholder: 'Введите здесь...', required: true },
                     presence: { label: 'Ваш ответ', yesText: 'Я приду', yesEmoji: '', noText: 'Не смогу', noEmoji: '' },

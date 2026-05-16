@@ -262,6 +262,39 @@ class WeddingRenderer {
     const container = document.querySelector('[data-render="rsvp"]');
     if (!container) return;
     const rsvp = this.config.rsvp;
+
+    // Check if event is closed for responses (skip in editor preview)
+    const meta = window.EVENT_META;
+    if (meta && !window.__IS_PREVIEW) {
+      const deadlinePassed = meta.rsvpDeadline && new Date(meta.rsvpDeadline) < new Date();
+      if (meta.status === 'DRAFT' || meta.status === 'CLOSED' || deadlinePassed) {
+        const title = meta.status === 'DRAFT' ? 'Предпросмотр приглашения' : 'Приём ответов завершён';
+        const subtitle = meta.status === 'DRAFT'
+          ? 'Событие ещё не опубликовано, поэтому ответы гостей пока отключены.'
+          : 'Спасибо за внимание к приглашению.';
+        container.innerHTML = `
+          <div class="rsvp-form-wrap" style="text-align:center; padding: 40px 20px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">🕊️</div>
+            <h2 class="rsvp-heading" style="margin-bottom: 12px;">${title}</h2>
+            <p class="rsvp-subtitle" style="opacity: 0.75;">${subtitle}</p>
+          </div>
+        `;
+        return;
+      }
+    }
+    const allowCompanion = rsvp.allowCompanion !== false; // default true on wedding template
+    const companionFieldHtml = allowCompanion ? `
+          <div class="rsvp-field rsvp-companion-toggle">
+            <label class="rsvp-checkbox-row">
+              <input type="checkbox" id="rsvp-companion" name="with_companion">
+              <span>Со мной супруг(а)</span>
+            </label>
+          </div>
+          <div class="rsvp-field rsvp-field--floating rsvp-companion-name" id="rsvp-companion-wrap" style="display:none;">
+            <input type="text" id="rsvp-spouse" class="rsvp-input" placeholder=" " name="spouse_name" maxlength="100">
+            <label class="rsvp-floating-label" for="rsvp-spouse">Имя супруга/и</label>
+          </div>` : '';
+
     container.innerHTML = `
       <div class="rsvp-form-wrap">
         <h2 class="rsvp-heading">${rsvp.heading}</h2>
@@ -270,6 +303,11 @@ class WeddingRenderer {
           <div class="rsvp-field rsvp-field--floating">
             <input type="text" id="rsvp-name" class="rsvp-input" placeholder=" " name="name" ${rsvp.fields.name.required ? 'required' : ''}>
             <label class="rsvp-floating-label" for="rsvp-name">${rsvp.fields.name.label}</label>
+          </div>
+
+          <div class="rsvp-field rsvp-field--floating">
+            <input type="tel" id="rsvp-phone" class="rsvp-input" placeholder=" " name="phone" autocomplete="tel" inputmode="tel" maxlength="20">
+            <label class="rsvp-floating-label" for="rsvp-phone">Телефон</label>
           </div>
 
           <div class="rsvp-field rsvp-presence-field">
@@ -286,10 +324,7 @@ class WeddingRenderer {
             </div>
           </div>
 
-          <div class="rsvp-field rsvp-field--floating">
-            <input type="number" id="rsvp-guest" class="rsvp-input" min="1" max="10" placeholder=" " name="guest_count">
-            <label class="rsvp-floating-label" for="rsvp-guest">${rsvp.fields.guestCount.label}</label>
-          </div>
+          ${companionFieldHtml}
 
           <div class="rsvp-field rsvp-field--floating">
             <textarea id="rsvp-message" class="rsvp-input rsvp-textarea" placeholder=" " name="message"></textarea>
@@ -350,22 +385,32 @@ class WeddingRenderer {
     const wrap = container.querySelector('.rsvp-form-wrap');
     const success = container.querySelector('.rsvp-success');
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
+    // Show/hide spouse name field based on companion checkbox
+    const companionCb = form.querySelector('#rsvp-companion');
+    const companionWrap = form.querySelector('#rsvp-companion-wrap');
+    if (companionCb && companionWrap) {
+      companionCb.addEventListener('change', () => {
+        companionWrap.style.display = companionCb.checked ? '' : 'none';
+        if (!companionCb.checked) {
+          const sp = companionWrap.querySelector('#rsvp-spouse');
+          if (sp) sp.value = '';
+        }
+      });
+    }
 
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
 
       let isValid = true;
       form.querySelectorAll('[required]').forEach(input => {
         if (!input.value.trim()) {
           isValid = false;
           input.parentElement.classList.add('has-error');
-
           input.addEventListener('input', () => input.parentElement.classList.remove('has-error'), { once: true });
         }
       });
 
       if (!isValid) {
-
         form.classList.add('form-shake');
         setTimeout(() => form.classList.remove('form-shake'), 500);
         return;
@@ -373,23 +418,94 @@ class WeddingRenderer {
 
       const btn = form.querySelector('.rsvp-button');
       if (btn.classList.contains('is-loading')) return;
-
-
       btn.classList.add('is-loading');
 
-
-      const data = new FormData(form);
-      if (rsvp.formAction && rsvp.formAction !== '#') {
-        fetch(rsvp.formAction, { method: rsvp.method || 'POST', body: data }).catch(() => { });
-      }
-
-
-      setTimeout(() => {
+      const showSuccess = () => {
         wrap.classList.add('is-hidden');
         success.classList.add('is-visible');
         this.startRSVPCountdown();
-      }, 1500);
+      };
+
+      // Editor preview: fake success, don't hit backend
+      if (window.__IS_PREVIEW) {
+        setTimeout(showSuccess, 1000);
+        return;
+      }
+
+      const meta = window.EVENT_META || {};
+      const slug = meta.slug;
+      if (!slug) {
+        btn.classList.remove('is-loading');
+        this._showRsvpError(form, 'Не удалось определить событие');
+        return;
+      }
+
+      const presence = form.querySelector('[name="presence"]:checked')?.value || 'yes';
+      const status = presence === 'yes' ? 'ATTENDING' : 'DECLINED';
+      const name = form.querySelector('[name="name"]')?.value?.trim() || null;
+      const phone = form.querySelector('[name="phone"]')?.value?.trim() || null;
+      const withCompanion = !!form.querySelector('#rsvp-companion')?.checked;
+      const spouseName = withCompanion
+        ? (form.querySelector('[name="spouse_name"]')?.value?.trim() || null)
+        : null;
+      const comment = form.querySelector('[name="message"]')?.value?.trim() || null;
+      const groupCode = (meta.prefilledGroupCode || '').trim() || null;
+
+      // Token priority: URL param (personal invite) > localStorage (repeat anonymous visit)
+      const urlToken = new URLSearchParams(location.search).get('token') || null;
+      const savedToken = localStorage.getItem(`rsvp:${slug}:token`);
+      const token = urlToken || savedToken || null;
+
+      try {
+        const res = await fetch(`/api/public/events/${encodeURIComponent(slug)}/rsvp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            guestToken: token,
+            name,
+            phone,
+            groupCode,
+            spouseName,
+            status,
+            comment
+          })
+        });
+        if (!res.ok) {
+          let msg = 'Не удалось отправить ответ';
+          try {
+            const body = await res.json();
+            if (body && body.message) msg = body.message;
+          } catch (_) {}
+          throw new Error(msg);
+        }
+
+        // Save guestToken from response so repeat visits update the same guest
+        try {
+          const data = await res.json();
+          if (data.guestToken) {
+            localStorage.setItem(`rsvp:${slug}:token`, data.guestToken);
+          }
+        } catch (_) {}
+
+        showSuccess();
+      } catch (err) {
+        btn.classList.remove('is-loading');
+        this._showRsvpError(form, err.message || 'Ошибка отправки');
+      }
     });
+  }
+
+  _showRsvpError(form, message) {
+    let errEl = form.querySelector('.rsvp-error');
+    if (!errEl) {
+      errEl = document.createElement('p');
+      errEl.className = 'rsvp-error';
+      errEl.style.cssText = 'color:#b33030; text-align:center; margin-top:12px; font-size:14px;';
+      form.appendChild(errEl);
+    }
+    errEl.textContent = message;
+    form.classList.add('form-shake');
+    setTimeout(() => form.classList.remove('form-shake'), 500);
   }
 
   startRSVPCountdown() {

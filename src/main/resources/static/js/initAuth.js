@@ -1,14 +1,33 @@
 /**
  * initAuth — shared auth overlay module
  *
- * Checks localStorage for 'tl_phone'. If absent, renders a full-screen
- * onboarding overlay and returns a Promise that resolves with the phone
- * once the user submits a valid number.
+ * Checks the server session. If absent, renders a full-screen onboarding
+ * overlay and returns a Promise that resolves with the phone after login.
  */
+let _authPromise = null;
 window.initAuth = function () {
-  return new Promise((resolve) => {
-    const stored = localStorage.getItem('tl_phone');
-    if (stored) { resolve(stored); return; }
+  if (_authPromise) return _authPromise;
+  _authPromise = new Promise((resolve) => {
+    const done = (phone) => {
+      resolve(phone);
+    };
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.phone) {
+          try { localStorage.setItem('tl_phone', data.phone); } catch (_) {}
+          done(data.phone);
+          return;
+        }
+        startOverlay(done);
+      })
+      .catch(() => startOverlay(done));
+  });
+  return _authPromise;
+};
+
+function startOverlay(resolve) {
+    if (document.getElementById('auth-overlay')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'auth-overlay';
@@ -83,47 +102,81 @@ window.initAuth = function () {
           />
           <label for="auth-phone-input" class="m3-lbl">Номер телефона</label>
         </div>
+        <div class="m3-input-wrap" style="margin-bottom: 16px;">
+          <input
+            id="auth-password-input"
+            type="password"
+            autocomplete="current-password"
+            placeholder="Пароль"
+            class="m3-inp"
+          />
+          <label for="auth-password-input" class="m3-lbl">Пароль</label>
+        </div>
         <p id="auth-error" style="font-size: 12px; color: #ef4444; margin: -8px 0 12px 4px; display: none;">
           Введите корректный номер (минимум 7 цифр)
         </p>
 
-        <button id="auth-submit" class="auth-btn">Продолжить</button>
-
-        <p style="font-size: 11px; color: #1E2820; opacity: 0.3; text-align: center; margin-top: 16px; line-height: 1.6;">
-          Номер используется только для идентификации.<br/>SMS не отправляется.
-        </p>
+        <button id="auth-submit" class="auth-btn">Войти</button>
       </div>`;
 
     document.body.appendChild(overlay);
 
-    const input = overlay.querySelector('#auth-phone-input');
-    const btn   = overlay.querySelector('#auth-submit');
-    const err   = overlay.querySelector('#auth-error');
+    const input    = overlay.querySelector('#auth-phone-input');
+    const passInput = overlay.querySelector('#auth-password-input');
+    const btn      = overlay.querySelector('#auth-submit');
+    const err      = overlay.querySelector('#auth-error');
 
     requestAnimationFrame(() => input.focus());
 
-    function validate(val) {
-      return val && val.replace(/\D/g, '').length >= 7;
-    }
-
-    function submit() {
-      const val = input.value.trim();
-      if (!validate(val)) {
+    async function submit() {
+      const phone = input.value.trim();
+      if (!phone || phone.replace(/\D/g, '').length < 7) {
+        err.textContent = 'Введите корректный номер (минимум 7 цифр)';
         err.style.display = 'block';
         input.style.borderBottomColor = '#fca5a5';
         return;
       }
+      const password = passInput.value;
+      if (password.length < 4) {
+        err.textContent = 'Пароль минимум 4 символа';
+        err.style.display = 'block';
+        passInput.style.borderBottomColor = '#fca5a5';
+        return;
+      }
+
       err.style.display = 'none';
-      localStorage.setItem('tl_phone', val);
-      overlay.style.opacity = '0';
-      setTimeout(() => { overlay.remove(); resolve(val); }, 400);
+      btn.disabled = true;
+      btn.textContent = '...';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ phone, password }),
+          credentials: 'include',
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          err.textContent = data.message || 'Неверный пароль';
+          err.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Войти';
+          return;
+        }
+        try { localStorage.setItem('tl_phone', phone); } catch (_) {}
+        overlay.style.opacity = '0';
+        setTimeout(() => { overlay.remove(); resolve(phone); }, 400);
+      } catch (_) {
+        err.textContent = 'Ошибка соединения';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Войти';
+      }
     }
 
     btn.addEventListener('click', submit);
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
-    input.addEventListener('input', () => {
-      err.style.display = 'none';
-      input.style.borderBottomColor = '';
-    });
-  });
-};
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') passInput.focus(); });
+    passInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); });
+    input.addEventListener('input', () => { err.style.display = 'none'; input.style.borderBottomColor = ''; });
+    passInput.addEventListener('input', () => { err.style.display = 'none'; passInput.style.borderBottomColor = ''; });
+}

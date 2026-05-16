@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 023-add-event-guest-groups
+      author: toilink
+      changes:
+        - addColumn:
+            tableName: events
+            columns:
+              - column:
+                  name: guest_groups
+                  type: jsonb
+                  defaultValueComputed: "'[]'::jsonb"
+                  constraints:
+                    nullable: false
+        - modifyDataType:
+            tableName: guests
+            columnName: side
+            newDataType: varchar(30)
+        - sql:
+            comment: "Seed default guest groups for wedding events (template-1)"
+            sql: |
+              UPDATE events e
+              SET guest_groups = '[
+                {"code":"groom","label":"Сторона жениха"},
+                {"code":"bride","label":"Сторона невесты"}
+              ]'::jsonb
+              FROM templates t
+              WHERE e.template_id = t.id
+                AND t.template_path = 'template-1'
+                AND (e.guest_groups IS NULL OR e.guest_groups = '[]'::jsonb);

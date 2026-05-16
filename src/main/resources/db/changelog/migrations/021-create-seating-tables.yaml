@@ -1,0 +1,53 @@
+databaseChangeLog:
+  - changeSet:
+      id: 021-create-seating-tables
+      author: toilink
+      changes:
+        - createTable:
+            tableName: seating_tables
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: event_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: capacity
+                  type: integer
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: seating_tables
+            baseColumnNames: event_id
+            constraintName: fk_seating_tables_event
+            referencedTableName: events
+            referencedColumnNames: id
+            onDelete: CASCADE
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: table_id
+                  type: bigint
+        - addForeignKeyConstraint:
+            baseTableName: guests
+            baseColumnNames: table_id
+            constraintName: fk_guests_table
+            referencedTableName: seating_tables
+            referencedColumnNames: id
+            onDelete: SET NULL

@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>ToiLink — Активация сайта</title>
+    <meta name="description" content="Оплата и активация готового сайта ToiLink"/>
+    <meta name="theme-color" content="#FFF8FB"/>
+
+    <link rel="icon" type="image/webp" href="/images/logo.webp"/>
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
+    <link rel="stylesheet" href="/css/tokens.css"/>
+    <link rel="stylesheet" href="/css/base.css"/>
+
+    <style>
+        :root {
+            --pink: var(--color-accent);
+            --orange: var(--color-accent-2);
+            --ink: var(--color-text);
+            --muted: var(--color-text-secondary);
+            --soft: var(--color-text-muted);
+            --line: rgba(249, 59, 122, 0.13);
+            --green: #16A45A;
+            --whatsapp: #25D366;
+            --cream: #FFF8FB;
+        }
+
+        html,
+        body {
+            min-height: 100dvh;
+            background: var(--cream);
+            color: var(--ink);
+            font-family: var(--font-sans);
+        }
+
+        body {
+            background-image:
+                radial-gradient(900px 420px at 50% -180px, rgba(249, 59, 122, 0.10), transparent 68%),
+                radial-gradient(720px 360px at 96% 32%, rgba(255, 109, 69, 0.05), transparent 70%);
+        }
+
+        .page {
+            min-height: 100dvh;
+            overflow-x: hidden;
+        }
+
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            height: 64px;
+            background: rgba(255, 248, 251, 0.86);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(249, 59, 122, 0.10);
+        }
+
+        .topbar-inner {
+            max-width: 72rem;
+            height: 100%;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.55rem;
+            font-weight: 800;
+            letter-spacing: 0;
+        }
+
+        .brand img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .ghost-btn,
+        .support-btn {
+            min-height: 2.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.45rem;
+            border-radius: 999px;
+            color: var(--muted);
+            font-size: 0.875rem;
+            font-weight: 650;
+            transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+        }
+
+        .ghost-btn {
+            padding-right: 0.75rem;
+        }
+
+        .support-btn {
+            padding: 0 1rem;
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(249, 59, 122, 0.14);
+            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.04);
+        }
+
+        .ghost-btn:hover,
+        .support-btn:hover {
+            color: var(--pink);
+        }
+
+        .shell {
+            width: 100%;
+            max-width: 72rem;
+            margin: 0 auto;
+            padding: 1.35rem 1.25rem calc(2.5rem + env(safe-area-inset-bottom, 0px));
+            position: relative;
+        }
+
+        .hero {
+            text-align: center;
+            max-width: 41rem;
+            margin: 0 auto;
+        }
+
+        .rating-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #fff;
+            border: 1px solid rgba(249, 59, 122, 0.14);
+            box-shadow: 0 4px 14px rgba(249, 59, 122, 0.04);
+            border-radius: 999px;
+            padding: 0.4rem 0.9rem;
+            color: var(--ink);
+            font-size: 0.75rem;
+            font-weight: 650;
+        }
+
+        .stars {
+            color: var(--pink);
+            font-size: 0.7rem;
+            letter-spacing: 0.06rem;
+        }
+
+        .divider {
+            color: #E5E7EB;
+        }
+
+        h1 {
+            margin-top: 1.25rem;
+            font-family: var(--font-serif);
+            font-size: clamp(2.35rem, 7.2vw, 4.55rem);
+            font-weight: 600;
+            line-height: 1.02;
+            letter-spacing: 0;
+        }
+
+        .grad-text {
+            background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+            font-style: italic;
+            font-weight: 600;
+        }
+
+        .hero-sub {
+            max-width: 34rem;
+            margin: 1rem auto 0;
+            color: var(--muted);
+            font-size: clamp(0.95rem, 2vw, 1.08rem);
+            line-height: 1.65;
+        }
+
+        .hero-checks {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.65rem 1.2rem;
+            margin-top: 1.25rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 650;
+        }
+
+        .hero-checks span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .hero-checks svg {
+            flex: 0 0 auto;
+        }
+
+        .activation-wrap {
+            position: relative;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 1rem;
+            margin-top: 1.75rem;
+        }
+
+        .phone-stage {
+            position: relative;
+            min-height: 24rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .phone-bg {
+            position: absolute;
+            width: 18rem;
+            height: 18rem;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #fdedf3 0%, #f8c8df 100%);
+            opacity: 0.46;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .float-card {
+            position: absolute;
+            z-index: 4;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(10px) saturate(140%);
+            -webkit-backdrop-filter: blur(10px) saturate(140%);
+            border: 1px solid rgba(249, 59, 122, 0.12);
+            box-shadow: 0 10px 24px rgba(249, 59, 122, 0.10);
+            border-radius: 1rem;
+            padding: 0.72rem;
+        }
+
+        .float-left {
+            left: max(0.5rem, 7%);
+            top: 3rem;
+            width: 7.8rem;
+        }
+
+        .float-right {
+            right: max(0.5rem, 5%);
+            bottom: 3.2rem;
+            width: 8.2rem;
+        }
+
+        .float-label {
+            color: var(--soft);
+            font-size: 0.68rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.07em;
+        }
+
+        .float-value {
+            margin-top: 0.2rem;
+            color: var(--ink);
+            font-size: 0.94rem;
+            font-weight: 800;
+            line-height: 1.18;
+        }
+
+        .float-accent {
+            color: var(--pink);
+        }
+
+        .phone {
+            position: relative;
+            z-index: 3;
+            width: 14.2rem;
+            height: 28.8rem;
+            border-radius: 3rem;
+            background:
+                linear-gradient(112deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 9%, transparent 17%),
+                linear-gradient(160deg, #414141 0%, #262626 16%, #070707 39%, #050505 58%, #202020 80%, #414141 100%);
+            padding: 0.35rem;
+            transform: rotateY(-10deg) rotateZ(4deg);
+            box-shadow: 0 24px 52px rgba(30, 40, 32, 0.18);
+        }
+
+        .phone-screen {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 2.65rem;
+            background: #FAF6F0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 3.6rem 1rem 1rem;
+        }
+
+        .island {
+            position: absolute;
+            top: 0.85rem;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4.35rem;
+            height: 1.35rem;
+            border-radius: 999px;
+            background: #111;
+        }
+
+        .screen-eyebrow {
+            color: #B08A48;
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .screen-title {
+            margin-top: 0.3rem;
+            color: #1A1A1A;
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1;
+        }
+
+        .screen-title span {
+            color: #B08A48;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .screen-date {
+            margin-top: 0.35rem;
+            color: #B08A48;
+            font-family: var(--font-serif);
+            font-style: italic;
+            font-size: 0.86rem;
+        }
+
+        .screen-monogram {
+            width: 7rem;
+            height: 7rem;
+            margin-top: 1.2rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #F5E8D8 0%, #ECE0CC 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #B08A48;
+            font-family: var(--font-serif);
+            font-size: 2.25rem;
+            font-weight: 600;
+            font-style: italic;
+            box-shadow: 0 0 0 5px #FAF6F0, 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        .screen-rsvp {
+            width: 100%;
+            margin-top: auto;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #C8A060 0%, #A87E40 100%);
+            color: #fff;
+            text-align: center;
+            padding: 0.78rem 0;
+            font-size: 0.82rem;
+            font-weight: 800;
+            box-shadow: 0 8px 20px rgba(185, 150, 80, 0.30);
+        }
+
+        .checkout-card {
+            position: relative;
+            z-index: 6;
+            border-radius: 1.5rem;
+            background: rgba(255,255,255,0.92);
+            border: 1px solid rgba(249, 59, 122, 0.12);
+            box-shadow: 0 16px 42px rgba(249, 59, 122, 0.10), 0 2px 12px rgba(30,40,32,0.04);
+            overflow: hidden;
+        }
+
+        .checkout-top {
+            position: relative;
+            padding: 1.35rem 1.35rem 1.15rem;
+            background: linear-gradient(180deg, #FFF7FA 0%, #FFFFFF 100%);
+            color: var(--ink);
+            overflow: hidden;
+        }
+
+        .checkout-top::before {
+            content: "";
+            position: absolute;
+            left: 1.35rem;
+            right: 1.35rem;
+            bottom: 0;
+            height: 1px;
+            background: rgba(249, 59, 122, 0.12);
+            pointer-events: none;
+        }
+
+        .checkout-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .ready-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-radius: 999px;
+            padding: 0.42rem 0.8rem;
+            background: rgba(249,59,122,0.08);
+            border: 1px solid rgba(249,59,122,0.14);
+            color: #C71F5C;
+            font-size: 0.78rem;
+            font-weight: 750;
+        }
+
+        .price-label {
+            margin-top: 1.1rem;
+            font-size: 0.86rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        .price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 0.55rem;
+            margin-top: 0.2rem;
+        }
+
+        .price {
+            font-size: 3.55rem;
+            line-height: 0.95;
+            font-weight: 850;
+            letter-spacing: 0;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
+
+        .currency {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .price-note {
+            margin-top: 0.55rem;
+            font-size: 0.86rem;
+            color: var(--muted);
+        }
+
+        .checkout-body {
+            padding: 1.15rem;
+        }
+
+        .qr-wrap {
+            display: grid;
+            grid-template-columns: 7.4rem minmax(0, 1fr);
+            gap: 0.9rem;
+            align-items: center;
+        }
+
+        .qr-box {
+            aspect-ratio: 1;
+            padding: 0.45rem;
+            border-radius: 1.15rem;
+            background: #fff;
+            border: 1px solid #F3E3E9;
+            box-shadow: 0 8px 22px rgba(30,40,32,0.06);
+        }
+
+        .qr-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            border-radius: 0.85rem;
+        }
+
+        .qr-fallback {
+            display: none;
+            height: 100%;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+            background: #FFF5F8;
+            border-radius: 0.85rem;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .pay-title {
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .pay-text {
+            margin-top: 0.38rem;
+            color: var(--muted);
+            font-size: 0.84rem;
+            line-height: 1.5;
+        }
+
+        .methods {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+            margin-top: 0.9rem;
+        }
+
+        .method {
+            min-height: 1.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.36rem;
+            padding: 0 0.65rem;
+            border: 1px solid #F0E0E7;
+            border-radius: 999px;
+            color: #4B5563;
+            font-size: 0.74rem;
+            font-weight: 750;
+            background: #fff;
+        }
+
+        .dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 50%;
+            background: var(--pink);
+        }
+
+        .method:nth-child(2) .dot { background: #FFD600; }
+        .method:nth-child(3) .dot { background: #00AEEF; }
+        .method:nth-child(4) .dot { background: #111827; }
+
+        .order-panel {
+            margin-top: 1rem;
+            border-radius: 1rem;
+            background: rgba(249,59,122,0.045);
+            border: 1px solid rgba(249,59,122,0.11);
+            padding: 0.9rem;
+        }
+
+        .order-title {
+            color: #C71F5C;
+            font-size: 0.86rem;
+            font-weight: 750;
+            line-height: 1.35;
+        }
+
+        .order-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-top: 0.65rem;
+            padding: 0.75rem;
+            border-radius: 0.85rem;
+            background: #fff;
+            border: 1px solid rgba(249,59,122,0.12);
+        }
+
+        .order-label {
+            color: var(--soft);
+            font-size: 0.68rem;
+            font-weight: 750;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .order-value {
+            margin-top: 0.08rem;
+            color: var(--ink);
+            font-size: 1.12rem;
+            font-weight: 800;
+        }
+
+        .copy-btn {
+            width: 2.65rem;
+            height: 2.65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.8rem;
+            background: #fff;
+            color: #6B7280;
+            border: 1px solid #E5E7EB;
+            transition: transform 170ms ease, color 170ms ease, border-color 170ms ease;
+        }
+
+        .copy-btn:hover {
+            color: var(--pink);
+            border-color: rgba(249,59,122,0.35);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.96);
+        }
+
+        .whatsapp-btn {
+            width: 100%;
+            min-height: 3.45rem;
+            margin-top: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            border-radius: 999px;
+            background: var(--whatsapp);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 800;
+            box-shadow: 0 10px 24px rgba(37,211,102,0.18);
+            transition: transform 180ms ease, box-shadow 180ms ease;
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(37,211,102,0.24);
+        }
+
+        .microcopy {
+            margin-top: 0.72rem;
+            color: var(--soft);
+            text-align: center;
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .steps-card {
+            margin-top: 1rem;
+            background: rgba(255,255,255,0.72);
+            border: 1px solid rgba(249,59,122,0.11);
+            border-radius: 1.25rem;
+            padding: 1.05rem;
+            box-shadow: 0 8px 24px rgba(249,59,122,0.06);
+        }
+
+        .steps-title {
+            font-size: 1rem;
+            font-weight: 750;
+        }
+
+        .steps {
+            display: grid;
+            gap: 0.85rem;
+            margin-top: 0.95rem;
+        }
+
+        .step {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            color: var(--muted);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .step-num {
+            width: 2.15rem;
+            height: 2.15rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 auto;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--pink) 0%, var(--orange) 100%);
+            color: #fff;
+            font-size: 0.86rem;
+            font-weight: 800;
+            box-shadow: 0 5px 14px rgba(249,59,122,0.22);
+        }
+
+        .bottom-note {
+            margin-top: 1.4rem;
+            color: var(--soft);
+            text-align: center;
+            font-size: 0.78rem;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+            z-index: 40;
+            min-width: min(22rem, calc(100vw - 2rem));
+            padding: 0.9rem 1rem;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            text-align: center;
+            font-size: 0.88rem;
+            font-weight: 800;
+            opacity: 0;
+            transform: translate(-50%, 1rem);
+            pointer-events: none;
+            transition: opacity 180ms ease, transform 180ms ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fu { animation: fadeUp 0.5s ease both; }
+        .fu-1 { animation-delay: 0.08s; }
+        .fu-2 { animation-delay: 0.17s; }
+        .fu-3 { animation-delay: 0.26s; }
+
+        @media (min-width: 900px) {
+            .shell {
+                padding: 1.65rem 2rem 3.5rem;
+            }
+
+            .hero {
+                max-width: 39rem;
+                margin: 1.2rem 0 0;
+                text-align: left;
+            }
+
+            h1 {
+                font-size: clamp(3.35rem, 5.8vw, 4.55rem);
+            }
+
+            .hero-sub {
+                max-width: 31rem;
+                margin-left: 0;
+                margin-right: 0;
+                font-size: 1rem;
+            }
+
+            .hero-checks {
+                justify-content: flex-start;
+            }
+
+            .activation-wrap {
+                grid-template-columns: minmax(0, 1fr) 25.5rem;
+                align-items: start;
+                gap: 2rem;
+                margin-top: 1.2rem;
+            }
+
+            .phone-stage {
+                min-height: 31rem;
+                max-width: 38rem;
+            }
+
+            .phone {
+                width: 15.2rem;
+                height: 31.2rem;
+            }
+
+            .checkout-card {
+                position: sticky;
+                top: 5.25rem;
+                width: 100%;
+                margin-top: -24rem;
+            }
+
+            .steps-card {
+                grid-column: 1 / -1;
+                max-width: none;
+                margin: 0;
+                padding: 1.15rem;
+            }
+
+            .steps {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+                gap: 1rem;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .shell {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .support-btn span {
+                display: none;
+            }
+
+            .activation-wrap {
+                margin-top: 1.35rem;
+            }
+
+            .checkout-card {
+                order: 1;
+            }
+
+            .phone-stage {
+                order: 2;
+            }
+
+            .steps-card {
+                order: 3;
+            }
+
+            .phone-stage {
+                min-height: 21rem;
+                margin-left: -1rem;
+                margin-right: -1rem;
+            }
+
+            .phone {
+                width: 10.6rem;
+                height: 21.8rem;
+                border-radius: 2.25rem;
+                transform: rotateY(-10deg) rotateZ(4deg);
+            }
+
+            .phone-screen {
+                border-radius: 1.95rem;
+                padding: 2.8rem 0.7rem 0.7rem;
+            }
+
+            .island {
+                top: 0.68rem;
+                width: 3.4rem;
+                height: 1.05rem;
+            }
+
+            .screen-eyebrow {
+                font-size: 0.58rem;
+            }
+
+            .screen-title {
+                font-size: 1.28rem;
+            }
+
+            .screen-date {
+                font-size: 0.68rem;
+            }
+
+            .screen-monogram {
+                width: 5.1rem;
+                height: 5.1rem;
+                font-size: 1.62rem;
+                margin-top: 0.85rem;
+            }
+
+            .screen-rsvp {
+                padding: 0.58rem 0;
+                font-size: 0.66rem;
+            }
+
+            .phone-bg {
+                width: 15rem;
+                height: 15rem;
+            }
+
+            .float-card {
+                padding: 0.72rem;
+                border-radius: 1rem;
+            }
+
+            .float-left {
+                top: 1.1rem;
+                left: 1rem;
+                width: 7.8rem;
+            }
+
+            .float-right {
+                right: 1rem;
+                bottom: 1.3rem;
+                width: 8rem;
+            }
+
+            .float-value {
+                font-size: 0.88rem;
+            }
+
+            .checkout-card { border-radius: 1.35rem; }
+
+            .checkout-top {
+                padding: 1.2rem;
+            }
+
+            .price {
+                font-size: 3.25rem;
+            }
+
+            .checkout-body {
+                padding: 1rem;
+            }
+
+            .qr-wrap {
+                grid-template-columns: 7rem minmax(0, 1fr);
+                align-items: center;
+            }
+
+            .qr-box {
+                width: auto;
+                margin: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .fu {
+                animation: none;
+            }
+
+            *,
+            *::before,
+            *::after {
+                transition-duration: 0.01ms !important;
+                animation-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="page">
+    <header class="topbar">
+        <div class="topbar-inner">
+            <button class="ghost-btn" type="button" onclick="history.back()" aria-label="Вернуться назад">
+                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+                Назад
+            </button>
+
+            <a class="brand" href="/" aria-label="ToiLink — главная">
+                <img src="/images/logo.webp" alt=""/>
+                <span>ToiLink</span>
+            </a>
+
+            <a class="support-btn" id="supportLink" href="#" target="_blank" rel="noopener">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                <span>Помощь</span>
+            </a>
+        </div>
+    </header>
+
+    <main class="shell">
+        <section class="hero">
+            <div class="rating-pill fu">
+                <span class="stars">★★★★★</span>
+                <span class="divider">|</span>
+                <span>Ваш сайт готов к публикации</span>
+            </div>
+
+            <h1 class="fu fu-1">
+                Остался последний шаг:<br/>
+                <span class="grad-text">активировать ссылку</span>
+            </h1>
+
+            <p class="hero-sub fu fu-2">Оплатите разовую активацию, отправьте скриншот в WhatsApp — и мы откроем ваш сайт для гостей. Без подписки, без лишних настроек.</p>
+
+            <div class="hero-checks fu fu-3">
+                <span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Личная ссылка
+                </span>
+                <span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    RSVP в кабинете
+                </span>
+                <span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    6 месяцев работы
+                </span>
+            </div>
+        </section>
+
+        <section class="activation-wrap" aria-label="Активация сайта">
+            <div class="phone-stage fu fu-2" aria-hidden="true">
+                <div class="phone-bg"></div>
+
+                <div class="float-card float-left">
+                    <div class="float-label">Статус</div>
+                    <div class="float-value">Сайт <span class="float-accent">готов</span></div>
+                </div>
+
+                <div class="phone">
+                    <div class="phone-screen">
+                        <div class="island"></div>
+                        <div class="screen-eyebrow">Сердечно приглашаем</div>
+                        <div class="screen-title">Айбек <span>&amp;</span> Айгуль</div>
+                        <div class="screen-date">— 23 мая 2026 —</div>
+                        <div class="screen-monogram">А&amp;А</div>
+                        <div style="display:flex;gap:0.5rem;margin-top:1rem;color:#1a1a1a;font-family:var(--font-serif);font-weight:600;">
+                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">19</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ДНЕЙ</div></div>
+                            <div style="color:#C8A060;font-size:1.35rem;">•</div>
+                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">14</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ЧАСОВ</div></div>
+                            <div style="color:#C8A060;font-size:1.35rem;">•</div>
+                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">32</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">МИН</div></div>
+                        </div>
+                        <div class="screen-rsvp">Подтвердить участие</div>
+                    </div>
+                </div>
+
+                <div class="float-card float-right">
+                    <div class="float-label">После оплаты</div>
+                    <div class="float-value">Активация до <span class="float-accent">15 минут</span></div>
+                </div>
+            </div>
+
+            <aside class="checkout-card fu fu-3" aria-label="Оплата">
+                <div class="checkout-top">
+                    <div class="checkout-content">
+                        <div class="ready-pill">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                            Готово к запуску
+                        </div>
+                        <div class="price-label">Разовая активация сайта</div>
+                        <div class="price-row">
+                            <div class="price">990</div>
+                            <div class="currency">сом</div>
+                        </div>
+                        <div class="price-note">Ссылка, RSVP и кабинет гостей. Без подписки.</div>
+                    </div>
+                </div>
+
+                <div class="checkout-body">
+                    <div class="qr-wrap">
+                        <div class="qr-box">
+                            <img src="/images/qr.jpeg" alt="QR-код для оплаты ToiLink" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                            <div class="qr-fallback">QR временно недоступен<br/>напишите нам в WhatsApp</div>
+                        </div>
+                        <div>
+                            <div class="pay-title">Оплатите по QR или переводом</div>
+                            <p class="pay-text">Сделайте скриншот QR-кода и откройте его в приложении банка.</p>
+                            <div class="methods" aria-label="Способы оплаты">
+                                <span class="method"><span class="dot"></span>Mbank</span>
+                                <span class="method"><span class="dot"></span>O!Dengi</span>
+                                <span class="method"><span class="dot"></span>Элсом</span>
+                                <span class="method"><span class="dot"></span>Карта</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-panel">
+                        <div class="order-title">Укажите номер заказа в комментарии к переводу</div>
+                        <div class="order-row">
+                            <div>
+                                <div class="order-label">Номер заказа</div>
+                                <div class="order-value" id="orderNum">TL-00000</div>
+                            </div>
+                            <button class="copy-btn" type="button" onclick="copyOrder(event)" aria-label="Скопировать номер заказа">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <a href="#" id="waBtn" target="_blank" rel="noopener" class="whatsapp-btn">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.463 3.488A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                        Я оплатил, активируйте сайт
+                    </a>
+                    <p class="microcopy">В WhatsApp уже подставится номер заказа. Прикрепите скриншот оплаты.</p>
+                </div>
+            </aside>
+
+            <div class="steps-card fu fu-3">
+                <div class="steps-title">Что произойдет дальше</div>
+                <div class="steps">
+                    <div class="step">
+                        <span class="step-num">1</span>
+                        <span>Оплачиваете 990 сом по QR или переводом через банк.</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">2</span>
+                        <span>Отправляете скриншот в WhatsApp вместе с номером заказа.</span>
+                    </div>
+                    <div class="step">
+                        <span class="step-num">3</span>
+                        <span>Мы активируем сайт, и вы отправляете красивую ссылку гостям.</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="bottom-note">ToiLink 2026 • Официальная активация сайта</div>
+    </main>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite">Номер заказа скопирован</div>
+
+<script>
+    const ACTIVATION_PRICE = 990;
+    const SUPPORT_PHONE = '996700000000';
+
+    function getOrderNumber() {
+        let order = localStorage.getItem('tl_order_num');
+        if (!order) {
+            order = 'TL-' + Math.floor(10000 + Math.random() * 90000);
+            localStorage.setItem('tl_order_num', order);
+        }
+        return order;
+    }
+
+    function buildWhatsAppLink(order, isSupport) {
+        const text = isSupport
+            ? `Здравствуйте! Нужна помощь с оплатой ToiLink.\nНомер заказа: ${order}`
+            : `Здравствуйте! Я оплатил(а) ${ACTIVATION_PRICE} сом за активацию сайта ToiLink.\nНомер заказа: ${order}`;
+        return `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(text)}`;
+    }
+
+    function showToast(message) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        window.clearTimeout(showToast.timer);
+        showToast.timer = window.setTimeout(() => toast.classList.remove('show'), 2200);
+    }
+
+    function copyOrder(event) {
+        const order = document.getElementById('orderNum').textContent.trim();
+        navigator.clipboard.writeText(order).then(() => {
+            showToast('Номер заказа скопирован');
+            const button = event.currentTarget;
+            const original = button.innerHTML;
+            button.style.color = '#10B981';
+            button.style.borderColor = 'rgba(16,185,129,0.35)';
+            button.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+            window.setTimeout(() => {
+                button.style.color = '';
+                button.style.borderColor = '';
+                button.innerHTML = original;
+            }, 1600);
+        }).catch(() => showToast('Не удалось скопировать. Выделите номер вручную'));
+    }
+
+    (function initPaywall() {
+        const order = getOrderNumber();
+        document.getElementById('orderNum').textContent = order;
+        document.getElementById('waBtn').href = buildWhatsAppLink(order, false);
+        document.getElementById('supportLink').href = buildWhatsAppLink(order, true);
+    })();
+</script>
+</body>
+</html>

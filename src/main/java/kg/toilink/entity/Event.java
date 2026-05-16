@@ -2,10 +2,13 @@ package kg.toilink.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "events")
@@ -48,6 +51,12 @@ public class Event {
     @Column(nullable = false, unique = true, length = 50)
     private String slug;
 
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Guest> guests = new ArrayList<>();
+
+    @Column(nullable = false, unique = true)
+    private UUID previewToken;
+
     @Column(nullable = false, length = 20)
     private String status;
 
@@ -60,11 +69,17 @@ public class Event {
     @Column(columnDefinition = "jsonb")
     private String blocksConfig;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "guest_groups", nullable = false, columnDefinition = "jsonb")
+    private String guestGroups;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime deletedAt;
 
     @PrePersist
     void prePersist() {
@@ -72,6 +87,8 @@ public class Event {
         updatedAt = LocalDateTime.now();
         if (status == null) status = "DRAFT";
         if (language == null) language = "ru";
+        if (previewToken == null) previewToken = UUID.randomUUID();
+        if (guestGroups == null) guestGroups = "[]";
     }
 
     @PreUpdate

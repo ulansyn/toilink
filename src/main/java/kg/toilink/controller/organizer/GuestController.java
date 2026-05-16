@@ -2,10 +2,13 @@ package kg.toilink.controller.organizer;
 
 import jakarta.validation.Valid;
 import kg.toilink.dto.request.CreateGuestRequest;
+import kg.toilink.dto.request.UpdateGuestRequest;
 import kg.toilink.dto.response.GuestResponse;
 import kg.toilink.service.GuestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,23 +22,31 @@ public class GuestController {
 
     @GetMapping
     public List<GuestResponse> getAll(@PathVariable Long eventId,
-                                      @RequestHeader("X-User-Phone") String phone) {
-        return guestService.findAllByEvent(eventId, phone);
+                                      @AuthenticationPrincipal UserDetails user) {
+        return guestService.findAllByEvent(eventId, user.getUsername());
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public GuestResponse add(@PathVariable Long eventId,
                              @Valid @RequestBody CreateGuestRequest request,
-                             @RequestHeader("X-User-Phone") String phone) {
-        return guestService.addGuest(eventId, request, phone);
+                             @AuthenticationPrincipal UserDetails user) {
+        return guestService.addGuest(eventId, request, user.getUsername());
+    }
+
+    @PutMapping("/{guestId}")
+    public GuestResponse update(@PathVariable Long eventId,
+                                @PathVariable Long guestId,
+                                @Valid @RequestBody UpdateGuestRequest request,
+                                @AuthenticationPrincipal UserDetails user) {
+        return guestService.updateGuest(eventId, guestId, request, user.getUsername());
     }
 
     @DeleteMapping("/{guestId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long eventId,
                        @PathVariable Long guestId,
-                       @RequestHeader("X-User-Phone") String phone) {
-        guestService.deleteGuest(eventId, guestId, phone);
+                       @AuthenticationPrincipal UserDetails user) {
+        guestService.deleteGuest(eventId, guestId, user.getUsername());
     }
 }

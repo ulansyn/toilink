@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 019-create-landing-settings
+      author: toilink
+      changes:
+        - createTable:
+            tableName: landing_settings
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: landing_settings_pkey
+              - column:
+                  name: settings_key
+                  type: varchar(80)
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_landing_settings_key
+              - column:
+                  name: content_json
+                  type: jsonb
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp
+                  defaultValueComputed: NOW()
+                  constraints:
+                    nullable: false
+        - createIndex:
+            indexName: idx_landing_settings_key
+            tableName: landing_settings
+            columns:
+              - column:
+                  name: settings_key

@@ -3,6 +3,7 @@ package kg.toilink.dto.response;
 import kg.toilink.entity.Event;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public record EventResponse(
         Long id,
@@ -15,10 +16,12 @@ public record EventResponse(
         String location,
         String coverImageUrl,
         String slug,
+        UUID previewToken,
         String status,
         LocalDateTime rsvpDeadline,
         String language,
         String blocksConfig,
+        String guestGroups,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -34,10 +37,12 @@ public record EventResponse(
                 e.getLocation(),
                 e.getCoverImageUrl(),
                 e.getSlug(),
+                e.getPreviewToken(),
                 e.getStatus(),
                 e.getRsvpDeadline(),
                 e.getLanguage(),
                 e.getBlocksConfig(),
+                e.getGuestGroups(),
                 e.getCreatedAt(),
                 e.getUpdatedAt()
         );

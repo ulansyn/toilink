@@ -3,7 +3,9 @@ package kg.toilink.service;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -15,6 +17,7 @@ public class SlugService {
      * Generates a unique slug from person names.
      * Falls back to random if names are empty or result conflicts after 5 attempts.
      */
+    @Transactional(readOnly = true)
     public String generate(String person1, String person2) {
         if (hasValue(person1)) {
             String base = SlugGenerator.fromPersons(person1, person2);

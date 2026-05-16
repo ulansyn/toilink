@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <title>ToiLink — Редактор</title>
+    <meta name="theme-color" content="#F2F2F7"/>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous"/>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: { extend: { fontFamily: { fraunces: ['Fraunces','serif'], inter: ['Inter','sans-serif'] } } }
+        }
+    </script>
+
+    <script src="/js/editor-api.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #F2F2F7; overscroll-behavior: none; margin: 0; padding: 0; color: #1E2820; }
+
+        /* Screens */
+        .screen { display: none; min-height: 100dvh; flex-direction: column; }
+        .screen.active { display: flex; }
+
+        /* Header */
+        .app-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #FFF; border-bottom: 1px solid #E5E5EA; position: sticky; top: 0; z-index: 10; }
+        .app-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+
+        /* Block List */
+        .blocks-container { background: #FFF; border-radius: 16px; margin: 0 16px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .block-item { display: flex; align-items: center; padding: 16px; border-bottom: 1px solid #E5E5EA; cursor: pointer; transition: background 0.15s; }
+        .block-item:active { background: #F2F2F7; }
+        .block-item:last-child { border-bottom: none; }
+        .block-icon { width: 32px; height: 32px; border-radius: 10px; background: #F2F2F7; display: flex; align-items: center; justify-content: center; margin-right: 12px; font-size: 15px; }
+        .block-title { flex: 1; font-size: 16px; font-weight: 500; }
+        .block-status { font-size: 13px; color: #8E8E93; margin-right: 8px; display: flex; align-items: center; gap: 6px; }
+        .block-arrow { color: #C7C7CC; }
+
+        /* Template Header */
+        .template-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; }
+        .template-name { font-size: 14px; color: #6B6860; font-weight: 500; display: flex; align-items: center; gap: 6px; }
+        .template-change { font-size: 14px; color: #3D6B45; font-weight: 600; cursor: pointer; }
+
+        /* Editor Fields */
+        .editor-content { padding: 16px; flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
+
+        .field-group { display: flex; flex-direction: column; gap: 12px; }
+        .field-label { font-size: 14px; font-weight: 600; color: #1E2820; margin-left: 4px; }
+
+        .float-label { position: relative; }
+        .float-label input, .float-label textarea, .float-label select {
+            width: 100%; padding: 24px 16px 8px; font-size: 16px;
+            border: 1px solid #D1D1D6; border-radius: 12px; background: #FFF; outline: none;
+            font-family: inherit; transition: border-color 0.2s;
+        }
+        .float-label input:focus, .float-label textarea:focus, .float-label select:focus { border-color: #3D6B45; }
+        .float-label textarea { resize: vertical; min-height: 120px; }
+        .float-label label {
+            position: absolute; left: 16px; top: 16px; font-size: 16px; color: #8E8E93;
+            pointer-events: none; transition: 0.2s ease all;
+        }
+        .float-label input:focus ~ label, .float-label input:not(:placeholder-shown) ~ label,
+        .float-label textarea:focus ~ label, .float-label textarea:not(:placeholder-shown) ~ label,
+        .float-label select ~ label {
+            top: 6px; font-size: 12px; color: #3D6B45; font-weight: 500;
+        }
+
+        /* Switch toggle */
+        .toggle { position: relative; width: 44px; height: 24px; background: #D1D1D6; border-radius: 12px; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        .toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: #FFF; border-radius: 50%; transition: 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+        .toggle.active { background: #3D6B45; }
+        .toggle.active::after { transform: translateX(20px); }
+
+        /* Photo Upload */
+        .photo-upload { width: 100%; aspect-ratio: 16/9; border: 2px dashed #D1D1D6; border-radius: 12px; background: #FAFAF8; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; overflow: hidden; }
+        .photo-upload.has-image { border: none; }
+        .photo-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; display: none; }
+        .photo-upload.has-image img { display: block; }
+
+        /* Color Palette */
+        .palette { display: flex; gap: 12px; }
+        .color-slot { width: 40px; height: 40px; border-radius: 10px; border: 1px solid #E5E5EA; cursor: pointer; position: relative; }
+        .color-slot.selected { box-shadow: 0 0 0 2px #FFF, 0 0 0 4px #3D6B45; }
+
+        /* Info Block */
+        .info-block { background: #E8F0EA; border-radius: 12px; padding: 16px; font-size: 14px; color: #2A4B30; display: flex; gap: 12px; }
+        .info-icon { font-size: 18px; }
+
+        /* Buttons */
+        .btn { padding: 8px 16px; border-radius: 10px; font-weight: 500; font-size: 15px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; border: none; transition: 0.15s; }
+        .btn-text { color: #1E2820; background: transparent; }
+        .btn-text:active { background: #E5E5EA; }
+        .btn-primary { background: #3D6B45; color: #FFF; }
+        .btn-primary:active { background: #2A4B30; }
+        .btn-block { width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; }
+
+        .save-indicator { font-size: 13px; color: #3D6B45; display: flex; align-items: center; gap: 4px; opacity: 0; transition: opacity 0.3s; font-weight: 500; }
+        .save-indicator.visible { opacity: 1; }
+
+        /* Bottom Sheet */
+        .bottom-sheet { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 100; display: none; opacity: 0; transition: opacity 0.3s; }
+        .bottom-sheet.active { display: block; opacity: 1; }
+        .sheet-content { position: absolute; bottom: 0; left: 0; right: 0; background: #FFF; border-radius: 20px 20px 0 0; padding: 24px 16px; transform: translateY(100%); transition: transform 0.3s; max-height: 80vh; overflow-y: auto; }
+        .bottom-sheet.active .sheet-content { transform: translateY(0); }
+        .sheet-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 600; margin-bottom: 16px; }
+        .template-card { display: flex; align-items: center; padding: 12px; border: 1px solid #E5E5EA; border-radius: 12px; margin-bottom: 12px; cursor: pointer; }
+        .template-card.active { border-color: #3D6B45; background: #F8FAF8; }
+        .template-preview { width: 48px; height: 48px; background: #F2F2F7; border-radius: 8px; margin-right: 12px; }
+    </style>
+</head>
+<body>
+
+<div id="screenA" class="screen active">
+    <div class="app-header">
+        <button class="btn btn-text" style="padding-left:0; color:#6B6860;" onclick="exitApp()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            Выйти
+        </button>
+        <div class="app-title">ToiLink</div>
+        <div id="saveStatusList" class="save-indicator">Сохранено ✓</div>
+    </div>
+
+    <div class="template-header">
+        <div class="template-name">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+            <span id="currentTemplateLabel">template-1</span>
+        </div>
+        <div class="template-change" onclick="openTemplatePicker()">Сменить шаблон</div>
+    </div>
+
+    <div class="blocks-container" id="blockList">
+    </div>
+
+    <div style="padding: 24px 16px;">
+        <button class="btn btn-primary btn-block" onclick="viewSite()">Смотреть сайт ↗</button>
+    </div>
+</div>
+
+<div id="screenB" class="screen">
+    <div class="app-header">
+        <button class="btn btn-text" style="padding-left:0; color:#1E2820;" onclick="showScreenA()">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="margin-right:4px;"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            <span id="editorBackTitle">Обложка</span>
+        </button>
+        <div id="saveStatusEditor" class="save-indicator">Сохранено ✓</div>
+        <button class="btn btn-text" style="padding-right:0; color:#3D6B45; font-weight:600;" onclick="showScreenA()">Готово</button>
+    </div>
+
+    <div class="editor-content" id="editorFields">
+    </div>
+</div>
+
+<div id="templateSheet" class="bottom-sheet">
+    <div class="sheet-content">
+        <div class="sheet-title">Выберите шаблон</div>
+        <div id="templateList">
+        </div>
+        <button class="btn btn-text btn-block" style="margin-top:12px; background:#F2F2F7;" onclick="closeTemplatePicker()">Отмена</button>
+    </div>
+</div>
+
+<script>
+    // --- Mock Data & Schema ---
+    const SCHEMA = [
+        { id: 'cover', icon: '①', title: 'Обложка', required: true, fields: [
+                { type: 'info', text: 'Обложка — это первый экран вашего приглашения.' },
+                { type: 'text', id: 'couple.name1', label: 'Имя 1' },
+                { type: 'text', id: 'couple.name2', label: 'Имя 2' },
+                { type: 'datetime-local', id: 'couple.date', label: 'Дата и время события' },
+                { type: 'photo', id: 'images.heroBackground', label: 'Фоновое фото' }
+            ]},
+        { id: 'greeting', icon: '②', title: 'Приветствие', toggle: true, fields: [
+                { type: 'text', id: 'invitation.heading', label: 'Заголовок' },
+                { type: 'textarea', id: 'invitation.text', label: 'Текст приглашения' }
+            ]},
+        { id: 'calendar', icon: '③', title: 'Календарь', toggle: true, fields: [
+                { type: 'text', id: 'calendar.heading', label: 'Заголовок' }
+            ]},
+        { id: 'dresscode', icon: '④', title: 'Дресс-код', toggle: true, fields: [
+                { type: 'text', id: 'dresscode.heading', label: 'Заголовок' },
+                { type: 'textarea', id: 'dresscode.text', label: 'Описание' },
+                { type: 'color-palette', id: 'dresscode.colors', label: 'Цвета' }
+            ]},
+        { id: 'rsvp', icon: '⑧', title: 'RSVP', toggle: true, fields: [
+                { type: 'text', id: 'rsvp.heading', label: 'Заголовок' },
+                { type: 'textarea', id: 'rsvp.subtitle', label: 'Подзаголовок' }
+            ]}
+    ];
+
+    let store = {
+        template: 'template-1',
+        activeBlocks: { 'cover': true, 'greeting': true, 'rsvp': true },
+        data: {
+            'couple.name1': 'Тимур',
+            'couple.name2': 'Алина',
+            'couple.date': '2026-08-15T16:00',
+            'invitation.heading': 'Приглашаем на свадьбу!',
+            'invitation.text': 'Будем рады видеть вас...',
+        }
+    };
+
+    let currentEditBlockId = null;
+    let saveTimeout = null;
+
+    // --- Navigation & Core Logic ---
+    function showScreenA() {
+        document.getElementById('screenB').classList.remove('active');
+        document.getElementById('screenA').classList.add('active');
+        renderBlockList();
+    }
+
+    function showScreenB(blockId) {
+        currentEditBlockId = blockId;
+        const block = SCHEMA.find(b => b.id === blockId);
+        document.getElementById('editorBackTitle').textContent = block.title;
+
+        renderEditor(block);
+
+        document.getElementById('screenA').classList.remove('active');
+        document.getElementById('screenB').classList.add('active');
+    }
+
+    // --- Renderers ---
+    function renderBlockList() {
+        const container = document.getElementById('blockList');
+        container.innerHTML = '';
+
+        SCHEMA.forEach(block => {
+            const isActive = block.required || store.activeBlocks[block.id];
+            const statusHtml = block.required ? 'обяз.' : (isActive ? '<span style="color:#3D6B45;">●</span> вкл' : '○ выкл');
+
+            const el = document.createElement('div');
+            el.className = 'block-item';
+            el.onclick = (e) => {
+                // Prevent opening editor if clicking directly on a toggle (if we had one in list)
+                showScreenB(block.id);
+            };
+
+            el.innerHTML = `
+          <div class="block-icon">${block.icon}</div>
+          <div class="block-title" style="opacity: ${isActive ? '1' : '0.5'}">${block.title}</div>
+          <div class="block-status">${statusHtml}</div>
+          <svg class="block-arrow" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        `;
+            container.appendChild(el);
+        });
+    }
+
+    function renderEditor(block) {
+        const container = document.getElementById('editorFields');
+        container.innerHTML = '';
+
+        if (block.toggle) {
+            const tVal = !!store.activeBlocks[block.id];
+            const toggleWrap = document.createElement('div');
+            toggleWrap.className = 'field-group';
+            toggleWrap.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#FFF; padding:16px; border-radius:12px; border:1px solid #E5E5EA;">
+            <div style="font-weight:500;">Включить блок</div>
+            <div class="toggle ${tVal ? 'active' : ''}" id="toggle_${block.id}"></div>
+          </div>
+        `;
+            container.appendChild(toggleWrap);
+
+            toggleWrap.querySelector('.toggle').onclick = function() {
+                this.classList.toggle('active');
+                const isNowActive = this.classList.contains('active');
+                store.activeBlocks[block.id] = isNowActive;
+                triggerAutosave();
+
+                // Show/hide other fields
+                Array.from(container.children).forEach((child, idx) => {
+                    if (idx > 0) child.style.opacity = isNowActive ? '1' : '0.4';
+                    if (idx > 0) child.style.pointerEvents = isNowActive ? 'auto' : 'none';
+                });
+            };
+        }
+
+        const fieldsWrap = document.createElement('div');
+        fieldsWrap.className = 'field-group';
+        fieldsWrap.style.gap = '16px';
+
+        if (block.toggle && !store.activeBlocks[block.id]) {
+            fieldsWrap.style.opacity = '0.4';
+            fieldsWrap.style.pointerEvents = 'none';
+        }
+
+        block.fields.forEach(field => {
+            fieldsWrap.appendChild(renderField(field));
+        });
+
+        container.appendChild(fieldsWrap);
+    }
+
+    function renderField(field) {
+        const wrapper = document.createElement('div');
+        const val = store.data[field.id] || '';
+
+        if (field.type === 'info') {
+            wrapper.className = 'info-block';
+            wrapper.innerHTML = `<div class="info-icon">💡</div><div>${field.text}</div>`;
+            return wrapper;
+        }
+
+        if (field.type === 'text' || field.type === 'datetime-local') {
+            wrapper.className = 'float-label';
+            wrapper.innerHTML = `
+          <input type="${field.type === 'datetime-local' ? 'datetime-local' : 'text'}"
+                 id="f_${field.id}" placeholder=" " value="${val}">
+          <label>${field.label}</label>
+        `;
+            wrapper.querySelector('input').oninput = (e) => handleFieldChange(field.id, e.target.value);
+            return wrapper;
+        }
+
+        if (field.type === 'textarea') {
+            wrapper.className = 'float-label';
+            wrapper.innerHTML = `
+          <textarea id="f_${field.id}" placeholder=" ">${val}</textarea>
+          <label>${field.label}</label>
+        `;
+            wrapper.querySelector('textarea').oninput = (e) => handleFieldChange(field.id, e.target.value);
+            return wrapper;
+        }
+
+        if (field.type === 'photo') {
+            wrapper.innerHTML = `<div class="field-label" style="margin-bottom:8px;">${field.label}</div>`;
+            const upload = document.createElement('div');
+            upload.className = 'photo-upload';
+            upload.innerHTML = `
+          <svg width="24" height="24" fill="none" stroke="#8E8E93" stroke-width="2" viewBox="0 0 24 24" style="margin-bottom:8px;"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          <div style="font-size:14px; color:#8E8E93;">Загрузить фото</div>
+        `;
+            wrapper.appendChild(upload);
+            return wrapper;
+        }
+
+        if (field.type === 'color-palette') {
+            wrapper.innerHTML = `<div class="field-label" style="margin-bottom:8px;">${field.label}</div>`;
+            const pal = document.createElement('div');
+            pal.className = 'palette';
+            ['#1E2820', '#3D6B45', '#B89972', '#F2F2F7'].forEach(c => {
+                const slot = document.createElement('div');
+                slot.className = 'color-slot';
+                slot.style.background = c;
+                pal.appendChild(slot);
+            });
+            wrapper.appendChild(pal);
+            return wrapper;
+        }
+
+        // Fallback
+        wrapper.innerHTML = `<i>[Unsupported field type: ${field.type}]</i>`;
+        return wrapper;
+    }
+
+    // --- State Management ---
+    function handleFieldChange(id, value) {
+        store.data[id] = value;
+        triggerAutosave();
+    }
+
+    function triggerAutosave() {
+        // Hide checks
+        document.getElementById('saveStatusList').classList.remove('visible');
+        document.getElementById('saveStatusEditor').classList.remove('visible');
+
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            // Mock save API call
+            console.log('Saved to API:', store);
+
+            // Show checks
+            document.getElementById('saveStatusList').classList.add('visible');
+            document.getElementById('saveStatusEditor').classList.add('visible');
+
+            setTimeout(() => {
+                document.getElementById('saveStatusList').classList.remove('visible');
+                document.getElementById('saveStatusEditor').classList.remove('visible');
+            }, 2000);
+        }, 1500);
+    }
+
+    // --- Utilities ---
+    function openTemplatePicker() {
+        const sheet = document.getElementById('templateSheet');
+        const list = document.getElementById('templateList');
+        list.innerHTML = '';
+
+        ['template-1', 'template-2', 'template-3'].forEach(tpl => {
+            const el = document.createElement('div');
+            el.className = `template-card ${store.template === tpl ? 'active' : ''}`;
+            el.innerHTML = `
+          <div class="template-preview"></div>
+          <div style="flex:1; font-weight:500;">${tpl}</div>
+          ${store.template === tpl ? '<span style="color:#3D6B45;">✓</span>' : ''}
+        `;
+            el.onclick = () => {
+                store.template = tpl;
+                document.getElementById('currentTemplateLabel').textContent = tpl;
+                closeTemplatePicker();
+                triggerAutosave();
+            };
+            list.appendChild(el);
+        });
+
+        sheet.classList.add('active');
+    }
+
+    function closeTemplatePicker() {
+        document.getElementById('templateSheet').classList.remove('active');
+    }
+
+    function viewSite() {
+        window.open('#preview', '_blank');
+    }
+
+    function exitApp() {
+        alert('Возврат в дашборд');
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        renderBlockList();
+
+        // Close sheet on backdrop click
+        document.getElementById('templateSheet').addEventListener('click', (e) => {
+            if(e.target === e.currentTarget) closeTemplatePicker();
+        });
+    });
+</script>
+</body>
+</html>

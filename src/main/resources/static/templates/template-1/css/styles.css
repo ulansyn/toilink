@@ -1,10 +1,10 @@
 :root {
-    --bg-dark: #1a1c18;
-    --bg-light: #fdfcf9;
+    --bg-dark: #17151f;
+    --bg-light: #fff7fa;
     --bg-light-rgb: 253, 252, 249;
-    --primary-green: #4a5043;
-    --primary-green-rgb: 74, 80, 67;
-    --accent-gold: #c5a37d;
+    --primary-green: #ff0f73;
+    --primary-green-rgb: 255, 15, 115;
+    --accent-gold: #d7a57f;
     --text-main: #3d3d3d;
     --text-muted: #8a8a8a;
     --white: #fff;
@@ -1099,21 +1099,20 @@ body {
 .rsvp-input {
     width: 100%;
     padding: 16px 16px 10px;
-    border: 1px solid #e2e2e2;
+    border: 1.5px solid #e2e2e2;
     border-radius: 14px;
-    background: #fdfdfd;
+    background: #ffffff;
     font-family: inherit;
     font-size: 1rem;
     color: var(--text-main);
     outline: none;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) inset;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .rsvp-input:focus {
     border-color: var(--primary-green);
-    background: #fff;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(var(--primary-green-rgb), 0.10);
 }
 
 
@@ -1135,6 +1134,36 @@ body {
     display: block;
     margin-bottom: 12px;
     padding-left: 4px;
+}
+
+.rsvp-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e2e2;
+    border-radius: 14px;
+    background: #ffffff;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.rsvp-checkbox-row:hover {
+    border-color: var(--primary-green);
+}
+
+.rsvp-checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-green);
+    cursor: pointer;
+}
+
+.rsvp-companion-name {
+    margin-top: -8px;
 }
 
 .rsvp-textarea {

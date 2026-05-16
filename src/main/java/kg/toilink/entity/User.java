@@ -24,6 +24,9 @@ public class User {
     @Column(length = 100)
     private String name;
 
+    @Column(length = 60)
+    private String passwordHash;
+
     @Column(nullable = false, length = 20)
     private String role;
 
@@ -35,6 +38,18 @@ public class User {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
+    private LocalDateTime lastLoginAt;
+
+    @Column(length = 45)
+    private String lastLoginIp;
+
+    @Builder.Default
+    private Integer failedLoginCount = 0;
+
+    private LocalDateTime lockedUntil;
+
+    private LocalDateTime deletedAt;
 
     @PrePersist
     void prePersist() {

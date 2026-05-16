@@ -1,0 +1,16 @@
+databaseChangeLog:
+  - changeSet:
+      id: 014-add-template-format
+      author: toilink
+      changes:
+        - addColumn:
+            tableName: templates
+            columns:
+              - column:
+                  name: format
+                  type: varchar(20)
+                  defaultValue: SITE
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: UPDATE templates SET format = 'SITE' WHERE format IS NULL OR format = ''

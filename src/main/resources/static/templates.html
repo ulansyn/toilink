@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>ToiLink — Выбор шаблона</title>
+  <meta name="theme-color" content="#ffffff"/>
+
+    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+    <link rel="stylesheet" href="/css/fonts.css">
+  <link rel="stylesheet" href="/css/tokens.css"/>
+  <link rel="stylesheet" href="/css/base.css"/>
+
+  <style>
+    :root {
+      --pink:      var(--color-accent);
+      --pink-soft: var(--color-accent-soft);
+      --pink-glow: var(--color-accent-glow);
+      --text:      var(--color-text);
+      --text-2:    var(--color-text-secondary);
+      --muted:     var(--color-text-muted);
+      --border:    var(--color-border-strong);
+      --surface:   var(--color-bg);
+      --white:     #ffffff;
+      --sans:      var(--font-sans);
+      --serif:     var(--font-serif);
+      --ease:      var(--ease-in-out);
+    }
+
+    html, body { margin: 0; padding: 0; background: var(--white); font-family: var(--sans); color: var(--text); }
+
+    /* ── HEADER ── */
+    .page-header {
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      padding-top: env(safe-area-inset-top, 0px);
+    }
+    .header-inner {
+      display: flex; align-items: center; gap: 0.75rem;
+      padding: 0 1rem; height: 3.25rem;
+    }
+    .back-btn {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%;
+      background: var(--surface); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-2); flex-shrink: 0;
+      transition: background 150ms var(--ease);
+    }
+    .back-btn:active { background: #E5E7EB; }
+    .header-title {
+      flex: 1; text-align: center;
+      font-family: var(--serif); font-size: 1.125rem;
+      font-weight: 600; font-style: italic; color: var(--text);
+    }
+    .header-brand {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+      color: var(--text); text-decoration: none; line-height: 1;
+    }
+    .header-brand img { width: 28px; height: 28px; object-fit: contain; display: block; }
+
+    /* ── TYPE SWITCHER ── */
+    .type-bar {
+      padding: 0.875rem 1rem 0;
+    }
+    .type-switch {
+      display: flex;
+      background: var(--surface);
+      border-radius: 999px;
+      padding: 3px;
+      gap: 2px;
+    }
+    .type-btn {
+      flex: 1; height: 2.375rem;
+      border: none; border-radius: 999px; cursor: pointer;
+      font-family: var(--sans); font-size: 0.875rem; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 0.375rem;
+      color: var(--text-2); background: transparent;
+      transition: all 200ms var(--ease);
+    }
+    .type-btn svg { flex-shrink: 0; }
+    .type-btn.active {
+      background: var(--white);
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+    .type-btn.active .type-dot { background: var(--pink); }
+    .type-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--muted); transition: background 200ms var(--ease);
+    }
+
+    /* ── CATEGORY CHIPS ── */
+    .cat-bar {
+      padding: 0.75rem 1rem 0;
+      overflow-x: auto; white-space: nowrap;
+      display: flex; gap: 0.5rem;
+    }
+    .cat-chip {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      padding: 0.4375rem 0.875rem;
+      border-radius: 999px; font-size: 0.8125rem; font-weight: 500;
+      background: var(--surface); color: var(--text-2);
+      border: 1.5px solid transparent; cursor: pointer;
+      transition: all 180ms var(--ease); white-space: nowrap;
+    }
+    .cat-chip:active { transform: scale(0.96); }
+    .cat-chip.active {
+      background: var(--pink-soft); color: var(--pink);
+      border-color: rgba(249,59,122,0.20);
+    }
+    .cat-count {
+      font-size: 0.6875rem; font-weight: 600;
+      background: rgba(0,0,0,0.07); color: inherit;
+      padding: 1px 6px; border-radius: 999px;
+    }
+    .cat-chip.active .cat-count { background: rgba(249,59,122,0.15); }
+
+    /* ── DESKTOP NAV ── */
+    .desk-nav {
+      display: none;
+      position: sticky; top: 0; z-index: 40;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .desk-nav-inner {
+      max-width: 72rem; margin: 0 auto;
+      padding: 0 2rem; height: 4rem;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .desk-nav-logo {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-family: var(--serif); font-size: 1.5rem; font-weight: 600;
+      font-style: italic; color: var(--text); text-decoration: none; line-height: 1;
+    }
+    .desk-nav-logo img { width: 34px; height: 34px; object-fit: contain; display: block; }
+    .desk-nav-links { display: flex; align-items: center; gap: 0.25rem; }
+    .desk-nav-link {
+      font-size: 0.9375rem; font-weight: 500; color: var(--text-2);
+      text-decoration: none; padding: 0.5rem 0.875rem; border-radius: 999px;
+      transition: color 150ms var(--ease), background 150ms var(--ease);
+    }
+    .desk-nav-link:hover { color: var(--text); background: var(--surface); }
+    .desk-nav-link.active { color: var(--pink); font-weight: 600; background: var(--pink-soft); }
+
+    /* ── GRID ── */
+    .grid-wrap {
+      padding: 0.875rem 1rem calc(5rem + env(safe-area-inset-bottom, 0px));
+    }
+    .tpl-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 768px) {
+      .desk-nav { display: block; }
+      .page-header .header-inner { display: none; }
+
+      /* constrain filter bars */
+      .page-header { background: rgba(255,255,255,0.95); }
+      .type-bar, .cat-bar { max-width: 72rem; margin: 0 auto; padding-left: 2rem; padding-right: 2rem; }
+      .type-bar { padding-top: 1.125rem; }
+
+      /* grid area */
+      .grid-wrap {
+        max-width: 72rem; margin: 0 auto;
+        padding: 1.5rem 2rem 3rem;
+      }
+      .tpl-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.125rem;
+      }
+
+      /* richer card hover */
+      .tpl-card {
+        transition: transform 250ms var(--ease), box-shadow 250ms var(--ease);
+      }
+      .tpl-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(0,0,0,0.10);
+      }
+      .tpl-card:active { transform: translateY(-2px); }
+    }
+    @media (min-width: 1100px) {
+      .tpl-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (min-width: 1400px) {
+      .tpl-grid { grid-template-columns: repeat(5, 1fr); }
+    }
+
+    /* ── CARD ── */
+    .tpl-card {
+      border-radius: 1.125rem;
+      overflow: hidden;
+      background: var(--white);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: transform 250ms var(--ease), box-shadow 250ms var(--ease);
+      display: flex; flex-direction: column;
+    }
+    .tpl-card:active { transform: scale(0.97); }
+
+    /* 9:16 preview */
+    .tpl-preview {
+      position: relative;
+      aspect-ratio: 9 / 16;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+
+    /* Invitation themes */
+    .theme-emerald {
+      background: linear-gradient(170deg, #1a2e22 0%, #0e1c15 100%);
+      color: #e8eed0;
+    }
+    .theme-cream {
+      background: linear-gradient(170deg, #fdf8f2 0%, #f0e8dc 100%);
+      color: #2a1f14;
+    }
+    .theme-plum {
+      background: linear-gradient(170deg, #1e0e2e 0%, #2d1245 100%);
+      color: #e8d5b7;
+    }
+    .theme-noir {
+      background: linear-gradient(170deg, #0f0f0f 0%, #1e1e1e 100%);
+      color: #f5f0e8;
+    }
+    .theme-rose {
+      background: linear-gradient(170deg, #fff0f4 0%, #fce0e8 100%);
+      color: #6b1f33;
+    }
+    .theme-forest {
+      background: linear-gradient(170deg, #1a2e1e 0%, #263d28 100%);
+      color: #d4e8c4;
+    }
+    .theme-burgundy {
+      background: linear-gradient(170deg, #3d0e14 0%, #5a1520 100%);
+      color: #f0d8a8;
+    }
+    .theme-sand {
+      background: linear-gradient(170deg, #f5ead8 0%, #e8d4b8 100%);
+      color: #4a3420;
+    }
+
+    /* Video themes */
+    .theme-video-dark {
+      background: linear-gradient(170deg, #060606 0%, #1a0a14 100%);
+      color: #fff;
+    }
+    .theme-video-gold {
+      background: linear-gradient(170deg, #0a0800 0%, #1a1200 100%);
+      color: #e8c96a;
+    }
+    .theme-video-rose {
+      background: linear-gradient(170deg, #1a0010 0%, #2e0020 100%);
+      color: #f5c8d8;
+    }
+    .theme-video-azure {
+      background: linear-gradient(170deg, #000c1a 0%, #001428 100%);
+      color: #b8d8f8;
+    }
+
+    /* Card inner content */
+    .inv-badge {
+      font-size: 0.45rem; letter-spacing: 0.25em; text-transform: uppercase;
+      opacity: 0.65; font-weight: 600; margin-bottom: 0.5rem;
+    }
+    .inv-ornament {
+      font-size: 0.55rem; letter-spacing: 0.3em; opacity: 0.5; margin-bottom: 0.375rem;
+    }
+    .inv-names {
+      font-family: var(--serif); font-size: 1.125rem; font-weight: 600;
+      font-style: italic; line-height: 1.1; text-align: center;
+    }
+    .inv-date {
+      font-size: 0.5rem; letter-spacing: 0.15em; opacity: 0.6;
+      margin-top: 0.5rem; font-style: italic;
+    }
+    .inv-line {
+      width: 1.5rem; height: 1px; opacity: 0.3;
+      background: currentColor; margin: 0.5rem auto;
+    }
+    .inv-venue {
+      font-size: 0.45rem; letter-spacing: 0.1em; opacity: 0.5; text-align: center;
+      text-transform: uppercase;
+    }
+
+    /* Video card inner */
+    .video-play {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 0.75rem;
+    }
+    .video-play svg { margin-left: 2px; }
+    .video-label {
+      font-size: 0.45rem; letter-spacing: 0.25em; text-transform: uppercase;
+      opacity: 0.55; font-weight: 600; margin-bottom: 0.25rem;
+    }
+    .video-names {
+      font-family: var(--serif); font-size: 0.9rem; font-weight: 600;
+      font-style: italic; line-height: 1.15; text-align: center; opacity: 0.9;
+    }
+    .video-date { font-size: 0.45rem; opacity: 0.45; margin-top: 0.375rem; letter-spacing: 0.12em; }
+
+    /* Letterbox bars for video */
+    .video-bar-top,
+    .video-bar-bottom {
+      position: absolute; left: 0; right: 0; height: 12%;
+      background: #000;
+    }
+    .video-bar-top { top: 0; }
+    .video-bar-bottom { bottom: 0; }
+
+    /* Overlay gradient */
+    .tpl-preview::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0; height: 35%;
+      background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Badges on card */
+    .card-badge {
+      position: absolute; top: 0.5rem; left: 0.5rem; z-index: 2;
+      font-size: 0.5625rem; font-weight: 700; letter-spacing: 0.06em;
+      padding: 0.1875rem 0.5rem; border-radius: 999px;
+      background: rgba(255,255,255,0.88); color: var(--text);
+      backdrop-filter: blur(8px);
+    }
+    .card-badge.dark { background: rgba(0,0,0,0.6); color: #fff; }
+
+    .card-premium {
+      position: absolute; top: 0.5rem; right: 0.5rem; z-index: 2;
+      font-size: 0.5rem; font-weight: 700; letter-spacing: 0.05em;
+      padding: 0.1875rem 0.5rem; border-radius: 999px;
+      background: linear-gradient(135deg, var(--pink), #FF6D45);
+      color: #fff;
+    }
+
+    /* Card footer */
+    .card-foot {
+      padding: 0.625rem 0.75rem 0.6875rem;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+    }
+    .card-name {
+      font-family: var(--serif); font-size: 0.9375rem;
+      font-weight: 600; font-style: italic; color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-desc {
+      font-size: 0.6875rem; color: var(--text-2); margin-top: 1px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .card-arrow {
+      width: 1.625rem; height: 1.625rem; border-radius: 50%;
+      background: var(--pink-soft); color: var(--pink);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 180ms var(--ease);
+    }
+    .tpl-card:active .card-arrow { background: var(--pink); color: #fff; }
+
+    /* Skeleton */
+    @keyframes shimmer {
+      0%   { background-position: -400px 0; }
+      100% { background-position:  400px 0; }
+    }
+    .skeleton {
+      background: linear-gradient(90deg, #f0f0f0 0%, #f8f8f8 50%, #f0f0f0 100%);
+      background-size: 600px 100%;
+      animation: shimmer 1.5s infinite linear;
+    }
+
+    /* Empty state */
+    .empty-state {
+      grid-column: 1 / -1;
+      padding: 3rem 1rem;
+      text-align: center;
+    }
+    .empty-icon {
+      width: 3rem; height: 3rem; border-radius: 1rem;
+      background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 0.875rem; color: var(--muted);
+    }
+    .empty-title {
+      font-family: var(--serif); font-size: 1.25rem;
+      font-style: italic; color: var(--text); margin: 0 0 0.375rem;
+    }
+    .empty-sub { font-size: 0.875rem; color: var(--text-2); margin: 0; }
+
+    /* Loading overlay */
+    .load-cover {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem;
+      opacity: 0; pointer-events: none; transition: opacity 200ms;
+    }
+    .load-cover.show { opacity: 1; pointer-events: auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .load-spinner {
+      width: 2.25rem; height: 2.25rem; border-radius: 50%;
+      border: 2.5px solid rgba(249,59,122,0.15); border-top-color: var(--pink);
+      animation: spin 0.7s linear infinite;
+    }
+    .load-text {
+      font-family: var(--serif); font-size: 1.0625rem; font-style: italic; color: var(--text);
+    }
+  </style>
+</head>
+<body>
+
+<!-- DESKTOP NAV -->
+<nav class="desk-nav">
+  <div class="desk-nav-inner">
+    <a href="/" class="desk-nav-logo" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="">
+      <span>ToiLink</span>
+    </a>
+    <div class="desk-nav-links">
+      <a href="/index.html" class="desk-nav-link">Мои события</a>
+      <a href="/templates.html" class="desk-nav-link active">Шаблоны</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HEADER -->
+<header class="page-header">
+  <div class="header-inner">
+    <button class="back-btn" onclick="history.back()" aria-label="Назад">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 14L6 9l5-5"/>
+      </svg>
+    </button>
+    <div class="header-title">
+      <a href="/" class="header-brand" aria-label="ToiLink — главная">
+        <img src="/images/logo.webp" alt="">
+        <span>ToiLink</span>
+      </a>
+    </div>
+    <div style="width:2.25rem"></div>
+  </div>
+
+  <!-- Type switcher -->
+  <div class="type-bar">
+    <div class="type-switch" id="typeSwitch">
+      <button class="type-btn active" data-type="SITE">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="1" width="12" height="12" rx="2.5"/>
+          <path d="M1 5h12"/>
+          <path d="M5 5v7"/>
+        </svg>
+        Сайт
+        <span class="type-dot"></span>
+      </button>
+      <button class="type-btn" data-type="VIDEO">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="2.5" width="9" height="9" rx="2"/>
+          <path d="M10 5.5l3-2v7l-3-2"/>
+        </svg>
+        Видео
+        <span class="type-dot"></span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Category chips -->
+  <div class="cat-bar" id="catBar"></div>
+  <div style="height:0.625rem"></div>
+</header>
+
+<!-- GRID -->
+<main class="grid-wrap">
+  <div class="tpl-grid" id="grid">
+    <!-- skeleton -->
+    <div class="tpl-card">
+      <div class="tpl-preview skeleton" style="aspect-ratio:9/16"></div>
+      <div class="card-foot"><div style="flex:1"><div class="skeleton" style="height:13px;border-radius:8px;width:70%;margin-bottom:5px"></div><div class="skeleton" style="height:9px;border-radius:8px;width:50%"></div></div></div>
+    </div>
+    <div class="tpl-card">
+      <div class="tpl-preview skeleton" style="aspect-ratio:9/16"></div>
+      <div class="card-foot"><div style="flex:1"><div class="skeleton" style="height:13px;border-radius:8px;width:60%;margin-bottom:5px"></div><div class="skeleton" style="height:9px;border-radius:8px;width:40%"></div></div></div>
+    </div>
+    <div class="tpl-card">
+      <div class="tpl-preview skeleton" style="aspect-ratio:9/16"></div>
+      <div class="card-foot"><div style="flex:1"><div class="skeleton" style="height:13px;border-radius:8px;width:75%;margin-bottom:5px"></div><div class="skeleton" style="height:9px;border-radius:8px;width:55%"></div></div></div>
+    </div>
+    <div class="tpl-card">
+      <div class="tpl-preview skeleton" style="aspect-ratio:9/16"></div>
+      <div class="card-foot"><div style="flex:1"><div class="skeleton" style="height:13px;border-radius:8px;width:65%;margin-bottom:5px"></div><div class="skeleton" style="height:9px;border-radius:8px;width:45%"></div></div></div>
+    </div>
+  </div>
+</main>
+
+<!-- Loading overlay -->
+<div class="load-cover" id="loadCover">
+  <div class="load-spinner"></div>
+  <div class="load-text">Открываем шаблон…</div>
+</div>
+
+<script>
+  const CATEGORY_LABELS = {
+    WEDDING:  'Свадьба',
+    TOI:      'Той',
+    BIRTHDAY: 'День рождения',
+    BABY:     'Бешик Той',
+    ANNIVERSARY: 'Юбилей',
+    OTHER:    'Другое',
+  };
+
+  // Site templates
+  const SITE_TEMPLATES = [
+    { id: 1, name: 'Классика',    type: 'SITE', category: 'WEDDING',  theme: 'theme-emerald',  badge: 'Свадьба',      names: 'Айжан & Данияр',  date: '12 июня 2026',   venue: 'Grand Hall',    sub: 'WEDDING DAY',   ornament: '✦  ·  ✦', desc: 'Тёмный изумруд',    premium: false, darkBadge: true  },
+    { id: 2, name: 'Минимализм',  type: 'SITE', category: 'WEDDING',  theme: 'theme-cream',    badge: 'Свадьба',      names: 'Алина & Эркин',   date: '5 сентября',     venue: 'Villa Rosa',    sub: 'SAVE THE DATE', ornament: '—  ·  —',  desc: 'Кремовый',          premium: false, darkBadge: false },
+    { id: 3, name: 'Роскошь',     type: 'SITE', category: 'WEDDING',  theme: 'theme-plum',     badge: 'Свадьба',      names: 'Айзада & Нурлан', date: 'Июль 2026',      venue: 'Royal Palace',  sub: 'YOU\'RE INVITED',ornament: '✦  ✦  ✦', desc: 'Ночь и золото',     premium: true,  darkBadge: true  },
+    { id: 4, name: 'Модерн',      type: 'SITE', category: 'WEDDING',  theme: 'theme-noir',     badge: 'Свадьба',      names: 'Лейла & Адиль',   date: '15.06.2026',     venue: 'Atelier',       sub: 'WEDDING',       ornament: '·  ·  ·',  desc: 'Чёрный гранит',     premium: false, darkBadge: true  },
+    { id: 5, name: 'Цветущий',    type: 'SITE', category: 'BIRTHDAY', theme: 'theme-rose',     badge: 'День рождения',names: 'Малена — 30',     date: '18 апреля',      venue: 'Café Fleur',    sub: 'BIRTHDAY PARTY',ornament: '✿  ·  ✿',  desc: 'Розовый нежный',   premium: false, darkBadge: false },
+    { id: 6, name: 'Лесной',      type: 'SITE', category: 'TOI',      theme: 'theme-forest',   badge: 'Той',          names: 'Алтын & Тимур',   date: 'Август',         venue: 'Garden',        sub: 'TÜLÖÖ TÜKÖN',   ornament: '❀  ·  ❀',  desc: 'Зелень и природа', premium: false, darkBadge: true  },
+    { id: 7, name: 'Той',         type: 'SITE', category: 'TOI',      theme: 'theme-burgundy', badge: 'Той',          names: 'Бекзат — 40 Той', date: '22 сентября',    venue: 'Той Дом',       sub: 'МЕРЕЙ ТОЙ',     ornament: '✦  ·  ✦',  desc: 'Бордо и охра',     premium: true,  darkBadge: true  },
+    { id: 8, name: 'Бешик Той',   type: 'SITE', category: 'BABY',     theme: 'theme-sand',     badge: 'Бешик Той',    names: 'Айлин',           date: '40 күн',         venue: 'Отбасы үй',     sub: 'БЕШИК ТОЙ',     ornament: '✿  ·  ✿',  desc: 'Тёплый беж',       premium: false, darkBadge: false },
+  ];
+
+  // Video templates (placeholders)
+  const VIDEO_TEMPLATES = [
+    { id: 101, name: 'Кино',      type: 'VIDEO', category: 'WEDDING',  theme: 'theme-video-dark', badge: 'Свадьба',      names: 'Айжан & Данияр', date: '12 июня 2026', desc: 'Кинематографичный', premium: false, darkBadge: true  },
+    { id: 102, name: 'Романтик',  type: 'VIDEO', category: 'WEDDING',  theme: 'theme-video-rose', badge: 'Свадьба',      names: 'Алина & Эркин',  date: '5 сентября',  desc: 'Нежный и лиричный', premium: true,  darkBadge: true  },
+    { id: 103, name: 'Лента',     type: 'VIDEO', category: 'BIRTHDAY', theme: 'theme-video-gold', badge: 'День рождения',names: 'Малена — 30',    date: '18 апреля',   desc: 'Яркий монтаж',      premium: false, darkBadge: true  },
+    { id: 104, name: 'Минимал',   type: 'VIDEO', category: 'TOI',      theme: 'theme-video-azure',badge: 'Той',          names: 'Бекзат — 40',    date: '22 сентября', desc: 'Лаконичный стиль',  premium: false, darkBadge: true  },
+  ];
+
+  let _activeType = 'SITE';
+  let _activeCategory = 'ALL';
+
+  function templates() {
+    return _activeType === 'SITE' ? SITE_TEMPLATES : VIDEO_TEMPLATES;
+  }
+
+  function renderCats() {
+    const list = templates();
+    const counts = { ALL: list.length };
+    list.forEach(t => { counts[t.category] = (counts[t.category] || 0) + 1; });
+    const cats = ['ALL', ...Object.keys(CATEGORY_LABELS).filter(c => counts[c])];
+    document.getElementById('catBar').innerHTML = cats.map(c => `
+      <button class="cat-chip${c === _activeCategory ? ' active' : ''}" data-cat="${c}">
+        ${c === 'ALL' ? 'Все' : CATEGORY_LABELS[c]}
+        <span class="cat-count">${counts[c] || 0}</span>
+      </button>`).join('');
+    document.querySelectorAll('.cat-chip').forEach(b => b.addEventListener('click', () => {
+      _activeCategory = b.dataset.cat;
+      renderCats();
+      renderGrid();
+    }));
+  }
+
+  function siteCard(t) {
+    return `
+      <article class="tpl-card" onclick="pick(${t.id}, '${t.category}', '${t.type}')">
+        <div class="tpl-preview ${t.theme}">
+          <span class="card-badge${t.darkBadge ? ' dark' : ''}">${t.badge}</span>
+          ${t.premium ? `<span class="card-premium">PRO</span>` : ''}
+          <div style="display:flex;flex-direction:column;align-items:center;padding:0 0.75rem;width:100%">
+            <div class="inv-badge">${t.sub}</div>
+            <div class="inv-ornament">${t.ornament}</div>
+            <div class="inv-names">${t.names}</div>
+            <div class="inv-line"></div>
+            <div class="inv-date">${t.date}</div>
+            <div class="inv-venue">${t.venue}</div>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div style="min-width:0">
+            <div class="card-name">${t.name}</div>
+            <div class="card-desc">${t.desc}</div>
+          </div>
+          <div class="card-arrow">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l4-3.5L4 3"/></svg>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function videoCard(t) {
+    return `
+      <article class="tpl-card" onclick="pick(${t.id}, '${t.category}', '${t.type}')">
+        <div class="tpl-preview ${t.theme}">
+          <div class="video-bar-top"></div>
+          <div class="video-bar-bottom"></div>
+          <span class="card-badge${t.darkBadge ? ' dark' : ''}">${t.badge}</span>
+          ${t.premium ? `<span class="card-premium">PRO</span>` : ''}
+          <div style="display:flex;flex-direction:column;align-items:center;z-index:1;padding:0 0.75rem">
+            <div class="video-play">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M3 2.5l7 3.5-7 3.5z"/></svg>
+            </div>
+            <div class="video-label">Видео-приглашение</div>
+            <div class="video-names">${t.names}</div>
+            <div class="video-date">${t.date}</div>
+          </div>
+        </div>
+        <div class="card-foot">
+          <div style="min-width:0">
+            <div class="card-name">${t.name}</div>
+            <div class="card-desc">${t.desc}</div>
+          </div>
+          <div class="card-arrow">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9l4-3.5L4 3"/></svg>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  function renderGrid() {
+    const list = (_activeCategory === 'ALL')
+      ? templates()
+      : templates().filter(t => t.category === _activeCategory);
+
+    const grid = document.getElementById('grid');
+    if (!list.length) {
+      grid.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          </div>
+          <p class="empty-title">Скоро появятся</p>
+          <p class="empty-sub">В этой категории шаблоны в разработке</p>
+        </div>`;
+      return;
+    }
+    grid.innerHTML = list.map(t => t.type === 'VIDEO' ? videoCard(t) : siteCard(t)).join('');
+  }
+
+  function pick(id, category, type) {
+    document.getElementById('loadCover').classList.add('show');
+    try {
+      sessionStorage.setItem('tl_from_catalog', '1');
+      localStorage.setItem('tl_selected_template', 'template-' + id);
+      localStorage.setItem('tl_template_selection', JSON.stringify({
+        templateId: 'template-' + id,
+        category: category || 'WEDDING',
+        type: type || 'SITE',
+      }));
+    } catch (_) {}
+    location.href = '/wizard.html';
+  }
+
+  // Type switcher
+  document.getElementById('typeSwitch').querySelectorAll('.type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _activeType = btn.dataset.type;
+      _activeCategory = 'ALL';
+      document.querySelectorAll('.type-btn').forEach(b => b.classList.toggle('active', b.dataset.type === _activeType));
+      renderCats();
+      renderGrid();
+    });
+  });
+
+  renderCats();
+  renderGrid();
+</script>
+</body>
+</html>

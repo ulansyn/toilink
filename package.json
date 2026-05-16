@@ -1,0 +1,25 @@
+{
+  "name": "toilink",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "css:dev": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --watch",
+    "css:build": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --minify"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ulansyn/toilink.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ulansyn/toilink/issues"
+  },
+  "homepage": "https://github.com/ulansyn/toilink#readme",
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
+  }
+}

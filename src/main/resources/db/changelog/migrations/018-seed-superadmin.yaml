@@ -1,0 +1,11 @@
+databaseChangeLog:
+  - changeSet:
+      id: 018-seed-superadmin
+      author: toilink
+      changes:
+        # Promote the first registered user to SUPERADMIN (if none exists yet)
+        - sql:
+            sql: |
+              UPDATE users SET role = 'SUPERADMIN'
+              WHERE id = (SELECT MIN(id) FROM users WHERE deleted_at IS NULL)
+              AND NOT EXISTS (SELECT 1 FROM users WHERE role = 'SUPERADMIN');
