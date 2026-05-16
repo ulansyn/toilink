@@ -528,117 +528,168 @@
       letter-spacing: .08em; text-transform: uppercase; margin-bottom: 6px;
     }
 
-    /* Table cards */
+    /* Table cards — clean elegant layout */
     .table-card {
       background: #fff;
-      border-radius: 20px;
-      border: 1px solid rgba(249,59,122,0.10);
-      padding: 14px 14px 12px;
-      box-shadow: 0 2px 14px rgba(249,59,122,0.06), 0 1px 3px rgba(0,0,0,0.03);
-      transition: border-color .2s, box-shadow .2s, transform .15s;
+      border-radius: 22px;
+      border: 1px solid rgba(30,40,32,0.06);
+      padding: 18px 18px 14px;
+      box-shadow: 0 1px 2px rgba(30,40,32,0.04), 0 8px 24px rgba(30,40,32,0.04);
+      transition: border-color .2s, box-shadow .25s, transform .15s;
       display: flex; flex-direction: column;
+      position: relative;
     }
     .table-card:hover {
-      box-shadow: 0 6px 20px rgba(249,59,122,0.10), 0 1px 3px rgba(0,0,0,0.04);
+      border-color: rgba(249,59,122,0.18);
+      box-shadow: 0 1px 2px rgba(30,40,32,0.04), 0 14px 32px rgba(249,59,122,0.10);
     }
     .table-card.drag-over {
       border-color: #F93B7A;
-      box-shadow: 0 0 0 3px rgba(249,59,122,.12);
-      background: rgba(249,59,122,.02);
+      box-shadow: 0 0 0 3px rgba(249,59,122,.14);
+      background: linear-gradient(180deg, rgba(249,59,122,.03), #fff);
     }
-    .table-card-chips {
+
+    /* Card head */
+    .table-card-head {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 14px;
+    }
+    .card-num {
+      width: 40px; height: 40px; border-radius: 13px; flex-shrink: 0;
+      background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
+      color: #fff;
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-size: 19px; font-weight: 700; letter-spacing: -0.5px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 6px 16px rgba(249,59,122,.30), inset 0 1px 0 rgba(255,255,255,.25);
+    }
+    .card-title-wrap { flex: 1; min-width: 0; padding-top: 1px; }
+    .card-title {
+      font-family: 'Cormorant Garamond', serif; font-style: italic;
+      font-weight: 600; font-size: 22px; color: #1E2820;
+      line-height: 1.15; letter-spacing: -0.2px;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card-cap {
+      margin-top: 4px;
+      font-size: 12.5px; font-weight: 500; color: #8B857A;
+      font-variant-numeric: tabular-nums;
+      display: flex; align-items: baseline; gap: 2px;
+    }
+    .card-cap .cap-num { font-size: 14.5px; font-weight: 700; color: #1E2820; }
+    .card-cap .cap-num.is-overfull { color: #C71F5C; }
+    .card-cap .cap-sep, .card-cap .cap-total { color: #B5AC9F; }
+    .card-cap .cap-label { margin-left: 4px; color: #9B8B7A; }
+    .card-actions { display: flex; gap: 2px; flex-shrink: 0; align-items: flex-start; margin: -4px -6px 0 0; }
+
+    /* Fill bar — segmented by side */
+    .card-fill {
+      display: flex; height: 6px; gap: 2px;
+      background: #F2EEE8; border-radius: 100px;
+      overflow: hidden; margin-bottom: 10px;
+      padding: 0;
+    }
+    .card-fill .fill-seg {
+      height: 100%; display: block;
+      transition: width .4s ease;
+    }
+    .card-fill .seg-bride  { background: linear-gradient(180deg, #F93B7A, #E2336A); }
+    .card-fill .seg-groom  { background: linear-gradient(180deg, #6A88E0, #4A6FD8); }
+    .card-fill .seg-shared { background: linear-gradient(180deg, #D8C8B4, #C7B498); }
+
+    /* Legend */
+    .card-legend {
+      display: flex; flex-wrap: wrap; gap: 6px 14px;
+      font-size: 11.5px; color: #6B6860; font-weight: 500;
+      margin-bottom: 14px;
+    }
+    .card-legend .leg-item { display: inline-flex; align-items: center; gap: 5px; }
+    .card-legend .leg-dot {
+      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    }
+    .card-legend .leg-dot.bride  { background: #F93B7A; }
+    .card-legend .leg-dot.groom  { background: #4A6FD8; }
+    .card-legend .leg-dot.shared { background: #C7B498; }
+
+    /* Guests list */
+    .card-guests {
       display: flex; flex-wrap: wrap; gap: 6px;
-      min-height: 32px; padding: 4px 0 8px;
-      flex: 1;
+      flex: 1; min-height: 40px;
     }
-    .table-empty-hint {
-      font-size: 12.5px; color: #9B8B7A; font-style: italic;
-      padding: 8px 4px; line-height: 1.35;
+    .card-empty {
+      width: 100%;
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 12px;
+      background: #FAF7F2;
+      border: 1px dashed rgba(30,40,32,.10);
+      border-radius: 14px;
+      color: #8B857A;
     }
+    .card-empty-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: #fff;
+      display: flex; align-items: center; justify-content: center;
+      color: #B5AC9F; flex-shrink: 0;
+    }
+    .card-empty-text { font-size: 12.5px; line-height: 1.4; }
+
+    /* Guest chip — pretty pill */
     .guest-chip {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #F5F2EE; border-radius: 100px;
-      padding: 3px 10px 3px 3px;
-      font-size: 12px; font-weight: 500; color: #1E2820;
+      display: inline-flex; align-items: center; gap: 7px;
+      background: #FAF7F2;
+      border-radius: 100px;
+      padding: 3px 12px 3px 3px;
+      font-size: 12.5px; font-weight: 500; color: #1E2820;
       cursor: grab; user-select: none; touch-action: none;
-      border: 1px solid rgba(30,40,32,.06);
-      transition: background .12s, box-shadow .1s;
+      border: 1px solid rgba(30,40,32,.05);
+      transition: background .15s, border-color .15s, box-shadow .15s, transform .1s;
       -webkit-user-select: none;
       max-width: 100%;
     }
-    .guest-chip:active { background: #EBE6DE; }
+    .guest-chip:hover {
+      background: #fff;
+      border-color: rgba(249,59,122,.18);
+      box-shadow: 0 2px 8px rgba(30,40,32,.06);
+    }
+    .guest-chip:active { transform: scale(.97); }
     .guest-chip.is-dragging { opacity: 0.35; cursor: grabbing; }
     .guest-chip.overflow-chip {
       background: #F0EDE8; color: #8A7F76;
-      cursor: pointer; padding: 4px 6px;
+      cursor: pointer; padding: 5px 10px;
     }
     .chip-avatar {
-      width: 22px; height: 22px; border-radius: 50%;
+      width: 26px; height: 26px; border-radius: 50%;
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 11px; font-weight: 700; flex-shrink: 0;
-      box-shadow: 0 0 0 1.5px transparent inset;
-    }
-    .guest-chip.side-bride .chip-avatar { box-shadow: 0 0 0 1.5px #F93B7A inset; }
-    .guest-chip.side-groom .chip-avatar { box-shadow: 0 0 0 1.5px #4A6FD8 inset; }
-    .chip-name {
-      max-width: 92px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-      font-variant: tabular-nums;
-    }
-    /* Dense mode: hide name on narrow screens to fit more guests */
-    @media (max-width: 520px) {
-      .table-card-chips.is-dense .chip-name { display: none; }
-      .table-card-chips.is-dense .guest-chip { padding: 2px 3px; }
-      .table-card-chips.is-dense .chip-avatar { width: 26px; height: 26px; font-size: 12px; }
-    }
-    /* Table header layout */
-    .table-card-title {
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+      box-shadow: 0 0 0 2px transparent inset;
       font-family: 'Cormorant Garamond', serif; font-style: italic;
-      font-weight: 600; font-size: 20px; color: #1E2820; line-height: 1.15;
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .table-card-meta {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 11.5px; color: #8B857A; margin-top: 3px;
-      font-variant-numeric: tabular-nums;
+    .guest-chip.side-bride .chip-avatar  { box-shadow: 0 0 0 2px #F93B7A inset; }
+    .guest-chip.side-groom .chip-avatar  { box-shadow: 0 0 0 2px #4A6FD8 inset; }
+    .guest-chip.side-shared .chip-avatar { box-shadow: 0 0 0 2px #C7B498 inset; }
+    .chip-name {
+      max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      letter-spacing: 0.1px;
     }
-    .table-card-meta .meta-overfull { color: #C71F5C; font-weight: 600; }
-    .table-card-actions { display: flex; gap: 2px; flex-shrink: 0; align-items: flex-start; }
 
-    /* Side mix dots in header */
-    .side-mix { display: inline-flex; gap: 4px; }
-    .mix-dot {
-      display: inline-flex; align-items: center; justify-content: center;
-      min-width: 16px; height: 16px; padding: 0 4px;
-      border-radius: 100px; font-size: 10px; font-weight: 700;
-    }
-    .mix-dot.bride { background: #FFE0EC; color: #C71F5C; }
-    .mix-dot.groom { background: #DDE5FF; color: #2F4DAF; }
-    .mix-dot.shared { background: #F0EDE8; color: #7C5520; }
-
-    /* Fill bar */
-    .table-fill {
-      height: 4px; background: #F0EDE8; border-radius: 100px;
-      overflow: hidden; margin-bottom: 10px;
-    }
-    .table-fill-bar {
-      height: 100%; border-radius: 100px;
-      background: linear-gradient(90deg, #F93B7A, #FF6D45);
-      transition: width .4s ease;
-    }
-    .table-fill-bar.is-overfull { background: #C71F5C; }
-
-    /* Add guests button */
+    /* Add button — minimalist */
     .table-add-btn {
-      width: 100%; margin-top: 10px;
-      padding: 9px;
+      width: 100%; margin-top: 12px;
+      padding: 10px;
       display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-      font-size: 12.5px; font-weight: 600; color: #F93B7A;
-      background: rgba(249,59,122,.04);
-      border: 1px dashed rgba(249,59,122,.30);
-      border-radius: 12px;
-      cursor: pointer; transition: background .15s, border-color .15s;
+      font-size: 13px; font-weight: 600; color: #6B6860;
+      background: transparent;
+      border: 1px dashed rgba(30,40,32,.16);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: color .15s, background .15s, border-color .15s;
     }
-    .table-add-btn:hover { background: rgba(249,59,122,.08); border-color: rgba(249,59,122,.50); }
+    .table-add-btn:hover {
+      color: #F93B7A;
+      background: rgba(249,59,122,.03);
+      border-color: rgba(249,59,122,.35);
+      border-style: solid;
+    }
     .chip-ghost {
       position: fixed; pointer-events: none; z-index: 200;
       background: #fff; border-radius: 100px;
@@ -666,19 +717,6 @@
     }
     @media (min-width: 1024px) {
       .tables-grid { grid-template-columns: repeat(3, 1fr); gap: 16px; }
-    }
-    .table-card-header {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding-bottom: 10px; margin-bottom: 8px;
-      border-bottom: 1px solid rgba(249,59,122,0.08);
-    }
-    .table-num-badge {
-      width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0;
-      background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-      color: #fff; font-size: 16px; font-weight: 700; letter-spacing: -0.5px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(249,59,122,.28);
-      font-family: 'Cormorant Garamond', serif; font-style: italic;
     }
 
     /* Bottom nav */
@@ -1185,7 +1223,7 @@
 </script>
 
 <script src="/js/initAuth.js?v=rsvp3"></script>
-<script src="/js/guests.js?v=guests4"></script>
+<script src="/js/guests.js?v=guests5"></script>
 <script src="/js/seating-ui.js?v=seat3"></script>
 </body>
 </html>

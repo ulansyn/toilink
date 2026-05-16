@@ -1050,7 +1050,7 @@ function renderTableCard(t, idx) {
   const guests = allGuests.filter(g => g.tableId === t.id);
   const capacity = t.capacity || 12;
   const overfull = guests.length > capacity;
-  const fillPct = Math.min(100, Math.round((guests.length / capacity) * 100));
+  const total = Math.max(capacity, guests.length);
 
   // Side mix
   let bride = 0, groom = 0, shared = 0;
@@ -1060,45 +1060,52 @@ function renderTableCard(t, idx) {
     else shared++;
   }
 
-  const mixDots = guests.length === 0 ? '' : `
-    <span class="side-mix">
-      ${bride ? `<span class="mix-dot bride" title="Невеста · ${bride}">${bride}</span>` : ''}
-      ${groom ? `<span class="mix-dot groom" title="Жених · ${groom}">${groom}</span>` : ''}
-      ${shared ? `<span class="mix-dot shared" title="Общие · ${shared}">${shared}</span>` : ''}
-    </span>`;
+  // Segmented fill bar: bride / groom / shared / empty
+  const segPct = n => `${(n / total) * 100}%`;
+  const fillSegments = `
+    ${bride ? `<span class="fill-seg seg-bride" style="width:${segPct(bride)}"></span>` : ''}
+    ${groom ? `<span class="fill-seg seg-groom" style="width:${segPct(groom)}"></span>` : ''}
+    ${shared ? `<span class="fill-seg seg-shared" style="width:${segPct(shared)}"></span>` : ''}`;
 
-  // Compact mode when many guests (>=9) — hide names on mobile, show only avatars
-  const compactClass = guests.length >= 9 ? ' is-dense' : '';
+  const legend = guests.length === 0 ? '' : `
+    <div class="card-legend">
+      ${bride ? `<span class="leg-item"><span class="leg-dot bride"></span>${bride} ${pluralize(bride, ['невеста','невесты','невест'])}</span>` : ''}
+      ${groom ? `<span class="leg-item"><span class="leg-dot groom"></span>${groom} ${pluralize(groom, ['жених','жениха','женихов'])}</span>` : ''}
+      ${shared ? `<span class="leg-item"><span class="leg-dot shared"></span>${shared} ${pluralize(shared, ['общий','общих','общих'])}</span>` : ''}
+    </div>`;
 
   return `
     <div class="table-card fade-in" data-drop-table="${t.id}">
-      <div class="table-card-header">
-        <div class="table-num-badge">${idx + 1}</div>
-        <div class="flex-1 min-w-0">
-          <div class="table-card-title">${escapeHtml(t.name)}</div>
-          <div class="table-card-meta">
-            <span class="${overfull ? 'meta-overfull' : ''}">${guests.length}/${capacity}</span>
-            ${mixDots}
-          </div>
+      <div class="table-card-head">
+        <div class="card-num">${idx + 1}</div>
+        <div class="card-title-wrap">
+          <div class="card-title">${escapeHtml(t.name)}</div>
+          <div class="card-cap"><span class="cap-num${overfull ? ' is-overfull' : ''}">${guests.length}</span><span class="cap-sep">/</span><span class="cap-total">${capacity}</span> <span class="cap-label">${pluralize(capacity, ['место','места','мест'])}</span></div>
         </div>
-        <div class="table-card-actions">
-          <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" title="Редактировать">
+        <div class="card-actions">
+          <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" aria-label="Редактировать">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
           </button>
-          <button class="row-icon-btn" data-action="delete-table" data-table-id="${t.id}" title="Удалить" style="color:#B8412E;">
+          <button class="row-icon-btn" data-action="delete-table" data-table-id="${t.id}" aria-label="Удалить" style="color:#B8412E;">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M8 7V4a2 2 0 012-2h4a2 2 0 012 2v3"/></svg>
           </button>
         </div>
       </div>
-      <div class="table-fill"><div class="table-fill-bar${overfull ? ' is-overfull' : ''}" style="width:${fillPct}%"></div></div>
-      <div class="table-card-chips${compactClass}" data-drop-table="${t.id}">
+      <div class="card-fill" title="${guests.length} из ${capacity}">${fillSegments}</div>
+      ${legend}
+      <div class="card-guests" data-drop-table="${t.id}">
         ${guests.length === 0
-          ? `<span class="table-empty-hint">Перетащите гостей сюда или нажмите «Добавить»</span>`
+          ? `<div class="card-empty">
+              <div class="card-empty-icon">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              </div>
+              <div class="card-empty-text">Пока пусто. Перетащите гостя или нажмите «Добавить».</div>
+            </div>`
           : guests.map(g => guestChip(g, t.id)).join('')}
       </div>
       <button class="table-add-btn" data-action="assign-guests" data-table-id="${t.id}">
         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
-        <span>Добавить</span>
+        <span>Добавить гостя</span>
       </button>
     </div>`;
 }
