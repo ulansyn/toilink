@@ -245,6 +245,33 @@
     .nav-link:hover svg { opacity: 1; }
     .nav-link.active { color: var(--sidebar-text-active); background: var(--sidebar-active); font-weight: 600; }
     .nav-link.active svg { opacity: 1; }
+    .nav-badge {
+      margin-left: auto;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 9px;
+      background: #F93B7A;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+    .dash-pending-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .dash-pending-row:last-child { border-bottom: 0; }
+    .dash-pending-info { flex: 1; min-width: 0; }
+    .dash-pending-name { font-weight: 600; font-size: 13px; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .dash-pending-meta { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+    .dash-pending-amount { font-weight: 700; font-size: 14px; color: #121212; white-space: nowrap; }
+    .dash-pending-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .sidebar-footer {
       padding: 10px 12px 14px;
       border-top: 1px solid rgba(255,255,255,.04);
@@ -1427,6 +1454,7 @@
         <button class="nav-link" data-section="payments">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
           Оплаты
+          <span class="nav-badge" id="navPaymentsBadge" style="display:none"></span>
         </button>
         <button class="nav-link" data-section="audit">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
@@ -1577,6 +1605,17 @@
                 <div class="health-list" id="systemHealth"></div>
               </section>
             </div>
+
+            <section class="dash-card" id="dashPendingCard" style="display:none">
+              <div class="chart-head">
+                <div>
+                  <div class="chart-title" style="color:#F93B7A;">Ожидают подтверждения</div>
+                  <div class="chart-sub">Подтвердите — событие сразу активируется</div>
+                </div>
+                <button class="ghost-btn" onclick="goToPayments()">Все платежи →</button>
+              </div>
+              <div id="dashPendingList"></div>
+            </section>
 
             <div class="dash-lists">
               <section class="dash-card dash-list-card">
@@ -1982,6 +2021,20 @@ async function loadDashboard() {
   setText('dashEventsTotal2', numberShort(d.eventsTotal));
   setText('dashGuestsTotal2', numberShort(d.guestsTotal));
   setText('dashPendingPayments2', numberShort(d.paymentsPending));
+
+  // Nav badge
+  const badge = document.getElementById('navPaymentsBadge');
+  if (badge) {
+    if (d.paymentsPending > 0) {
+      badge.textContent = d.paymentsPending > 99 ? '99+' : d.paymentsPending;
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // Pending payments card
+  loadPendingPayments();
   setText('dashBlockedUsers2', numberShort(d.usersBlocked));
   setText('dashTemplates2', numberShort(d.templatesActive));
 
@@ -2021,6 +2074,55 @@ async function loadDashboard() {
     ['Название', 'Владелец', 'Статус'],
     e => [esc(e.title || '—'), esc(e.user?.phone || '—'), statusBadge(e.status)]
   );
+}
+
+async function loadPendingPayments() {
+  const card = document.getElementById('dashPendingCard');
+  const list = document.getElementById('dashPendingList');
+  if (!card || !list) return;
+
+  const data = await apiJson(`${API}/payments?status=AWAITING_CONFIRMATION&size=10`);
+  const rows = data?.content || [];
+
+  if (!rows.length) {
+    card.style.display = 'none';
+    return;
+  }
+
+  card.style.display = '';
+  list.innerHTML = rows.map(p => `
+    <div class="dash-pending-row">
+      <div class="dash-pending-info">
+        <div class="dash-pending-name">${esc(p.user?.phone || '—')}${p.user?.name ? ' · ' + esc(p.user.name) : ''}</div>
+        <div class="dash-pending-meta">${esc(p.event?.title || 'Без события')} · ${esc(p.externalRef || 'без чека')} · ${fmtDate(p.createdAt)}</div>
+      </div>
+      <div class="dash-pending-amount">${fmtMoney(p.amount)}</div>
+      <div class="dash-pending-actions">
+        <button class="tiny-btn good" onclick="dashConfirmPayment(${Number(p.id)})">Подтвердить</button>
+        <button class="tiny-btn danger" onclick="dashRejectPayment(${Number(p.id)})">Откл.</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function dashConfirmPayment(id) {
+  const res = await apiJson(`${API}/payments/${id}/confirm`, jsonOptions({ reason: 'Ручное подтверждение' }));
+  if (res) { toast('Платёж подтверждён — событие активировано'); loadDashboard(); loadAuditIfOpen(); }
+}
+
+async function dashRejectPayment(id) {
+  const reason = window.prompt('Причина отклонения:');
+  if (!reason?.trim()) return;
+  const res = await apiJson(`${API}/payments/${id}/reject`, jsonOptions({ reason: reason.trim() }));
+  if (res) { toast('Платёж отклонён'); loadDashboard(); loadAuditIfOpen(); }
+}
+
+function goToPayments() {
+  const sel = document.getElementById('paymentStatus');
+  if (sel) sel.value = 'AWAITING_CONFIRMATION';
+  state.paymentsPage = 0;
+  navigateTo('payments');
+  loadPayments();
 }
 
 function renderActivityFeed(d) {
