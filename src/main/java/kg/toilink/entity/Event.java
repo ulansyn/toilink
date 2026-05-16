@@ -69,6 +69,10 @@ public class Event {
     @Column(columnDefinition = "jsonb")
     private String blocksConfig;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "guest_groups", nullable = false, columnDefinition = "jsonb")
+    private String guestGroups;
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -84,6 +88,7 @@ public class Event {
         if (status == null) status = "DRAFT";
         if (language == null) language = "ru";
         if (previewToken == null) previewToken = UUID.randomUUID();
+        if (guestGroups == null) guestGroups = "[]";
     }
 
     @PreUpdate

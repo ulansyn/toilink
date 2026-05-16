@@ -91,10 +91,21 @@ public class EventService {
                 .rsvpDeadline(req.rsvpDeadline())
                 .language(req.language())
                 .blocksConfig(req.blocksConfig())
+                .guestGroups(defaultGuestGroupsFor(template))
                 .slug(slug)
                 .build();
 
         return EventResponse.from(eventRepository.save(event));
+    }
+
+    /** Default guest groups by template type. Wedding gets groom/bride; other templates start empty. */
+    private String defaultGuestGroupsFor(Template template) {
+        if (template == null) return "[]";
+        String path = template.getTemplatePath();
+        if ("template-1".equals(path)) {
+            return "[{\"code\":\"groom\",\"label\":\"Сторона жениха\"},{\"code\":\"bride\",\"label\":\"Сторона невесты\"}]";
+        }
+        return "[]";
     }
 
     @Transactional

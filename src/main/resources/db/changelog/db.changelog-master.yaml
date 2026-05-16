@@ -39,3 +39,7 @@ databaseChangeLog:
       file: db/changelog/migrations/020-add-guest-side-and-relations.yaml
   - include:
       file: db/changelog/migrations/021-create-seating-tables.yaml
+  - include:
+      file: db/changelog/migrations/022-seed-test-user.yaml
+  - include:
+      file: db/changelog/migrations/023-add-event-guest-groups.yaml

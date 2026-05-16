@@ -21,6 +21,7 @@ public record EventResponse(
         LocalDateTime rsvpDeadline,
         String language,
         String blocksConfig,
+        String guestGroups,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -41,6 +42,7 @@ public record EventResponse(
                 e.getRsvpDeadline(),
                 e.getLanguage(),
                 e.getBlocksConfig(),
+                e.getGuestGroups(),
                 e.getCreatedAt(),
                 e.getUpdatedAt()
         );
