@@ -882,6 +882,81 @@ function applyEventMeta(event) {
   document.title = `ToiLink — ${name}`;
   const mob = document.getElementById('mob-event-title'); if (mob) mob.textContent = name;
   const crumb = document.getElementById('crumb-event');   if (crumb) crumb.textContent = name;
+  renderShareLinks(event);
+}
+
+// ─── Share links section ──────────────────────────────────────────────────────
+function parseGuestGroups(event) {
+  if (!event?.guestGroups) return [];
+  if (Array.isArray(event.guestGroups)) return event.guestGroups;
+  try {
+    const parsed = JSON.parse(event.guestGroups);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+function renderShareLinks(event) {
+  const host = document.getElementById('share-links');
+  if (!host) return;
+  if (!event?.slug || !isPubliclyVisibleEvent(event)) {
+    host.classList.add('hidden');
+    host.innerHTML = '';
+    return;
+  }
+  const groups = parseGuestGroups(event);
+  const baseUrl = `${location.origin}/e/${event.slug}`;
+  // Always include the общая link at the end
+  const items = [
+    ...groups
+      .filter(g => g && g.code)
+      .map(g => ({
+        label: g.label || g.code,
+        url: `${baseUrl}/${encodeURIComponent(g.code)}`,
+        code: g.code,
+      })),
+    { label: 'Общая ссылка', url: baseUrl, code: '__shared__' },
+  ];
+
+  host.classList.remove('hidden');
+  host.innerHTML = `
+    <div class="rounded-2xl border border-line bg-paper p-4 md:p-5">
+      <div class="flex items-baseline justify-between mb-3">
+        <div class="font-cormorant italic text-[20px] md:text-[22px] font-semibold text-ink">Ссылки для рассылки</div>
+        <div class="text-[11px] text-muted">${items.length} ${pluralize(items.length, ['ссылка','ссылки','ссылок'])}</div>
+      </div>
+      <div class="flex flex-col gap-2">
+        ${items.map(it => `
+          <div class="flex items-center gap-3 py-2 px-3 rounded-xl bg-white border border-line">
+            <div class="flex-1 min-w-0">
+              <div class="text-[13px] text-ink font-medium">${escapeHtml(it.label)}</div>
+              <div class="text-[12px] text-muted truncate" title="${escapeHtml(it.url)}">${escapeHtml(it.url)}</div>
+            </div>
+            <button type="button" class="chip-sm share-copy-btn" data-url="${escapeHtml(it.url)}"
+                    style="background:#F5F0E8; color:#1E2820; cursor:pointer; padding:6px 12px;">
+              Копировать
+            </button>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  host.querySelectorAll('.share-copy-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const url = btn.dataset.url;
+      try {
+        await navigator.clipboard.writeText(url);
+        toast('Ссылка скопирована');
+      } catch {
+        // Fallback for older browsers
+        const ta = document.createElement('textarea');
+        ta.value = url; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); toast('Ссылка скопирована'); }
+        catch { toast('Не удалось скопировать', false); }
+        ta.remove();
+      }
+    });
+  });
 }
 
 function renderAll() {
