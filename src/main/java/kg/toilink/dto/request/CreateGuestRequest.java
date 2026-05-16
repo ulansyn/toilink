@@ -15,7 +15,7 @@ public record CreateGuestRequest(
 
         Boolean personalInvite,
 
-        @Pattern(regexp = "GROOM|BRIDE|SHARED|OTHER", message = "Side must be GROOM, BRIDE, SHARED or OTHER")
+        @Size(max = 30, message = "Side code must not exceed 30 characters")
         String side,
 
         @Pattern(regexp = "ATTENDING|DECLINED|MAYBE", message = "Status must be ATTENDING, DECLINED or MAYBE")

@@ -1,6 +1,5 @@
 package kg.toilink.dto.request;
 
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UpdateGuestRequest(
@@ -13,7 +12,7 @@ public record UpdateGuestRequest(
 
         String notes,
 
-        @Pattern(regexp = "GROOM|BRIDE|SHARED|OTHER", message = "Side must be GROOM, BRIDE, SHARED or OTHER")
+        @Size(max = 30, message = "Side code must not exceed 30 characters")
         String side,
 
         Long relatedToId,
