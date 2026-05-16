@@ -1035,11 +1035,11 @@
                         <div>
                             <div class="pay-title">Оплатите по QR или переводом</div>
                             <p class="pay-text">Сделайте скриншот QR-кода и откройте его в приложении банка.</p>
-                            <div class="methods" aria-label="Способы оплаты" id="methodList">
-                                <span class="method" data-method="Mbank" onclick="selectMethod(this)"><span class="dot"></span>Mbank</span>
-                                <span class="method" data-method="O!Dengi" onclick="selectMethod(this)"><span class="dot"></span>O!Dengi</span>
-                                <span class="method" data-method="Элсом" onclick="selectMethod(this)"><span class="dot"></span>Элсом</span>
-                                <span class="method" data-method="Карта" onclick="selectMethod(this)"><span class="dot"></span>Карта</span>
+                            <div class="methods" aria-label="Способы оплаты">
+                                <span class="method"><span class="dot"></span>Mbank</span>
+                                <span class="method"><span class="dot"></span>O!Dengi</span>
+                                <span class="method"><span class="dot"></span>Элсом</span>
+                                <span class="method"><span class="dot"></span>Карта</span>
                             </div>
                         </div>
                     </div>
@@ -1136,14 +1136,6 @@
         }).catch(() => showToast('Не удалось скопировать. Выделите номер вручную'));
     }
 
-    let selectedMethod = 'QR';
-
-    function selectMethod(el) {
-        document.querySelectorAll('#methodList .method').forEach(m => m.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedMethod = el.dataset.method || 'QR';
-    }
-
     function getEventId() {
         return new URLSearchParams(location.search).get('event') || null;
     }
@@ -1156,7 +1148,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     eventId: getEventId() ? Number(getEventId()) : null,
-                    method: selectedMethod,
+                    method: 'QR',
                     orderRef: order
                 })
             });
