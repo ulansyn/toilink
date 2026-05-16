@@ -923,7 +923,6 @@
             }
         }
     </style>
-  <script src="/js/initAuth.js"></script>
   <script src="/js/sheet-behavior.js"></script>
 </head>
 <body>
@@ -1191,8 +1190,10 @@
     }
 
     (async function initPaywall() {
-        await window.initAuth();
-        await loadExistingPayment(); // покажет существующий ID если уже платил
+        const me = await fetch('/api/auth/me', { credentials: 'include' })
+            .then(r => r.ok ? r.json() : null).catch(() => null);
+        if (!me) { location.replace('/login.html'); return; }
+        await loadExistingPayment();
         renderOrder();
     })();
 </script>
