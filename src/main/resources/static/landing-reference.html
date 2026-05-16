@@ -13,9 +13,9 @@
 
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
-    <link rel="stylesheet" href="/css/fonts.css">
-    <link rel="stylesheet" href="/css/tokens.css"/>
-    <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/critical.css">
+    <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
     <link rel="stylesheet" href="/css/tailwind.css"/>
 
     <style>
@@ -1047,7 +1047,7 @@
             setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 1200);
             return;
         }
-        localStorage.setItem('tl_phone', '+' + raw);
+        try { localStorage.setItem('tl_phone', '+' + raw); } catch (_) {}
         closeAuth();
         const btn = document.getElementById('loginBtn');
         btn.textContent = '✓ Входим...';

@@ -285,6 +285,8 @@ function guestRow(g) {
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderEmpty() {
+  const _gh = document.getElementById('genericHero');
+  if (_gh) _gh.style.display = '';
   document.getElementById('content').innerHTML = `
     <div class="flex flex-col items-center justify-center text-center py-20 md:py-28 px-6 fade-in">
       <div class="relative mb-9">
@@ -731,6 +733,8 @@ window.shareEvent = async function (url, title) {
 };
 
 function renderEvents(events, statsMap) {
+  const _gh = document.getElementById('genericHero');
+  if (_gh) _gh.style.display = '';
   const sorted = [...events].sort((a, b) => {
     const da = a.eventDate ? new Date(a.eventDate).getTime() : 0;
     const db = b.eventDate ? new Date(b.eventDate).getTime() : 0;
@@ -940,20 +944,21 @@ function installShareDelegation() {
 
 async function init() {
   installShareDelegation();
-  const phone = await window.initAuth();
-  if (!phone) return;
 
-  document.querySelectorAll('.user-phone').forEach(el => el.textContent = phone);
-
-  // reset generic hero visibility (may have been hidden by Hub render previously)
-  const genericHero = document.getElementById('genericHero');
-  if (genericHero) genericHero.style.display = '';
-
+  // Render cached content immediately — no need to wait for auth network call.
   const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 2 * 60_000);
   const cachedStats = cacheGet(STATS_CACHE_KEY, 2 * 60_000) || {};
   if (cachedEvents) {
     renderDashboardSnapshot(cachedEvents, cachedStats);
     prefetchLikelyNextSteps(cachedEvents);
+  }
+
+  const phone = await window.initAuth();
+  if (!phone) return;
+
+  document.querySelectorAll('.user-phone').forEach(el => el.textContent = phone);
+
+  if (cachedEvents) {
     refreshDashboard().catch(() => {});
     return;
   }

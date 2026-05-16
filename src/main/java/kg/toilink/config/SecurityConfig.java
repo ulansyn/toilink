@@ -30,7 +30,11 @@ public class SecurityConfig {
                 .anyRequest().permitAll()
             )
             .exceptionHandling(ex -> ex
-                .authenticationEntryPoint((req, res, e) -> res.sendError(401))
+                .authenticationEntryPoint((req, res, e) -> {
+                    res.setStatus(401);
+                    res.setContentType("application/json;charset=UTF-8");
+                    res.getWriter().write("{\"error\":\"UNAUTHORIZED\",\"message\":\"Authentication required\",\"status\":401}");
+                })
             );
         return http.build();
     }

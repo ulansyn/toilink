@@ -1,19 +1,22 @@
-const SW_VERSION = 'toilink-app-v4';
+const SW_VERSION = 'toilink-app-v6';
 const PAGE_CACHE = `${SW_VERSION}:pages`;
 const ASSET_CACHE = `${SW_VERSION}:assets`;
 
 const PRECACHE_PAGES = [
-  '/',
   '/landing.html',
   '/login.html',
   '/templates.html',
   '/guests.html'
 ];
 
+// Routes where auth state determines the response — always fetch from network.
+const NETWORK_ONLY_PATHS = new Set(['/']);
+
 const PRECACHE_ASSETS = [
   '/css/tokens.css',
   '/css/base.css',
   '/css/app-shell.css',
+  '/css/landing.css',
   '/css/fonts.css',
   '/css/tailwind.css',
   '/fonts/inter-400.woff2',
@@ -24,6 +27,10 @@ const PRECACHE_ASSETS = [
   '/fonts/cormorant-500.woff2',
   '/fonts/cormorant-600.woff2',
   '/images/logo.webp',
+  '/images/logo-96.webp',
+  '/images/logo-128.webp',
+  '/images/icons/icon-192.png',
+  '/images/icons/icon-512.png',
   '/js/app-shell.js',
   '/js/initAuth.js',
   '/js/dashboard.js',
@@ -94,6 +101,12 @@ self.addEventListener('fetch', (event) => {
     event.respondWith((async () => {
       const cache = await caches.open(PAGE_CACHE);
       const cacheKey = new Request(normalizedUrl.pathname, { credentials: 'same-origin' });
+
+      if (NETWORK_ONLY_PATHS.has(normalizedUrl.pathname)) {
+        const network = await fetch(request).catch(() => null);
+        return network || Response.error();
+      }
+
       const cached = await cache.match(cacheKey);
       const networkPromise = fetch(request)
         .then(async (response) => {

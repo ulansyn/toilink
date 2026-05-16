@@ -87,6 +87,7 @@
     try {
       const surface = pageSurface();
       if (!surface) return false;
+      if (surface.hasAttribute('data-app-shell-loading')) return false;
       const html = surface.innerHTML;
       if (!html || html.length > SNAPSHOT_MAX_SIZE) return false;
       cacheSet(snapshotKey(), html);
@@ -109,8 +110,14 @@
     try {
       const surface = pageSurface();
       if (!surface) return false;
-      const html = cacheGet(snapshotKey(), SNAPSHOT_MAX_AGE);
+      const key = snapshotKey();
+      const html = cacheGet(key, SNAPSHOT_MAX_AGE);
       if (!html) return false;
+      // Skeleton HTML has no id= attributes; reject and clean up stale skeleton snapshots.
+      if (!html.includes('id=')) {
+        try { sessionStorage.removeItem(key); } catch (_) {}
+        return false;
+      }
       surface.innerHTML = html;
       document.documentElement.setAttribute('data-app-shell-snapshot', '1');
       return true;

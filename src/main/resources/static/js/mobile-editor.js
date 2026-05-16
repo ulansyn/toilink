@@ -287,7 +287,7 @@
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(async () => {
       if (!isDirty) return;
-      try { await saveEvent(); setDirty(false); } catch {}
+      try { await saveEvent(); setDirty(false); } catch { showToast('Ошибка сохранения — проверьте соединение', true); }
     }, 3000);
   }
 

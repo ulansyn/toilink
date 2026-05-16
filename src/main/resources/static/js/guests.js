@@ -350,28 +350,25 @@ function renderGroupStats() {
     { code: '__empty__', label: 'Без группы', palette: { bg: '#F0EBE3', fg: '#6B6056' } },
   ];
 
-  const counters = rows.map(row => {
-    let attending = 0, declined = 0, maybe = 0, noReply = 0, total = 0;
-    const matchesLegacy = (side) => {
-      // Map legacy enum values to new codes for wedding events
-      if (side === 'GROOM') return row.code === 'groom';
-      if (side === 'BRIDE') return row.code === 'bride';
-      return false;
-    };
-    for (const g of allGuests) {
-      const side = g.side || '';
-      const isEmpty = !side || side === 'SHARED' || side === 'OTHER';
-      const inRow = row.code === '__empty__' ? isEmpty
-        : (side === row.code || matchesLegacy(side));
-      if (!inRow) continue;
-      total++;
-      if (g.rsvpStatus === 'ATTENDING') attending++;
-      else if (g.rsvpStatus === 'DECLINED') declined++;
-      else if (g.rsvpStatus === 'MAYBE') maybe++;
-      else noReply++;
-    }
-    return { ...row, total, attending, declined, maybe, noReply };
-  });
+  // Single pass over guests — O(n) instead of O(n×m)
+  const emptyCounter = () => ({ attending: 0, declined: 0, maybe: 0, noReply: 0, total: 0 });
+  const buckets = new Map(rows.map(r => [r.code, emptyCounter()]));
+  const legacyMap = { GROOM: 'groom', BRIDE: 'bride' };
+
+  for (const g of allGuests) {
+    const side = g.side || '';
+    const isEmpty = !side || side === 'SHARED' || side === 'OTHER';
+    const code = isEmpty ? '__empty__' : (legacyMap[side] || side);
+    const bucket = buckets.get(code);
+    if (!bucket) continue;
+    bucket.total++;
+    if (g.rsvpStatus === 'ATTENDING') bucket.attending++;
+    else if (g.rsvpStatus === 'DECLINED') bucket.declined++;
+    else if (g.rsvpStatus === 'MAYBE') bucket.maybe++;
+    else bucket.noReply++;
+  }
+
+  const counters = rows.map(row => ({ ...row, ...buckets.get(row.code) }));
 
   // Hide entirely if all rows are empty (event has groups defined but no matching guests yet).
   if (counters.every(c => c.total === 0)) {
@@ -1044,14 +1041,11 @@ window.submitAddGuest = async function (e) {
 
     closeAddSheet();
 
-    // Reload full list so companion also appears
-    const [event, guests, tables] = await fetchData();
-    eventData = event;
-    allGuests = guests;
-    allTables = tables;
+    // Fetch guests only — companion appears server-side, event/tables unchanged
+    allGuests = await api('GET', `/api/organizer/events/${eventId}/guests`);
     window._allGuestsRef = allGuests;
-    syncAllCaches();
-    applyEventMeta(event);
+    cacheSet(`tl:guests:${eventId}`, allGuests);
+    cacheStatsForEvent(eventId, computeStats(allGuests));
     renderAll();
 
     toast(companionName ? 'Добавлено 2 гостя' : 'Гость добавлен');
@@ -1165,6 +1159,7 @@ function renderAll() {
 async function fetchData() {
   return Promise.all([
     fetch(`${BASE_URL}/api/organizer/events/${eventId}`, {
+      credentials: 'include',
       headers: { 'X-User-Phone': phone },
     }).then(r => r.json()),
     api('GET', `/api/organizer/events/${eventId}/guests`),
@@ -1217,21 +1212,23 @@ async function init() {
   const f = params.get('filter');
   if (f && FILTERS[f]) state.filter = f;
 
-  phone = await window.initAuth();
-  // phone is used only for display; API calls use session cookie automatically
-
+  // Render from cache immediately — don't block on auth network round-trip
   const cachedEvent  = cacheGet(`tl:event:${eventId}`);
   const cachedGuests = cacheGet(`tl:guests:${eventId}`);
   const cachedTables = cacheGet(`tl:tables:${eventId}`);
 
   if (cachedEvent && cachedGuests) {
-    // Instant render from cache, then revalidate in background
     eventData = cachedEvent;
     allGuests = cachedGuests;
     allTables = cachedTables || [];
     applyEventMeta(eventData);
     renderAll();
     warmRelatedPages();
+  }
+
+  phone = await window.initAuth();
+
+  if (cachedEvent && cachedGuests) {
     refreshData();
     return;
   }
