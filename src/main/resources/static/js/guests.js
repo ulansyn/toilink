@@ -17,7 +17,18 @@ const state = {
 
 // ─── Session cache ───────────────────────────────────────────────────────────
 function cacheSet(key, data) {
-  try { sessionStorage.setItem(key, JSON.stringify({ data, at: Date.now() })); } catch {}
+  const payload = JSON.stringify({ data, at: Date.now() });
+  try {
+    sessionStorage.setItem(key, payload);
+  } catch (_) {
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith('tl:') && k !== key) sessionStorage.removeItem(k);
+      }
+      sessionStorage.setItem(key, payload);
+    } catch (_) {}
+  }
 }
 function cacheGet(key, maxAge = 60_000) {
   try {

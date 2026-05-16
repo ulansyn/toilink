@@ -11,7 +11,8 @@
   const sheetScrollThumb = document.getElementById('sheetScrollThumb');
 
   const eventId = new URLSearchParams(location.search).get('id');
-  const phone = localStorage.getItem('tl_phone') || '';
+  let phone = '';
+  try { phone = localStorage.getItem('tl_phone') || ''; } catch (_) {}
 
   const imageOptions = [
     '/templates/template-1/images/hero-bg2.jpg',
@@ -375,7 +376,7 @@
     previewFrame.contentWindow.postMessage({
       type: 'EDITOR_UPDATE',
       config: buildPreviewConfig()
-    }, '*');
+    }, location.origin);
   }
 
   function field(label, path, options) {
@@ -642,7 +643,7 @@
   function scrollPreviewTo(section) {
     const targetName = sections[section]?.target;
     if (!targetName || !previewFrame?.contentWindow) return;
-    previewFrame.contentWindow.postMessage({ type: 'EDITOR_SCROLL_TO', section: targetName }, '*');
+    previewFrame.contentWindow.postMessage({ type: 'EDITOR_SCROLL_TO', section: targetName }, location.origin);
   }
 
   function sendToPreviewDebounced() {
@@ -1047,6 +1048,7 @@
     updateSheetChrome();
 
     window.addEventListener('message', (event) => {
+      if (event.origin !== location.origin) return;
       if (event.data?.type === 'TEMPLATE_READY') {
         state.previewReady = true;
         sendToPreview();

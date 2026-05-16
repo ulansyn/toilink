@@ -13,6 +13,8 @@
   const prefetchedFetches = new Set();
   let swReady = false;
   let snapshotCaptureQueued = false;
+  let linkPrefetchInstalled = false;
+  let skeletonNavInstalled = false;
 
   document.documentElement.setAttribute('data-app-shell', 'instant');
 
@@ -50,6 +52,35 @@
 
   function pageSurface() {
     return document.querySelector('[data-app-surface]');
+  }
+
+  // ── Skeleton injection for instant navigation feel ──
+
+  var SKELETON_HTML =
+    '<div class="skeleton skeleton-card" style="height:200px;margin-bottom:var(--space-5,20px)"></div>' +
+    '<div class="skeleton skeleton-title" style="margin-bottom:var(--space-3,12px)"></div>' +
+    '<div class="skeleton skeleton-text" style="width:80%;margin-bottom:var(--space-2,8px)"></div>' +
+    '<div class="skeleton skeleton-text" style="width:60%;margin-bottom:var(--space-5,20px)"></div>' +
+    '<div class="skeleton skeleton-card" style="height:140px;margin-bottom:var(--space-4,16px)"></div>' +
+    '<div class="skeleton skeleton-card" style="height:140px"></div>';
+
+  function injectSkeleton() {
+    var surface = pageSurface();
+    if (!surface) return;
+    surface.setAttribute('data-app-shell-loading', '1');
+    surface.innerHTML = SKELETON_HTML;
+  }
+
+  function installSkeletonOnNav() {
+    if (skeletonNavInstalled) return;
+    skeletonNavInstalled = true;
+    document.addEventListener('click', function (e) {
+      var anchor = anchorFromEvent(e.target);
+      if (!shouldPrefetchAnchor(anchor)) return;
+      // Don't intercept modifier keys or new tab clicks
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      injectSkeleton();
+    }, { capture: true });
   }
 
   function captureSnapshot() {
@@ -132,10 +163,13 @@
   async function prefetchJSON(key, url, options, maxAge) {
     const cached = cacheGet(key, maxAge);
     if (cached) return cached;
+    const controller = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const timeoutId = controller ? setTimeout(() => controller.abort(), 8000) : null;
     try {
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'same-origin',
+        signal: controller?.signal,
         ...(options || {})
       });
       if (!response.ok) return null;
@@ -144,6 +178,8 @@
       return data;
     } catch (_) {
       return null;
+    } finally {
+      if (timeoutId) clearTimeout(timeoutId);
     }
   }
 
@@ -174,6 +210,8 @@
   }
 
   function installLinkPrefetch() {
+    if (linkPrefetchInstalled) return;
+    linkPrefetchInstalled = true;
     const handler = (event) => {
       const anchor = anchorFromEvent(event.target);
       if (shouldPrefetchAnchor(anchor)) prefetchPage(anchor.href);
@@ -256,9 +294,10 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     restoreScroll();
-    installServiceWorker();
     installLinkPrefetch();
+    installSkeletonOnNav();
     scheduleIdle(() => {
+      installServiceWorker();
       warmCommonPages();
       prefetchVisibleLinks(8);
       warmServiceWorkerUrls(['/', '/templates.html', '/editor.html']);

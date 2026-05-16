@@ -3,7 +3,18 @@ const BASE_URL = '';
 
 // ─── Session cache (warms /guests.html) ──────────────────────────────────────
 function cacheSet(key, data) {
-  try { sessionStorage.setItem(key, JSON.stringify({ data, at: Date.now() })); } catch {}
+  const payload = JSON.stringify({ data, at: Date.now() });
+  try {
+    sessionStorage.setItem(key, payload);
+  } catch (_) {
+    try {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
+        const k = sessionStorage.key(i);
+        if (k && k.startsWith('tl:') && k !== key) sessionStorage.removeItem(k);
+      }
+      sessionStorage.setItem(key, payload);
+    } catch (_) {}
+  }
 }
 
 function cacheGet(key, maxAge = 60_000) {
@@ -40,7 +51,7 @@ async function fetchGuests(eventId) {
 
 async function fetchStats(eventId) {
   const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}/stats`, { credentials: 'include' });
-  if (!res.ok) throw new Error('stats');
+  if (!res.ok) throw new Error('Ошибка загрузки статистики');
   return res.json();
 }
 
@@ -99,9 +110,36 @@ function guestSource(guest) {
 
 function copyLink(url) {
   if (!url) return;
-  navigator.clipboard.writeText(url)
-    .then(() => showToast('Ссылка скопирована'))
-    .catch(() => { prompt('Скопируйте ссылку:', url); });
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url)
+      .then(() => showToast('Ссылка скопирована'))
+      .catch(() => fallbackCopy(url));
+    return;
+  }
+  fallbackCopy(url);
+}
+
+function fallbackCopy(url) {
+  const ta = document.createElement('textarea');
+  ta.value = url;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;left:-9999px;top:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (_) {}
+  ta.remove();
+  if (ok) showToast('Ссылка скопирована');
+  else prompt('Скопируйте ссылку:', url);
+}
+
+function escapeAttr(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 let _toastTimer = null;
@@ -311,7 +349,7 @@ function rsvpStrip(stats) {
 }
 
 function renderEventCard(event, stats) {
-  const eventUrl = buildEventUrl(event) || `${location.origin}/e/${event.slug}`;
+  const eventUrl = buildEventUrl(event) || (event?.slug ? `${location.origin}/e/${event.slug}` : '');
   const coverHtml = event.coverImageUrl
     ? `<img src="${event.coverImageUrl}" alt=""/>`
     : `<div class="event-cover-fallback">
@@ -472,7 +510,7 @@ function buildLpCta(event, s, eventUrl) {
 
 // ─── Event Hub (single-event layout, landing-style) ───────────────────────────
 function renderEventHub(event, stats) {
-  const eventUrl = buildEventUrl(event) || `${location.origin}/e/${event.slug}`;
+  const eventUrl = buildEventUrl(event) || (event?.slug ? `${location.origin}/e/${event.slug}` : '');
   const slugPath = eventUrl.replace(location.origin, '');
 
   const genericHero = document.getElementById('genericHero');
@@ -545,7 +583,7 @@ function renderEventHub(event, stats) {
           </div>` : ''}
 
         <div class="hub-cta-row">
-          <button onclick="shareEvent('${eventUrl}', ${JSON.stringify(event.title || '').replace(/"/g, '&quot;')})" class="btn-primary">
+          <button type="button" data-action="share-event" data-share-url="${escapeAttr(eventUrl)}" data-share-title="${escapeAttr(event.title || '')}" class="btn-primary">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
             Поделиться
           </button>
@@ -886,7 +924,22 @@ window.handleDeleteClick = async function (eventId) {
 };
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
+let _shareDelegationInstalled = false;
+function installShareDelegation() {
+  if (_shareDelegationInstalled) return;
+  _shareDelegationInstalled = true;
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action="share-event"]');
+    if (!btn) return;
+    e.preventDefault();
+    const url = btn.getAttribute('data-share-url') || '';
+    const title = btn.getAttribute('data-share-title') || '';
+    window.shareEvent(url, title);
+  });
+}
+
 async function init() {
+  installShareDelegation();
   const phone = await window.initAuth();
   if (!phone) return;
 

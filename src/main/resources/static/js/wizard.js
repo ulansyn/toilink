@@ -357,9 +357,12 @@ function onPhotoSelected(input) {
   reader.onload = e => {
     W.photoDataUrl = e.target.result;
     const img = document.getElementById('photoPreviewImg');
-    img.src = W.photoDataUrl;
-    img.style.display = 'block';
-    document.getElementById('photoDropInner').style.display = 'none';
+    if (img) {
+      img.src = W.photoDataUrl;
+      img.style.display = 'block';
+    }
+    const inner = document.getElementById('photoDropInner');
+    if (inner) inner.style.display = 'none';
     if (W.iframeReady) sendToIframe();
   };
   reader.readAsDataURL(file);
@@ -447,10 +450,11 @@ function sendToIframe() {
         dresscode: 'dresscode', rsvp: 'rsvp',
       },
     }
-  }, '*');
+  }, location.origin);
 }
 
 window.addEventListener('message', e => {
+  if (e.origin !== location.origin) return;
   if (e.data?.type === 'TEMPLATE_READY') { W.iframeReady = true; sendToIframe(); }
 });
 
@@ -471,7 +475,7 @@ async function continueFromPreview() {
     const user = await me.json().catch(() => ({}));
     if (user.phone) {
       W.phone = user.phone;
-      localStorage.setItem('tl_phone', user.phone);
+      try { localStorage.setItem('tl_phone', user.phone); } catch (_) {}
     }
 
     const saved = await saveEventToApi();
@@ -535,7 +539,7 @@ async function submitPhone() {
       showErr('phoneErr', err.message || 'Неверный пароль');
       return;
     }
-    localStorage.setItem('tl_phone', W.phone);
+    try { localStorage.setItem('tl_phone', W.phone); } catch (_) {}
     const saved = await saveEventToApi();
     if (saved) showSuccessFlash();
     else showErr('phoneErr', 'Не удалось сохранить, попробуйте ещё раз');
@@ -583,7 +587,7 @@ async function saveEventToApi() {
 
   const event = await res.json();
   W.eventId = event.id;
-  localStorage.setItem('tl_event_id', String(event.id));
+  try { localStorage.setItem('tl_event_id', String(event.id)); } catch (_) {}
   return true;
 }
 

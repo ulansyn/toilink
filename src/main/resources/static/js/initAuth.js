@@ -4,23 +4,30 @@
  * Checks the server session. If absent, renders a full-screen onboarding
  * overlay and returns a Promise that resolves with the phone after login.
  */
+let _authPromise = null;
 window.initAuth = function () {
-  return new Promise((resolve) => {
+  if (_authPromise) return _authPromise;
+  _authPromise = new Promise((resolve) => {
+    const done = (phone) => {
+      resolve(phone);
+    };
     fetch('/api/auth/me', { credentials: 'include' })
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.phone) {
           try { localStorage.setItem('tl_phone', data.phone); } catch (_) {}
-          resolve(data.phone);
+          done(data.phone);
           return;
         }
-        startOverlay(resolve);
+        startOverlay(done);
       })
-      .catch(() => startOverlay(resolve));
+      .catch(() => startOverlay(done));
   });
+  return _authPromise;
 };
 
 function startOverlay(resolve) {
+    if (document.getElementById('auth-overlay')) return;
 
     const overlay = document.createElement('div');
     overlay.id = 'auth-overlay';

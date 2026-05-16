@@ -5,33 +5,43 @@
 const AUTH_KEY = 'tl_phone';
 const AUTH_RETURN_KEY = 'auth_return_to';
 
+function lsGet(key) {
+  try { return localStorage.getItem(key); } catch (_) { return null; }
+}
+function lsSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (_) {}
+}
+function lsRemove(key) {
+  try { localStorage.removeItem(key); } catch (_) {}
+}
+
 /**
  * Get stored phone
  */
 export function getStoredPhone() {
-  return localStorage.getItem(AUTH_KEY);
+  return lsGet(AUTH_KEY);
 }
 
 /**
  * Check if user is authenticated
  */
 export function isAuthenticated() {
-  return !!localStorage.getItem(AUTH_KEY);
+  return !!lsGet(AUTH_KEY);
 }
 
 /**
  * Set return URL before opening auth
  */
 export function setReturnUrl(url) {
-  localStorage.setItem(AUTH_RETURN_KEY, url || location.pathname);
+  lsSet(AUTH_RETURN_KEY, url || location.pathname);
 }
 
 /**
  * Get and clear return URL, default to dashboard
  */
 export function getReturnUrl() {
-  const url = localStorage.getItem(AUTH_RETURN_KEY) || '/';
-  localStorage.removeItem(AUTH_RETURN_KEY);
+  const url = lsGet(AUTH_RETURN_KEY) || '/';
+  lsRemove(AUTH_RETURN_KEY);
   return url;
 }
 
@@ -39,14 +49,14 @@ export function getReturnUrl() {
  * Save phone after successful auth
  */
 export function savePhone(phone) {
-  localStorage.setItem(AUTH_KEY, phone);
+  lsSet(AUTH_KEY, phone);
 }
 
 /**
  * Clear auth (logout)
  */
 export function clearAuth() {
-  localStorage.removeItem(AUTH_KEY);
+  lsRemove(AUTH_KEY);
 }
 
 /**
