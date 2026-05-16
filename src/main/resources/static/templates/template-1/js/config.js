@@ -99,6 +99,7 @@ window.WEDDING_CONFIG = {
   rsvp: {
     heading: "Анкета гостя",
     subtitle: "Пожалуйста, подтвердите ваше присутствие",
+    allowCompanion: true,
     fields: {
       name: {
         label: "Ваше имя и фамилия",

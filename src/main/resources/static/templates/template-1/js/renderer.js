@@ -282,6 +282,19 @@ class WeddingRenderer {
         return;
       }
     }
+    const allowCompanion = rsvp.allowCompanion !== false; // default true on wedding template
+    const companionFieldHtml = allowCompanion ? `
+          <div class="rsvp-field rsvp-companion-toggle">
+            <label class="rsvp-checkbox-row">
+              <input type="checkbox" id="rsvp-companion" name="with_companion">
+              <span>Со мной супруг(а)</span>
+            </label>
+          </div>
+          <div class="rsvp-field rsvp-field--floating rsvp-companion-name" id="rsvp-companion-wrap" style="display:none;">
+            <input type="text" id="rsvp-spouse" class="rsvp-input" placeholder=" " name="spouse_name" maxlength="100">
+            <label class="rsvp-floating-label" for="rsvp-spouse">Имя супруга/и</label>
+          </div>` : '';
+
     container.innerHTML = `
       <div class="rsvp-form-wrap">
         <h2 class="rsvp-heading">${rsvp.heading}</h2>
@@ -290,6 +303,11 @@ class WeddingRenderer {
           <div class="rsvp-field rsvp-field--floating">
             <input type="text" id="rsvp-name" class="rsvp-input" placeholder=" " name="name" ${rsvp.fields.name.required ? 'required' : ''}>
             <label class="rsvp-floating-label" for="rsvp-name">${rsvp.fields.name.label}</label>
+          </div>
+
+          <div class="rsvp-field rsvp-field--floating">
+            <input type="tel" id="rsvp-phone" class="rsvp-input" placeholder=" " name="phone" autocomplete="tel" inputmode="tel" maxlength="20">
+            <label class="rsvp-floating-label" for="rsvp-phone">Телефон</label>
           </div>
 
           <div class="rsvp-field rsvp-presence-field">
@@ -306,10 +324,7 @@ class WeddingRenderer {
             </div>
           </div>
 
-          <div class="rsvp-field rsvp-field--floating">
-            <input type="number" id="rsvp-guest" class="rsvp-input" min="1" max="10" placeholder=" " name="guest_count">
-            <label class="rsvp-floating-label" for="rsvp-guest">${rsvp.fields.guestCount.label}</label>
-          </div>
+          ${companionFieldHtml}
 
           <div class="rsvp-field rsvp-field--floating">
             <textarea id="rsvp-message" class="rsvp-input rsvp-textarea" placeholder=" " name="message"></textarea>
@@ -370,6 +385,19 @@ class WeddingRenderer {
     const wrap = container.querySelector('.rsvp-form-wrap');
     const success = container.querySelector('.rsvp-success');
 
+    // Show/hide spouse name field based on companion checkbox
+    const companionCb = form.querySelector('#rsvp-companion');
+    const companionWrap = form.querySelector('#rsvp-companion-wrap');
+    if (companionCb && companionWrap) {
+      companionCb.addEventListener('change', () => {
+        companionWrap.style.display = companionCb.checked ? '' : 'none';
+        if (!companionCb.checked) {
+          const sp = companionWrap.querySelector('#rsvp-spouse');
+          if (sp) sp.value = '';
+        }
+      });
+    }
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
 
@@ -415,9 +443,13 @@ class WeddingRenderer {
       const presence = form.querySelector('[name="presence"]:checked')?.value || 'yes';
       const status = presence === 'yes' ? 'ATTENDING' : 'DECLINED';
       const name = form.querySelector('[name="name"]')?.value?.trim() || null;
-      const guestCountRaw = form.querySelector('[name="guest_count"]')?.value;
-      const groupSize = Math.max(1, parseInt(guestCountRaw, 10) || 1);
+      const phone = form.querySelector('[name="phone"]')?.value?.trim() || null;
+      const withCompanion = !!form.querySelector('#rsvp-companion')?.checked;
+      const spouseName = withCompanion
+        ? (form.querySelector('[name="spouse_name"]')?.value?.trim() || null)
+        : null;
       const comment = form.querySelector('[name="message"]')?.value?.trim() || null;
+      const groupCode = (meta.prefilledGroupCode || '').trim() || null;
 
       // Token priority: URL param (personal invite) > localStorage (repeat anonymous visit)
       const urlToken = new URLSearchParams(location.search).get('token') || null;
@@ -428,7 +460,15 @@ class WeddingRenderer {
         const res = await fetch(`/api/public/events/${encodeURIComponent(slug)}/rsvp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ guestToken: token, name, status, groupSize, comment })
+          body: JSON.stringify({
+            guestToken: token,
+            name,
+            phone,
+            groupCode,
+            spouseName,
+            status,
+            comment
+          })
         });
         if (!res.ok) {
           let msg = 'Не удалось отправить ответ';

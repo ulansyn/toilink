@@ -147,6 +147,7 @@
       if (blocks.rsvp.heading) C.rsvp.heading = blocks.rsvp.heading;
       if (blocks.rsvp.subtitle !== undefined) C.rsvp.subtitle = blocks.rsvp.subtitle;
       if (blocks.rsvp.submitButton) C.rsvp.submitButton = blocks.rsvp.submitButton;
+      if (blocks.rsvp.allowCompanion !== undefined) C.rsvp.allowCompanion = blocks.rsvp.allowCompanion;
     }
 
     // Always keep envelope off in preview

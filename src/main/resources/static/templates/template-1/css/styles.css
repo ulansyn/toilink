@@ -1136,6 +1136,36 @@ body {
     padding-left: 4px;
 }
 
+.rsvp-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border: 1.5px solid #e2e2e2;
+    border-radius: 14px;
+    background: #ffffff;
+    font-size: 0.95rem;
+    color: var(--text-main);
+    cursor: pointer;
+    user-select: none;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.rsvp-checkbox-row:hover {
+    border-color: var(--primary-green);
+}
+
+.rsvp-checkbox-row input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-green);
+    cursor: pointer;
+}
+
+.rsvp-companion-name {
+    margin-top: -8px;
+}
+
 .rsvp-textarea {
     min-height: 90px;
     resize: none;
