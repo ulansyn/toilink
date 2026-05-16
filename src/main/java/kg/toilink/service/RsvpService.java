@@ -1,5 +1,7 @@
 package kg.toilink.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.toilink.dto.request.RsvpRequest;
 import kg.toilink.entity.Event;
 import kg.toilink.entity.Guest;
@@ -26,6 +28,7 @@ public class RsvpService {
     private final EventRepository eventRepository;
     private final GuestRepository guestRepository;
     private final RsvpResponseRepository rsvpResponseRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Transactional
     public RsvpResult rsvp(String slug, RsvpRequest req) {
@@ -43,6 +46,11 @@ public class RsvpService {
         }
 
         Guest guest = resolveGuest(event, req);
+
+        // Spouse companion: only when event explicitly allows it (blocksConfig.rsvp.allowCompanion === true)
+        if (isCompanionAllowed(event)) {
+            manageSpouseCompanion(guest, event, req.spouseName());
+        }
 
         rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
                 .ifPresentOrElse(
@@ -134,5 +142,83 @@ public class RsvpService {
             }
         }
         return Optional.empty();
+    }
+
+    /** Reads event.blocksConfig.rsvp.allowCompanion (boolean). Default: false. */
+    private boolean isCompanionAllowed(Event event) {
+        String blocksConfig = event.getBlocksConfig();
+        if (blocksConfig == null || blocksConfig.isBlank()) return false;
+        try {
+            JsonNode root = objectMapper.readTree(blocksConfig);
+            JsonNode flag = root.path("rsvp").path("allowCompanion");
+            return flag.isBoolean() && flag.asBoolean();
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Manage the auto-created spouse companion for a primary guest.
+     * - spouseName non-blank → create or update auto-companion (source = COMPANION_AUTO).
+     * - spouseName blank/null → delete existing auto-companion (manual companions added by organizer are untouched).
+     * Companion inherits side from primary.
+     */
+    private void manageSpouseCompanion(Guest primary, Event event, String spouseName) {
+        Guest existingAuto = findAutoCompanion(primary);
+
+        if (spouseName != null && !spouseName.isBlank()) {
+            String trimmed = spouseName.trim();
+            if (existingAuto != null) {
+                if (!Objects.equals(existingAuto.getName(), trimmed)
+                        || !Objects.equals(existingAuto.getSide(), primary.getSide())) {
+                    existingAuto.setName(trimmed);
+                    existingAuto.setSide(primary.getSide());
+                    guestRepository.save(existingAuto);
+                }
+                return;
+            }
+            Guest companion = guestRepository.save(Guest.builder()
+                    .event(event)
+                    .name(trimmed)
+                    .source("COMPANION_AUTO")
+                    .side(primary.getSide())
+                    .relatedToId(primary.getId())
+                    .relationType("SPOUSE")
+                    .build());
+            primary.setRelatedToId(companion.getId());
+            primary.setRelationType("SPOUSE");
+            guestRepository.save(primary);
+            return;
+        }
+
+        // spouseName blank → remove auto-companion if it exists; manual companions are kept.
+        if (existingAuto != null) {
+            if (Objects.equals(primary.getRelatedToId(), existingAuto.getId())) {
+                primary.setRelatedToId(null);
+                primary.setRelationType(null);
+                guestRepository.save(primary);
+            }
+            guestRepository.delete(existingAuto);
+        }
+    }
+
+    /** Returns the auto-created companion linked to the primary guest, if any. */
+    private Guest findAutoCompanion(Guest primary) {
+        if (primary.getRelatedToId() != null) {
+            Optional<Guest> related = guestRepository.findById(primary.getRelatedToId());
+            if (related.isPresent() && "COMPANION_AUTO".equals(related.get().getSource())
+                    && related.get().getDeletedAt() == null) {
+                return related.get();
+            }
+        }
+        // Fallback: search all guests of the event for an auto-companion pointing at primary.
+        // (Covers cases where primary.relatedToId points to a manual companion but an auto exists too.)
+        for (Guest g : guestRepository.findAllByEventId(primary.getEvent().getId())) {
+            if ("COMPANION_AUTO".equals(g.getSource())
+                    && primary.getId().equals(g.getRelatedToId())) {
+                return g;
+            }
+        }
+        return null;
     }
 }
