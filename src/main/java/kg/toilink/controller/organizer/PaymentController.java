@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -55,6 +56,24 @@ public class PaymentController {
             "paymentId", saved.getId(),
             "orderRef", saved.getExternalRef() != null ? saved.getExternalRef() : ""
         );
+    }
+
+    @GetMapping
+    public List<Map<String, Object>> myPayments(@AuthenticationPrincipal UserDetails principal) {
+        User user = userRepository.findByPhone(principal.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        return paymentRepository.findByUserIdOrderByCreatedAtDesc(user.getId()).stream()
+                .map(p -> {
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("id", p.getId());
+                    m.put("status", p.getStatus());
+                    m.put("amount", p.getAmount());
+                    m.put("externalRef", p.getExternalRef());
+                    m.put("eventId", p.getEvent() != null ? p.getEvent().getId() : null);
+                    m.put("createdAt", p.getCreatedAt());
+                    return m;
+                })
+                .toList();
     }
 
     public record InitPaymentRequest(Long eventId, String method, String orderRef) {}

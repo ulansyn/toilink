@@ -923,6 +923,7 @@
             }
         }
     </style>
+  <script src="/js/initAuth.js"></script>
   <script src="/js/sheet-behavior.js"></script>
 </head>
 <body>
@@ -1169,7 +1170,8 @@
         window.open(buildWhatsAppLink(finalOrder, false), '_blank', 'noopener');
     }
 
-    (function initPaywall() {
+    (async function initPaywall() {
+        await window.initAuth();
         setOrder(tempOrder);
         document.getElementById('supportLink').href = buildWhatsAppLink(tempOrder, true);
     })();
