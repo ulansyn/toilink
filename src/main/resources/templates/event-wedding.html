@@ -250,11 +250,18 @@
         var eventSlug = /*[[${eventSlug}]]*/ '';
         var eventStatus = /*[[${eventStatus}]]*/ '';
         var rsvpDeadline = /*[[${eventRsvpDeadline}]]*/ '';
+        var rawGuestGroups = /*[[${eventGuestGroups}]]*/ '[]';
+        var prefilledGroupCode = /*[[${prefilledGroupCode}]]*/ '';
+
+        var guestGroups = [];
+        try { guestGroups = JSON.parse(rawGuestGroups) || []; } catch(e) {}
 
         window.EVENT_META = {
             slug: eventSlug,
             status: eventStatus,
-            rsvpDeadline: rsvpDeadline
+            rsvpDeadline: rsvpDeadline,
+            guestGroups: guestGroups,
+            prefilledGroupCode: prefilledGroupCode || null
         };
 
         var blocksConfig = {};
