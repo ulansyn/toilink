@@ -1046,13 +1046,57 @@ function overflowChip(count, tableId) {
   </div>`;
 }
 
+// Donut SVG: ring around table number visualizing side mix vs capacity.
+function donutChartSvg(bride, groom, shared, capacity, num, overfull) {
+  const r = 15.91549430918954; // circumference == 100
+  const total = capacity || 1;
+  const seg = n => Math.min(100, (n / total) * 100);
+  const segs = [];
+  if (bride > 0)  segs.push({ len: seg(bride),  color: '#F93B7A' });
+  if (groom > 0)  segs.push({ len: seg(groom),  color: '#4A6FD8' });
+  if (shared > 0) segs.push({ len: seg(shared), color: '#C7B498' });
+  let offset = 0;
+  const paths = segs.map(s => {
+    const html = `<circle cx="18" cy="18" r="${r}" fill="none" stroke="${s.color}" stroke-width="3.4" stroke-dasharray="${s.len.toFixed(2)} ${(100 - s.len).toFixed(2)}" stroke-dashoffset="${(-offset).toFixed(2)}" stroke-linecap="butt"/>`;
+    offset += s.len;
+    return html;
+  });
+  const numClass = overfull ? 'donut-num is-overfull' : 'donut-num';
+  return `<div class="card-donut">
+    <svg viewBox="0 0 36 36" class="donut-svg" aria-hidden="true">
+      <g transform="rotate(-90 18 18)">
+        <circle cx="18" cy="18" r="${r}" fill="none" stroke="#F2EEE8" stroke-width="3.4"/>
+        ${paths.join('')}
+      </g>
+    </svg>
+    <span class="${numClass}">${num}</span>
+  </div>`;
+}
+
+// Group guests by connected components on relatedToId — couples & families
+// stay visually grouped inside the card.
+function groupGuestsForCard(guests) {
+  const idToIdx = new Map(guests.map((g, i) => [g.id, i]));
+  const parent = guests.map((_, i) => i);
+  const find = x => { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; };
+  const union = (a, b) => { const ra = find(a), rb = find(b); if (ra !== rb) parent[ra] = rb; };
+  guests.forEach((g, i) => {
+    if (g.relatedToId != null && idToIdx.has(g.relatedToId)) union(i, idToIdx.get(g.relatedToId));
+  });
+  const byRoot = new Map();
+  guests.forEach((g, i) => {
+    const r = find(i);
+    if (!byRoot.has(r)) byRoot.set(r, []);
+    byRoot.get(r).push(g);
+  });
+  return Array.from(byRoot.values()).sort((a, b) => b.length - a.length);
+}
+
 function renderTableCard(t, idx) {
   const guests = allGuests.filter(g => g.tableId === t.id);
   const capacity = t.capacity || 12;
   const overfull = guests.length > capacity;
-  const total = Math.max(capacity, guests.length);
 
-  // Side mix
   let bride = 0, groom = 0, shared = 0;
   for (const g of guests) {
     if (g.side === 'BRIDE') bride++;
@@ -1060,27 +1104,35 @@ function renderTableCard(t, idx) {
     else shared++;
   }
 
-  // Segmented fill bar: bride / groom / shared / empty
-  const segPct = n => `${(n / total) * 100}%`;
-  const fillSegments = `
-    ${bride ? `<span class="fill-seg seg-bride" style="width:${segPct(bride)}"></span>` : ''}
-    ${groom ? `<span class="fill-seg seg-groom" style="width:${segPct(groom)}"></span>` : ''}
-    ${shared ? `<span class="fill-seg seg-shared" style="width:${segPct(shared)}"></span>` : ''}`;
+  const donut = donutChartSvg(bride, groom, shared, capacity, idx + 1, overfull);
 
   const legend = guests.length === 0 ? '' : `
     <div class="card-legend">
-      ${bride ? `<span class="leg-item"><span class="leg-dot bride"></span>${bride} ${pluralize(bride, ['невеста','невесты','невест'])}</span>` : ''}
-      ${groom ? `<span class="leg-item"><span class="leg-dot groom"></span>${groom} ${pluralize(groom, ['жених','жениха','женихов'])}</span>` : ''}
+      ${bride  ? `<span class="leg-item"><span class="leg-dot bride"></span>${bride} ${pluralize(bride, ['невеста','невесты','невест'])}</span>` : ''}
+      ${groom  ? `<span class="leg-item"><span class="leg-dot groom"></span>${groom} ${pluralize(groom, ['жених','жениха','женихов'])}</span>` : ''}
       ${shared ? `<span class="leg-item"><span class="leg-dot shared"></span>${shared} ${pluralize(shared, ['общий','общих','общих'])}</span>` : ''}
     </div>`;
 
+  // Group guests as couples / families for visual binding
+  const groups = guests.length ? groupGuestsForCard(guests) : [];
+  const guestsHtml = groups.map(grp => {
+    if (grp.length === 1) return guestChip(grp[0], t.id);
+    const cls = grp.length === 2 ? 'guest-capsule couple' : 'guest-capsule family';
+    return `<div class="${cls}" title="${grp.length === 2 ? 'Пара' : 'Семья'} · ${grp.length}">
+      ${grp.map(g => guestChip(g, t.id)).join('')}
+    </div>`;
+  }).join('');
+
   return `
-    <div class="table-card fade-in" data-drop-table="${t.id}">
+    <div class="table-card fade-in" data-drop-table="${t.id}" style="animation-delay:${Math.min(idx, 12) * 45}ms;">
       <div class="table-card-head">
-        <div class="card-num">${idx + 1}</div>
+        ${donut}
         <div class="card-title-wrap">
           <div class="card-title">${escapeHtml(t.name)}</div>
-          <div class="card-cap"><span class="cap-num${overfull ? ' is-overfull' : ''}">${guests.length}</span><span class="cap-sep">/</span><span class="cap-total">${capacity}</span> <span class="cap-label">${pluralize(capacity, ['место','места','мест'])}</span></div>
+          <div class="card-cap">
+            <span class="cap-num${overfull ? ' is-overfull' : ''}">${guests.length}</span><span class="cap-sep">/</span><span class="cap-total">${capacity}</span>
+            <span class="cap-label">${pluralize(capacity, ['место','места','мест'])}</span>
+          </div>
         </div>
         <div class="card-actions">
           <button class="row-icon-btn" data-action="edit-table" data-table-id="${t.id}" aria-label="Редактировать">
@@ -1091,7 +1143,6 @@ function renderTableCard(t, idx) {
           </button>
         </div>
       </div>
-      <div class="card-fill" title="${guests.length} из ${capacity}">${fillSegments}</div>
       ${legend}
       <div class="card-guests" data-drop-table="${t.id}">
         ${guests.length === 0
@@ -1101,7 +1152,7 @@ function renderTableCard(t, idx) {
               </div>
               <div class="card-empty-text">Пока пусто. Перетащите гостя или нажмите «Добавить».</div>
             </div>`
-          : guests.map(g => guestChip(g, t.id)).join('')}
+          : guestsHtml}
       </div>
       <button class="table-add-btn" data-action="assign-guests" data-table-id="${t.id}">
         <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -1142,23 +1193,52 @@ function renderTables() {
   const seated = allGuests.length - unassigned.length;
   const pct = allGuests.length ? Math.round(seated / allGuests.length * 100) : 0;
 
+  // Global side mix
+  let gBride = 0, gGroom = 0, gShared = 0;
+  for (const g of allGuests) {
+    if (g.side === 'BRIDE') gBride++;
+    else if (g.side === 'GROOM') gGroom++;
+    else gShared++;
+  }
+
   container.innerHTML = `
-    <div class="mb-5">
-      <div class="flex items-end justify-between mb-2">
-        <span class="font-cormorant italic text-[22px] md:text-[26px] font-semibold text-ink">Рассадка</span>
-        <span class="text-muted text-[13px]">${seated} / ${allGuests.length} гостей</span>
+    <section class="seating-hero fade-in">
+      <div class="hero-deco" aria-hidden="true"></div>
+      <div class="hero-top">
+        <div class="hero-title-block">
+          <div class="hero-eyebrow">Рассадка</div>
+          <h2 class="hero-title">${seated === allGuests.length && allGuests.length > 0 ? 'Все на местах' : 'Гости и столы'}</h2>
+        </div>
+        <button type="button"
+                onclick="window.SmartSeating?.openLaunch()"
+                class="hero-cta"
+                aria-label="Запустить умную рассадку">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          <span>Расставить</span>
+        </button>
       </div>
-      <div class="w-full h-1.5 rounded-full" style="background:#F0EDE8;">
-        <div class="h-1.5 rounded-full transition-all duration-500"
-             style="width:${pct}%;background:linear-gradient(90deg,#F93B7A,#FF6D45);"></div>
+      <div class="hero-grid">
+        <div class="hero-percent">
+          <span class="hp-num">${pct}</span><span class="hp-pct">%</span>
+          <div class="hp-sub">${seated} из ${allGuests.length} рассажены</div>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hs-num">${allTables.length}</span>
+            <span class="hs-lbl">${pluralize(allTables.length, ['стол','стола','столов'])}</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hs-num">${unassigned.length}</span>
+            <span class="hs-lbl">без места</span>
+          </div>
+          <div class="hero-mix">
+            ${gBride ? `<span class="hm-row"><span class="leg-dot bride"></span>${gBride}</span>` : ''}
+            ${gGroom ? `<span class="hm-row"><span class="leg-dot groom"></span>${gGroom}</span>` : ''}
+            ${gShared ? `<span class="hm-row"><span class="leg-dot shared"></span>${gShared}</span>` : ''}
+          </div>
+        </div>
       </div>
-      <button type="button"
-              onclick="window.SmartSeating?.openLaunch()"
-              class="smart-seat-btn mt-4 w-full">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
-        Расставить гостей
-      </button>
-    </div>
+    </section>
     <div class="unassigned-pool mb-4 fade-in" data-drop-table="">
       <div class="flex items-center gap-2 mb-2.5">
         <svg class="w-3.5 h-3.5 text-muted flex-shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
