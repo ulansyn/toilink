@@ -10,6 +10,7 @@ const EVENTS_CACHE_KEY = 'tl:events:list';
 const STATS_CACHE_KEY  = 'tl:events:stats';
 const state = {
   filter: 'all',     // all | attending | declined | noReply
+  group: 'all',      // 'all' | <groupCode> | '__empty__'
   search: '',
   tab: 'guests',     // guests | tables
 };
@@ -221,11 +222,26 @@ const FILTERS = {
   noReply:   { label: 'Без ответа',  match: g => !g.rsvpStatus },
 };
 
+function matchesGroupFilter(guest, groupCode) {
+  if (!groupCode || groupCode === 'all') return true;
+  const side = guest.side || '';
+  if (groupCode === '__empty__') {
+    return !side || side === 'SHARED' || side === 'OTHER';
+  }
+  // Direct match on stored code
+  if (side === groupCode) return true;
+  // Legacy enum back-compat for wedding guests created before generic groupCode
+  if (groupCode === 'groom' && side === 'GROOM') return true;
+  if (groupCode === 'bride' && side === 'BRIDE') return true;
+  return false;
+}
+
 function applyFilters() {
   const f = FILTERS[state.filter] || FILTERS.all;
   const q = state.search.trim().toLowerCase();
   return allGuests.filter(g => {
     if (!f.match(g)) return false;
+    if (!matchesGroupFilter(g, state.group)) return false;
     if (!q) return true;
     const hay = `${g.name || ''} ${g.phone || ''} ${g.notes || ''}`.toLowerCase();
     return hay.includes(q);
@@ -252,7 +268,54 @@ function renderStats() {
     </button>`).join('');
 
   renderGroupStats();
+  renderGroupFilterChips();
   observeFadeIn();
+}
+
+function renderGroupFilterChips() {
+  const host = document.getElementById('group-filter-chips');
+  if (!host) return;
+  const groups = getGuestGroupsArr(eventData);
+  if (groups.length === 0) {
+    host.classList.add('hidden');
+    host.innerHTML = '';
+    return;
+  }
+
+  // Count guests without any group — only show "Без группы" chip if there are such guests
+  const emptyCount = allGuests.filter(g => matchesGroupFilter(g, '__empty__')).length;
+
+  const chips = [
+    { code: 'all', label: 'Все группы', count: allGuests.length },
+    ...groups.filter(g => g && g.code).map(g => ({
+      code: g.code,
+      label: g.label || g.code,
+      count: allGuests.filter(x => matchesGroupFilter(x, g.code)).length,
+    })),
+    ...(emptyCount > 0 ? [{ code: '__empty__', label: 'Без группы', count: emptyCount }] : []),
+  ];
+
+  host.classList.remove('hidden');
+  host.innerHTML = chips.map(c => `
+    <button type="button" data-group="${escapeHtml(c.code)}"
+            class="group-chip whitespace-nowrap px-3 py-1.5 rounded-full border text-[12.5px] transition-colors ${
+              state.group === c.code
+                ? 'bg-ink text-white border-ink'
+                : 'bg-white text-ink border-line hover:border-ink'
+            }">
+      ${escapeHtml(c.label)}<span class="ml-1 opacity-60">${c.count}</span>
+    </button>
+  `).join('');
+
+  host.querySelectorAll('[data-group]').forEach(btn => {
+    btn.addEventListener('click', () => setGroupFilter(btn.dataset.group));
+  });
+}
+
+function setGroupFilter(code) {
+  state.group = (state.group === code && code !== 'all') ? 'all' : code;
+  renderGroupFilterChips();
+  renderList();
 }
 
 // Per-group counters: rendered only when event has guestGroups defined.
