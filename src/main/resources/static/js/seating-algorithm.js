@@ -806,7 +806,7 @@ function runSeating(input) {
   if (!Array.isArray(guests) || !Array.isArray(tables)) {
     throw new Error('runSeating: guests and tables must be arrays');
   }
-  if (tables.length === 0) {
+  if (tables.length === 0 && options.allowCreateTables === false) {
     return {
       score: { total: 0, couplesPct: 100, maxPossible: 0 },
       tables: [],
@@ -816,6 +816,7 @@ function runSeating(input) {
       declinedFreed: [],
       unassigned: guests.filter(g => g.rsvpStatus !== 'DECLINED').map(g => ({ guestId: g.id, reason: 'NO_TABLES' })),
       assignments: [],
+      newTables: [],
     };
   }
 
@@ -841,15 +842,13 @@ function runSeating(input) {
   let newTables = [];
   if (allowCreate && activeGuests.length > 0) {
     const currentCap = workingTables.reduce((s, t) => s + (t.capacity || defaultCap), 0);
-    // Aim for 85% fill (comfort zone) so we don't pack to the brim
-    const targetCap = Math.ceil(activeGuests.length / 0.85);
-    const deficit = targetCap - currentCap;
+    const deficit = activeGuests.length - currentCap;
     if (deficit > 0) {
       const needed = Math.ceil(deficit / defaultCap);
       const baseNum = workingTables.length;
       for (let i = 0; i < needed; i++) {
         const t = {
-          id: -(i + 1), // temp id (negative)
+          id: -(i + 1),
           name: `Стол ${baseNum + i + 1}`,
           capacity: defaultCap,
           virtual: true,

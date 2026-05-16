@@ -127,8 +127,7 @@
 
     // Capacity deficit → will be auto-created
     const totalCapacity = tables.reduce((s, t) => s + (t.capacity || 12), 0);
-    const targetCapacity = Math.ceil(active.length / 0.85);
-    const deficit = Math.max(0, targetCapacity - totalCapacity);
+    const deficit = Math.max(0, active.length - totalCapacity);
     const newTablesNeeded = deficit > 0 ? Math.ceil(deficit / 12) : 0;
 
     return { oversized, overflow, declinedWithTable, newTablesNeeded, activeCount: active.length };
@@ -236,7 +235,7 @@
     return new Promise((resolve, reject) => {
       try {
         if (worker) worker.terminate();
-        worker = new Worker('/js/seating-worker.js?v=2');
+        worker = new Worker('/js/seating-worker.js?v=3');
         worker.onmessage = (ev) => {
           const { type, frac, result, message } = ev.data || {};
           if (type === 'progress') onProgress?.(frac);
