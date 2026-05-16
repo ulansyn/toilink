@@ -53,7 +53,7 @@
 
   function refreshPreflight() {
     const sheet = document.getElementById('seatLaunchSheet');
-    if (!sheet || !sheet.classList.contains('open') && sheet.style.display !== '') {/* no-op */}
+    if (!sheet) return;
     const guests = window._allGuestsRef || [];
     const tables = window._allTablesRef || [];
     const includePending = sheet.querySelector('#seat-include-pending').checked;
@@ -236,7 +236,7 @@
     return new Promise((resolve, reject) => {
       try {
         if (worker) worker.terminate();
-        worker = new Worker('/js/seating-worker.js');
+        worker = new Worker('/js/seating-worker.js?v=2');
         worker.onmessage = (ev) => {
           const { type, frac, result, message } = ev.data || {};
           if (type === 'progress') onProgress?.(frac);

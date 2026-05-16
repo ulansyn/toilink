@@ -104,25 +104,25 @@ public class SeatingTableService {
 
         if (req.assignments().isEmpty()) return created;
 
-        // 2) Collect guest + table IDs (resolving temp refs)
+        // 2) Collect guest IDs + raw real table IDs that need validation
         Set<Long> guestIds = new HashSet<>();
-        Set<Long> tableIds = new HashSet<>();
+        Set<Long> realTableIds = new HashSet<>();
         for (BulkSeatingRequest.Assignment a : req.assignments()) {
             if (a.guestId() == null) throw new BadRequestException("guestId is required");
             guestIds.add(a.guestId());
-            Long resolved = resolveTableId(a.tableId(), tempToReal);
-            if (resolved != null) tableIds.add(resolved);
+            // Only real IDs (≥0) need validation; negative tempIds we created in step 1
+            if (a.tableId() != null && a.tableId() >= 0) realTableIds.add(a.tableId());
         }
 
         List<Guest> guests = guestRepository.findAllByEventIdAndIdIn(eventId, guestIds);
         if (guests.size() != guestIds.size())
             throw new BadRequestException("Some guests do not belong to this event");
 
-        if (!tableIds.isEmpty()) {
-            List<SeatingTable> tables = tableRepository.findAllByEventIdOrderByCreatedAtAsc(eventId);
-            Set<Long> validTableIds = tables.stream().map(SeatingTable::getId).collect(Collectors.toSet());
-            for (Long tid : tableIds) {
-                if (!validTableIds.contains(tid))
+        if (!realTableIds.isEmpty()) {
+            List<SeatingTable> existing = tableRepository.findAllByEventIdOrderByCreatedAtAsc(eventId);
+            Set<Long> validIds = existing.stream().map(SeatingTable::getId).collect(Collectors.toSet());
+            for (Long tid : realTableIds) {
+                if (!validIds.contains(tid))
                     throw new BadRequestException("Table " + tid + " does not belong to event " + eventId);
             }
         }
