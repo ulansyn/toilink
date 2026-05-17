@@ -684,6 +684,18 @@ function renderEventHub(event, stats) {
           </div>
           <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </a>
+
+        ${event.planCode !== 'TOI_PRO' ? `
+        <a href="/paywall.html?event=${event.id}" class="lp-action" style="background:linear-gradient(135deg,#fff0f6,#fff7ed);border-color:#fcd34d;">
+          <div class="lp-action-icon" style="color:#F93B7A;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 3l14 9-14 9V3z"/></svg>
+          </div>
+          <div class="lp-action-body">
+            <div class="lp-action-title" style="color:#F93B7A;">Улучшить тариф</div>
+            <div class="lp-action-desc">${event.planCode === 'LINK' ? 'рассадка, Excel, персональные ссылки' : 'больше гостей и возможностей'}</div>
+          </div>
+          <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="#F93B7A" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>` : ''}
       </div>
 
       <!-- Share strip -->
