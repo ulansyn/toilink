@@ -64,11 +64,21 @@ public class PaymentController {
                 .forEach(p -> p.setStatus("CANCELLED"));
 
         PricingPlan plan = pricingService.planByCode(planCode);
+        java.math.BigDecimal paymentAmount = plan.getAmount();
+        if ("PUBLISHED".equals(event.getStatus()) && isUpgrade(event.getPlanCode(), planCode)) {
+            String currentCode = event.getPlanCode() != null ? event.getPlanCode() : "FREE";
+            try {
+                PricingPlan currentPlan = pricingService.planByCode(currentCode);
+                java.math.BigDecimal delta = plan.getAmount().subtract(currentPlan.getAmount());
+                if (delta.compareTo(java.math.BigDecimal.ZERO) > 0) paymentAmount = delta;
+            } catch (Exception ignored) {}
+        }
+
         Payment p = new Payment();
         p.setUser(user);
         p.setPlanId(plan.getId());
         p.setPlanCode(plan.getCode());
-        p.setAmount(plan.getAmount());
+        p.setAmount(paymentAmount); // delta for upgrades, full price for new purchases
         p.setCurrency(plan.getCurrency());
         p.setDisplayCurrency(plan.getDisplayCurrency());
         p.setMethod("QR");

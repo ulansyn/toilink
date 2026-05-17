@@ -1272,7 +1272,9 @@
                                 <div class="price" id="activationPrice">...</div>
                                 <div class="currency" id="activationCurrency">сом</div>
                             </div>
+                            <div id="deltaNote" style="display:none;font-size:0.75rem;color:var(--muted);margin-top:0.25rem;"></div>
                             <div class="price-note">Ссылка, RSVP и кабинет гостей. Без подписки.</div>
+                            <ul id="checkoutFeatures" style="list-style:none;padding:0;margin:0.75rem 0 0;display:none;font-size:0.78rem;color:#374151;line-height:1.6;"></ul>
                         </div>
                     </div>
 
@@ -1357,6 +1359,12 @@
         TOI_PRO: { name: 'Toi Pro', amount: 1990 },
     };
 
+    const PLAN_FEATURES = {
+        FREE:    ['До 30 гостей', 'RSVP форма', 'Публичная ссылка', 'Базовый шаблон'],
+        LINK:    ['До 150 гостей', 'Все шаблоны', 'Карта и музыка', 'RSVP форма', 'Без логотипа ToiLink'],
+        TOI_PRO: ['Неограниченно гостей', 'Все возможности «Той»', 'Персональные ссылки гостям', 'Рассадка по столам', 'Excel для банкета', 'Приоритетная поддержка'],
+    };
+
     let payment = null;
     let selectedPlanCode = null;
     let currentEventPlan = null;
@@ -1396,7 +1404,8 @@
     }
 
     function selectedPlanAmount() {
-        return PLAN_INFO[selectedPlanCode]?.amount || (payment?.amount) || null;
+        if (payment?.amount != null) return Number(payment.amount);
+        return PLAN_INFO[selectedPlanCode]?.amount || null;
     }
 
     function selectedPlanName() {
@@ -1469,6 +1478,7 @@
 
     function render() {
         const amount = selectedPlanAmount();
+        const name = selectedPlanName();
         document.getElementById('orderNum').textContent = payment ? 'TL-' + payment.id : 'Создаем заказ...';
         document.getElementById('supportLink').href = supportLink();
         document.getElementById('activationPrice').textContent = amount ? formatAmount(amount) : '...';
@@ -1476,6 +1486,37 @@
         document.getElementById('paymentStepText').textContent = amount
             ? `Оплачиваете ${paymentPriceText()} по QR или переводом через банк.`
             : 'Оплачиваете по QR или переводом через банк.';
+
+        const isUpgradeMode = currentEventPlan && isUpgrade(currentEventPlan, selectedPlanCode);
+        const pricePlanLabel = document.getElementById('pricePlanLabel');
+        pricePlanLabel.textContent = isUpgradeMode
+            ? `Доплата за апгрейд на «${name}»`
+            : `${name} — разово за событие`;
+
+        const deltaNote = document.getElementById('deltaNote');
+        if (isUpgradeMode && amount != null) {
+            const currentPlanName = PLAN_INFO[currentEventPlan]?.name || currentEventPlan;
+            const currentPlanAmount = PLAN_INFO[currentEventPlan]?.amount;
+            const fullAmount = PLAN_INFO[selectedPlanCode]?.amount;
+            if (currentPlanAmount != null && fullAmount != null) {
+                deltaNote.textContent = `Тариф «${currentPlanName}» (${formatAmount(currentPlanAmount)} сом) уже засчитан`;
+                deltaNote.style.display = '';
+            } else {
+                deltaNote.style.display = 'none';
+            }
+        } else {
+            deltaNote.style.display = 'none';
+        }
+
+        const featList = document.getElementById('checkoutFeatures');
+        const features = PLAN_FEATURES[selectedPlanCode] || [];
+        if (features.length) {
+            const checkSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" style="flex:0 0 auto;margin-right:0.4rem;"><polyline points="20 6 9 17 4 12"/></svg>`;
+            featList.innerHTML = features.map(f => `<li style="display:flex;align-items:center;">${checkSvg}${f}</li>`).join('');
+            featList.style.display = '';
+        } else {
+            featList.style.display = 'none';
+        }
 
         const banner    = document.getElementById('statusBanner');
         const waBtn     = document.getElementById('waBtn');
