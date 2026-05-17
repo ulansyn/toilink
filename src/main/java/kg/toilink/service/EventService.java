@@ -132,7 +132,10 @@ public class EventService {
     @Transactional
     public void delete(Long id, String phone) {
         Event event = getEventForUser(id, phone);
-        eventRepository.delete(event);
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        guestRepository.softDeleteAllByEventId(id, now);
+        event.setDeletedAt(now);
+        eventRepository.save(event);
     }
 
     @Transactional(readOnly = true)
