@@ -8,6 +8,7 @@ import kg.toilink.entity.Guest;
 import kg.toilink.entity.RsvpResponse;
 import kg.toilink.entity.SeatingTable;
 import kg.toilink.entity.User;
+import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
@@ -67,6 +68,7 @@ public class GuestService {
     @Transactional
     public GuestResponse addGuest(Long eventId, CreateGuestRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
+        checkGuestLimit(event);
         String side = req.side() != null ? req.side() : "SHARED";
 
         Guest primary = guestRepository.save(Guest.builder()
@@ -162,6 +164,25 @@ public class GuestService {
             throw NotFoundException.guest(guestId);
         }
         guestRepository.delete(guest);
+    }
+
+    private void checkGuestLimit(Event event) {
+        String plan = event.getPlanCode();
+        int limit;
+        if ("FREE".equals(plan)) {
+            limit = 30;
+        } else if ("LINK".equals(plan)) {
+            limit = 150;
+        } else {
+            return; // TOI_PRO или null — без ограничений
+        }
+        long current = guestRepository.countByEventId(event.getId());
+        if (current >= limit) {
+            throw new BadRequestException(
+                "Достигнут лимит гостей для вашего тарифа (" + limit + "). " +
+                "Перейдите на более высокий тариф для добавления новых гостей."
+            );
+        }
     }
 
     private Event verifyOwnership(Long eventId, String phone) {

@@ -52,6 +52,12 @@ public class SeatingTableService {
     @Transactional
     public TableResponse create(Long eventId, CreateTableRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
+        if ("FREE".equals(event.getPlanCode()) || "LINK".equals(event.getPlanCode())) {
+            throw new BadRequestException(
+                "Рассадка гостей доступна только в тарифе Toi Pro. " +
+                "Перейдите на Toi Pro для использования этой функции."
+            );
+        }
         SeatingTable table = tableRepository.save(SeatingTable.builder()
                 .event(event)
                 .name(req.name().trim())

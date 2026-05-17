@@ -352,6 +352,7 @@ public class AdminController {
         Event linkedEvent = payment.getEvent();
         if (linkedEvent != null && "DRAFT".equals(linkedEvent.getStatus())) {
             linkedEvent.setStatus("PUBLISHED");
+            linkedEvent.setPlanCode(payment.getPlanCode());
             eventRepository.save(linkedEvent);
         }
 

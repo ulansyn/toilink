@@ -84,6 +84,7 @@ public class PaymentController {
 
         if ("DRAFT".equals(event.getStatus())) {
             event.setStatus("PUBLISHED");
+            event.setPlanCode("FREE");
             eventRepository.save(event);
         }
 
