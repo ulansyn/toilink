@@ -953,6 +953,7 @@
             flex-direction: column;
             transition: border-color 180ms ease, box-shadow 180ms ease;
             cursor: pointer;
+            height: 100%;
         }
 
         .plan-card:hover {
@@ -972,6 +973,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
+            box-sizing: border-box;
         }
 
         .plan-recommended-wrap {
@@ -1027,7 +1029,8 @@
         }
 
         .plan-cta {
-            margin-top: 1rem;
+            margin-top: auto;
+            padding-top: 1rem;
             width: 100%;
             min-height: 2.65rem;
             display: inline-flex;
@@ -1073,6 +1076,40 @@
             transition: color 160ms ease;
         }
         .back-link:hover { color: var(--pink); }
+
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 0.85rem 0 0;
+            display: grid;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .plan-features li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.45rem;
+            font-size: 0.82rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .plan-features li svg {
+            flex: 0 0 auto;
+            margin-top: 0.05rem;
+        }
+
+        .plan-features li.dim {
+            color: var(--soft);
+            opacity: 0.55;
+        }
+
+        .plan-divider {
+            margin: 0.85rem 0 0;
+            height: 1px;
+            background: rgba(249,59,122,0.10);
+        }
     </style>
   <script src="/js/sheet-behavior.js"></script>
 </head>
@@ -1116,7 +1153,17 @@
                 <div class="plan-card" onclick="selectPlan('FREE')">
                     <div class="plan-name">Старт</div>
                     <div class="plan-price">0 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span></div>
-                    <div class="plan-sub">До 30 гостей · RSVP<br/>Логотип ToiLink в footer</div>
+                    <div class="plan-sub">Попробуйте бесплатно</div>
+                    <div class="plan-divider"></div>
+                    <ul class="plan-features">
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>До 30 гостей</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>RSVP форма</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Публичная ссылка</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Базовый шаблон</li>
+                        <li class="dim"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Логотип ToiLink</li>
+                        <li class="dim"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Карта и музыка</li>
+                        <li class="dim"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Рассадка гостей</li>
+                    </ul>
                     <button class="plan-cta plan-cta-free" type="button" onclick="selectPlan('FREE')">
                         Опубликовать бесплатно
                     </button>
@@ -1126,7 +1173,17 @@
                 <div class="plan-card" onclick="selectPlan('LINK')">
                     <div class="plan-name">Той</div>
                     <div class="plan-price">890 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">1 290</span></div>
-                    <div class="plan-sub">До 150 гостей · Все шаблоны<br/>Карта, музыка · Без логотипа</div>
+                    <div class="plan-sub">Для большинства мероприятий</div>
+                    <div class="plan-divider"></div>
+                    <ul class="plan-features">
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>До 150 гостей</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Все шаблоны</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Карта и музыка</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>RSVP форма</li>
+                        <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Без логотипа ToiLink</li>
+                        <li class="dim"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Персональные ссылки</li>
+                        <li class="dim"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Рассадка гостей</li>
+                    </ul>
                     <button class="plan-cta plan-cta-paid" type="button" onclick="selectPlan('LINK')">
                         Выбрать Той →
                     </button>
@@ -1139,7 +1196,16 @@
                         <div class="plan-card-inner" style="background:#fff;">
                             <div class="plan-name">Toi Pro</div>
                             <div class="plan-price">1 990 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">2 990</span></div>
-                            <div class="plan-sub">Персональные ссылки гостям<br/>Рассадка · Excel для банкета</div>
+                            <div class="plan-sub">Для крупных мероприятий</div>
+                            <div class="plan-divider"></div>
+                            <ul class="plan-features">
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Неограниченно гостей</li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Все возможности «Той»</li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Персональные ссылки гостям</li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Рассадка по столам</li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Excel для банкета</li>
+                                <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Приоритетная поддержка</li>
+                            </ul>
                             <button class="plan-cta plan-cta-pro" type="button" onclick="selectPlan('TOI_PRO')">
                                 Выбрать Toi Pro →
                             </button>
