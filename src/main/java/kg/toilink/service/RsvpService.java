@@ -200,7 +200,10 @@ public class RsvpService {
                 primary.setRelationType(null);
                 guestRepository.save(primary);
             }
-            guestRepository.delete(existingAuto);
+            rsvpResponseRepository.findByGuestIdAndEventId(existingAuto.getId(), event.getId())
+                    .ifPresent(rsvpResponseRepository::delete);
+            existingAuto.setDeletedAt(LocalDateTime.now());
+            guestRepository.save(existingAuto);
         }
     }
 
