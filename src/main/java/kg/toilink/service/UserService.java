@@ -2,6 +2,7 @@ package kg.toilink.service;
 
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
+import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -104,6 +105,14 @@ public class UserService implements UserDetailsService {
     @Transactional(readOnly = true)
     public Optional<User> findByPhone(String phone) {
         return userRepository.findByPhone(phone);
+    }
+
+    @Transactional
+    public User updateName(String phone, String name) {
+        User u = userRepository.findByPhone(phone)
+                .orElseThrow(() -> new NotFoundException("User not found"));
+        u.setName(name);
+        return userRepository.save(u);
     }
 
     private void markSuccessfulLogin(User user, String ip) {

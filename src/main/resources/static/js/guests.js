@@ -15,6 +15,132 @@ const state = {
   tab: 'guests',     // guests | tables
 };
 
+const PLAN_RANK_G = ['FREE', 'LINK', 'TOI_PRO'];
+const PLAN_CATALOG_G = {
+  FREE: {
+    label: 'Старт',
+    limit: 30,
+    next: 'LINK',
+    unlocked: ['До 30 гостей', 'RSVP по общей ссылке', 'Базовый шаблон'],
+  },
+  LINK: {
+    label: 'Той',
+    limit: 150,
+    next: 'TOI_PRO',
+    unlocked: ['До 150 гостей', 'Все шаблоны', 'Карта и музыка', 'Без логотипа ToiLink'],
+  },
+  TOI_PRO: {
+    label: 'Toi Pro',
+    limit: Infinity,
+    next: null,
+    unlocked: ['Без лимита гостей', 'Персональные ссылки', 'Рассадка по столам'],
+  },
+};
+
+const PRO_UNLOCKS = [
+  'Рассадка по столам',
+  'Умная рассадка и автосоздание столов',
+  'Персональные ссылки гостям',
+  'Экспорт для банкетного зала',
+];
+
+function currentPlanCode(event = eventData) {
+  const code = (event?.planCode || 'FREE').toUpperCase();
+  return PLAN_CATALOG_G[code] ? code : 'FREE';
+}
+
+function planLabel(code) {
+  return PLAN_CATALOG_G[code]?.label || code || 'Старт';
+}
+
+function planRank(code) {
+  const rank = PLAN_RANK_G.indexOf(currentPlanCode({ planCode: code }));
+  return rank < 0 ? 0 : rank;
+}
+
+function canUseTables(event = eventData) {
+  return currentPlanCode(event) === 'TOI_PRO';
+}
+
+function canUsePersonalLinks(event = eventData) {
+  return currentPlanCode(event) === 'TOI_PRO';
+}
+
+window.canUseTables = canUseTables;
+
+function guestLimitFor(event = eventData) {
+  return PLAN_CATALOG_G[currentPlanCode(event)]?.limit ?? 30;
+}
+
+function guestUsage() {
+  const limit = guestLimitFor();
+  return {
+    used: allGuests.length,
+    limit,
+    capped: Number.isFinite(limit),
+    pct: Number.isFinite(limit) ? Math.min(100, Math.round((allGuests.length / Math.max(1, limit)) * 100)) : 0,
+  };
+}
+
+function wouldExceedGuestLimit(additionalGuests) {
+  const usage = guestUsage();
+  return usage.capped && usage.used + additionalGuests > usage.limit;
+}
+
+function upgradeHref(targetPlan = 'TOI_PRO') {
+  const params = new URLSearchParams();
+  if (eventId) params.set('event', eventId);
+  if (targetPlan) params.set('plan', targetPlan);
+  return `/paywall.html?${params.toString()}`;
+}
+
+function csvCell(value) {
+  return `"${String(value ?? '').replace(/"/g, '""')}"`;
+}
+
+function downloadBanquetCsv() {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
+  const statusLabel = {
+    ATTENDING: 'Придет',
+    DECLINED: 'Не придет',
+    MAYBE: 'Возможно',
+  };
+  const rows = [
+    ['Имя', 'Телефон', 'Статус RSVP', 'Группа', 'Стол', 'Заметка'],
+    ...allGuests.map(g => [
+      g.name || '',
+      g.phone || '',
+      statusLabel[g.rsvpStatus] || 'Ждем ответа',
+      sidePlainLabel(g.side),
+      g.tableName || (g.tableId ? allTables.find(t => t.id === g.tableId)?.name : '') || '',
+      g.notes || '',
+    ]),
+  ];
+  const csv = '\uFEFF' + rows.map(row => row.map(csvCell).join(';')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `toilink-guests-${eventId || 'event'}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast('Файл для Excel подготовлен');
+}
+
+function sidePlainLabel(side) {
+  if (!side) return '';
+  if (side === 'GROOM') return 'Жених';
+  if (side === 'BRIDE') return 'Невеста';
+  if (side === 'SHARED') return 'Общий';
+  const group = findGroupByCode(side);
+  return group?.label || side;
+}
+
 // ─── Session cache ───────────────────────────────────────────────────────────
 function cacheSet(key, data) {
   const payload = JSON.stringify({ data, at: Date.now() });
@@ -40,10 +166,12 @@ function cacheGet(key, maxAge = 60_000) {
 
 // ─── API ──────────────────────────────────────────────────────────────────────
 async function api(method, path, body) {
+  const mutating = method !== 'GET' && method !== 'HEAD';
+  const csrf = mutating ? (window.ToiAppShell?.getCsrfHeaders?.() || {}) : {};
   const res = await fetch(BASE_URL + path, {
     method,
     credentials: 'include',
-    headers: body ? { 'Content-Type': 'application/json' } : {},
+    headers: { ...(body ? { 'Content-Type': 'application/json' } : {}), ...csrf },
     ...(body ? { body: JSON.stringify(body) } : {}),
   });
   if (!res.ok) {
@@ -64,6 +192,91 @@ function toast(msg, success = true) {
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
 }
+
+function upgradeCopy(reason = 'tables') {
+  const plan = currentPlanCode();
+  if (reason === 'guestLimit') {
+    const usage = guestUsage();
+    const target = plan === 'FREE' ? 'LINK' : 'TOI_PRO';
+    return {
+      target,
+      title: 'Лимит гостей почти заполнен',
+      copy: `В тарифе «${planLabel(plan)}» доступно ${usage.limit} гостей. Апгрейд сохранит список и откроет место для новых приглашений.`,
+    };
+  }
+  if (reason === 'personalLinks') {
+    return {
+      target: 'TOI_PRO',
+      title: 'Персональные ссылки в Toi Pro',
+      copy: 'Каждый гость получает свою ссылку, а ответы аккуратно привязываются к нужному человеку.',
+    };
+  }
+  return {
+    target: 'TOI_PRO',
+    title: 'Столы доступны в Toi Pro',
+    copy: 'Можно заранее собрать план зала, распределить гостей и быстро обновлять рассадку перед банкетом.',
+  };
+}
+
+function openPlanUpgradeSheet(reason = 'tables') {
+  const meta = upgradeCopy(reason);
+  document.getElementById('planUpgradeBackdrop')?.remove();
+  document.getElementById('planUpgradeSheet')?.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'planUpgradeBackdrop';
+  backdrop.className = 'bs-backdrop';
+
+  const sheet = document.createElement('div');
+  sheet.id = 'planUpgradeSheet';
+  sheet.className = 'bs-sheet locked-action-sheet';
+
+  sheet.innerHTML = `
+    <div class="sheet-inner">
+      <div class="drag-pill"></div>
+      <div class="px-6 md:px-0 pt-3 md:pt-0">
+        <div class="freemium-kicker">${escapeHtml(planLabel(currentPlanCode()))} сейчас</div>
+        <h2 class="freemium-title">${escapeHtml(meta.title)}</h2>
+        <p class="freemium-copy">${escapeHtml(meta.copy)}</p>
+        <div class="feature-list">
+          ${PRO_UNLOCKS.map(f => `
+            <div class="feature-row">
+              <span class="feature-dot">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </span>
+              <span>${escapeHtml(f)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <p class="freemium-copy" style="margin-top:8px; font-size:12px; color:#8B857A;">Ваши данные сохранятся. Ссылка события не изменится.</p>
+        <div class="freemium-actions">
+          <a class="btn-primary" href="${upgradeHref(meta.target)}">Открыть ${escapeHtml(planLabel(meta.target))}</a>
+          <button type="button" class="btn-subtle" id="planUpgradeClose">Остаться здесь</button>
+        </div>
+      </div>
+    </div>`;
+
+  document.body.appendChild(backdrop);
+  document.body.appendChild(sheet);
+
+  function close() {
+    sheet.classList.remove('open');
+    backdrop.classList.remove('open');
+    setTimeout(() => { backdrop.remove(); sheet.remove(); }, 320);
+    document.removeEventListener('keydown', onEsc);
+  }
+  function onEsc(e) { if (e.key === 'Escape') close(); }
+
+  backdrop.onclick = close;
+  sheet.querySelector('#planUpgradeClose')?.addEventListener('click', close);
+  document.addEventListener('keydown', onEsc);
+  requestAnimationFrame(() => {
+    backdrop.classList.add('open');
+    sheet.classList.add('open');
+  });
+}
+
+window.openPlanUpgradeSheet = openPlanUpgradeSheet;
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 function isPubliclyVisibleEvent(event) {
@@ -506,7 +719,11 @@ function renderEmpty() {
         Добавьте <em class="text-accent">первого гостя</em>
       </h2>
       <p class="text-muted text-[14px] md:text-[15px] max-w-[320px] leading-relaxed mb-7">
-        Для персональных гостей можно копировать отдельную ссылку, а остальные смогут ответить по общей ссылке события.
+        ${currentPlanCode() === 'TOI_PRO'
+          ? 'Добавьте гостей и отправьте каждому персональную ссылку — прямо из этого списка.'
+          : currentPlanCode() === 'LINK'
+          ? 'Добавьте гостей и следите за подтверждениями. Персональные ссылки и рассадка по столам откроются в Toi Pro.'
+          : 'Поделитесь общей ссылкой события — гости подтвердят участие без приложений.'}
       </p>
       <button onclick="openAddSheet()" class="btn-primary">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
@@ -611,7 +828,16 @@ function openActionsSheet(g) {
                 <div class="action-title">Скопировать ссылку</div>
                 <div class="action-sub">Отправить в любой мессенджер</div>
               </div>
-            </button>` : ''}
+            </button>` : (!canUsePersonalLinks() ? `
+            <button class="action-row" data-act="upgrade-personal">
+              <div class="action-icon" style="background:rgba(249,59,122,.07); color:#C71F5C;">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+              </div>
+              <div class="action-main">
+                <div class="action-title">Персональная ссылка <span style="display:inline-flex;align-items:center;padding:1px 6px;border-radius:999px;background:rgba(249,59,122,.10);color:#C71F5C;font-size:10px;font-weight:800;letter-spacing:.06em;vertical-align:1px;">Pro</span></div>
+                <div class="action-sub">Откроется в Toi Pro — данные гостя сохранятся</div>
+              </div>
+            </button>` : '')}
 
           ${waUrl ? `
             <a class="action-row" href="${waUrl}" target="_blank" rel="noopener" data-act="wa">
@@ -703,6 +929,10 @@ function openActionsSheet(g) {
         ev.preventDefault();
         close();
         setTimeout(() => confirmDelete(g.id), 260);
+      } else if (act === 'upgrade-personal') {
+        ev.preventDefault();
+        close();
+        setTimeout(() => openPlanUpgradeSheet('personalLinks'), 260);
       }
       // wa/view: native link — just close after
       else setTimeout(close, 100);
@@ -847,7 +1077,7 @@ function openEditSheet(g) {
             </div>
             <input type="hidden" id="edit-status" value="${currentStatus}"/>
           </div>
-          ${allTables.length > 0 ? `
+          ${canUseTables() && allTables.length > 0 ? `
           <div>
             <div class="field-section-label">Стол</div>
             <select id="edit-table" class="select-field">
@@ -1027,6 +1257,10 @@ window.submitAddGuest = async function (e) {
 
   if (!name) { document.getElementById('add-name').focus(); return; }
   if (withCompanion && !companionName) { document.getElementById('add-companion-name').focus(); return; }
+  if (wouldExceedGuestLimit(withCompanion ? 2 : 1)) {
+    openPlanUpgradeSheet('guestLimit');
+    return;
+  }
 
   const btn = document.getElementById('addSubmitBtn');
   const origHtml = btn.innerHTML;
@@ -1057,9 +1291,6 @@ window.submitAddGuest = async function (e) {
   }
 };
 
-const PLAN_RANK_G = ['FREE', 'LINK', 'TOI_PRO'];
-const PLAN_LABEL_G = { FREE: 'Старт', LINK: 'Той', TOI_PRO: 'Toi Pro' };
-
 function applyEventMeta(event) {
   const name = event?.title || 'Гости';
   document.title = `ToiLink — ${name}`;
@@ -1072,28 +1303,61 @@ function applyEventMeta(event) {
 function renderUpgradeBanner(event) {
   const slot = document.getElementById('upgrade-banner');
   if (!slot) return;
-  const plan = event?.planCode || 'FREE';
+  const plan = currentPlanCode(event);
   if (plan === 'TOI_PRO') { slot.innerHTML = ''; return; }
-  const current = PLAN_LABEL_G[plan] || plan;
-  const next = plan === 'FREE' ? 'Той' : 'Toi Pro';
-  const nextDesc = plan === 'FREE'
-    ? 'До 150 гостей, все шаблоны, карта и музыка'
-    : 'Рассадка по столикам, персональные ссылки, Excel';
+
+  const usage = guestUsage();
+  const remaining = Math.max(0, usage.limit - usage.used);
+  const isNearLimit = usage.capped && usage.pct >= 67;
+  const isAtLimit   = usage.capped && usage.pct >= 100;
+  const usageText   = usage.capped ? `${usage.used} из ${usage.limit} гостей` : `${usage.used} гостей`;
+
+  let copy, actionsHtml;
+
+  if (plan === 'LINK') {
+    // Той: показываем баннер только когда заполнено ≥50%
+    if (usage.pct < 50) { slot.innerHTML = ''; return; }
+    copy = isAtLimit
+      ? 'Лимит достигнут. Переходите на Toi Pro — список сохранится.'
+      : `Осталось ${remaining} ${pluralize(remaining, ['место', 'места', 'мест'])}.`;
+    actionsHtml = isNearLimit
+      ? `<div class="plan-rail-actions"><a class="plan-link-btn" href="${upgradeHref('TOI_PRO')}">Открыть Toi Pro</a></div>`
+      : '';
+  } else {
+    // FREE
+    if (isAtLimit) {
+      copy = 'Лимит достигнут. Перейдите на «Той», чтобы продолжать.';
+      actionsHtml = `<div class="plan-rail-actions">
+        <a class="plan-link-btn" href="${upgradeHref('LINK')}">Перейти на Той</a>
+      </div>`;
+    } else if (isNearLimit) {
+      copy = `Осталось ${remaining} ${pluralize(remaining, ['место', 'места', 'мест'])}. Скоро понадобится тариф «Той».`;
+      actionsHtml = `<div class="plan-rail-actions">
+        <a class="plan-link-btn" href="${upgradeHref('LINK')}">Посмотреть Той</a>
+      </div>`;
+    } else {
+      copy = 'Гости отвечают по общей ссылке события.';
+      actionsHtml = '';
+    }
+  }
+
   slot.innerHTML = `
-    <div style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid #fcd34d;border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:18px;">⭐</span>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:#92400e;">Тариф «${current}» — хотите больше?</div>
-          <div style="font-size:12px;color:#a16207;margin-top:1px;">${nextDesc}</div>
+    <div class="plan-rail fade-in">
+      <div class="plan-rail-main">
+        <div class="plan-rail-top">
+          <span class="plan-pill">${escapeHtml(planLabel(plan))}</span>
+          <span class="plan-rail-title">${escapeHtml(usageText)}</span>
         </div>
+        ${usage.capped ? `<div class="usage-bar" aria-hidden="true"><span class="usage-fill" style="width:${usage.pct}%"></span></div>` : ''}
+        <div class="plan-rail-copy">${escapeHtml(copy)}</div>
       </div>
-      <button onclick="goUpgrade()" style="background:#F93B7A;color:#fff;border:none;border-radius:10px;padding:10px 0;font-size:14px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.01em;">Перейти на «${next}» →</button>
+      ${actionsHtml}
     </div>`;
+  observeFadeIn();
 }
 
 function goUpgrade() {
-  location.href = `/paywall.html?event=${eventId}`;
+  location.href = upgradeHref('TOI_PRO');
 }
 
 // ─── Share links section ──────────────────────────────────────────────────────
@@ -1161,6 +1425,33 @@ function renderShareLinks(event) {
   });
 }
 
+function syncPlanTabState() {
+  const tableTab = document.querySelector('#page-tabs [data-tab="tables"]');
+  if (!tableTab) return;
+  if (canUseTables()) {
+    tableTab.classList.remove('is-locked');
+    tableTab.innerHTML = 'Столы';
+  } else {
+    tableTab.classList.add('is-locked');
+    tableTab.innerHTML = 'Столы <span class="seg-pro">Pro</span>';
+  }
+}
+
+function syncAddSheetPlanCopy() {
+  const btn = document.getElementById('addSubmitBtn');
+  const hint = document.getElementById('addSheetHint');
+  if (btn) {
+    btn.innerHTML = canUsePersonalLinks()
+      ? '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Добавить и получить ссылку'
+      : '<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Добавить гостя';
+  }
+  if (hint) {
+    hint.textContent = canUsePersonalLinks()
+      ? 'Мы сами создадим персональную ссылку — её можно отправить в WhatsApp или Telegram'
+      : 'Гость попадёт в список RSVP. Персональные ссылки открываются в Toi Pro.';
+  }
+}
+
 function renderAll() {
   window._allGuestsRef = allGuests;
   window._allTablesRef = allTables;
@@ -1170,6 +1461,12 @@ function renderAll() {
   window.renderTables = renderTables;
   window.renderList = renderList;
   window.syncAllCaches = syncAllCaches;
+  window.canUseTables = canUseTables;
+  window.openPlanUpgradeSheet = openPlanUpgradeSheet;
+  window.downloadBanquetCsv = downloadBanquetCsv;
+  syncPlanTabState();
+  syncAddSheetPlanCopy();
+  if (eventData) renderUpgradeBanner(eventData);
   if (state.tab === 'tables') {
     renderTables();
   } else {
@@ -1289,7 +1586,7 @@ function switchTab(tab) {
   if (tab === 'tables') {
     gC.classList.add('hidden');
     tC.classList.remove('hidden');
-    if (fabLabel) fabLabel.textContent = 'Стол';
+    if (fabLabel) fabLabel.textContent = canUseTables() ? 'Стол' : 'Toi Pro';
     renderTables();
   } else {
     gC.classList.remove('hidden');
@@ -1441,9 +1738,66 @@ function renderTableCard(t, idx) {
     </div>`;
 }
 
+function lockedTablesView() {
+  const sampleGuests = (allGuests.length ? allGuests : [
+    { name: 'Айжан' },
+    { name: 'Нурлан' },
+    { name: 'Салтанат' },
+    { name: 'Бакыт' },
+  ]).slice(0, 6);
+  const tableNames = ['Стол 1', 'Стол 2', 'Родные'];
+  return `
+    <section class="freemium-panel fade-in">
+      <div>
+        <div class="freemium-kicker">${escapeHtml(planLabel(currentPlanCode()))} сейчас</div>
+        <h2 class="freemium-title">Рассадка гостей</h2>
+        <p class="freemium-copy">
+          Ваши гости уже в списке. В Toi Pro они появятся за столами —
+          вы сможете распределить всех заранее и подготовить план зала для банкета.
+        </p>
+        <div class="feature-list">
+          ${PRO_UNLOCKS.map(f => `
+            <div class="feature-row">
+              <span class="feature-dot">
+                <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </span>
+              <span>${escapeHtml(f)}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="freemium-actions">
+          <a class="btn-primary" href="${upgradeHref('TOI_PRO')}">Открыть Toi Pro</a>
+          <button class="btn-subtle" type="button" data-action="upgrade-plan">Что изменится</button>
+        </div>
+      </div>
+      <div class="freemium-preview" aria-hidden="true">
+        ${tableNames.map((name, idx) => `
+          <div class="preview-table" style="opacity:${1 - idx * 0.12};">
+            <div class="preview-table-head">
+              <span class="preview-name">${escapeHtml(name)}</span>
+              <span class="preview-cap">${idx === 2 ? '8/10' : `${Math.min(sampleGuests.length, 4)}/12`}</span>
+            </div>
+            <div class="preview-guests">
+              ${sampleGuests.slice(idx, idx + 4).map(g => {
+                const n = g.name || 'Гость';
+                return `<span class="preview-chip"><span>${escapeHtml(n[0] || 'Г')}</span>${escapeHtml(shortGuestName(n))}</span>`;
+              }).join('')}
+            </div>
+          </div>
+        `).join('')}
+        <div class="preview-muted">Превью: ваши гости уже здесь — апгрейд откроет инструменты рассадки, данные не пропадут.</div>
+      </div>
+    </section>`;
+}
+
 function renderTables() {
   const container = document.getElementById('tables-list');
   if (!container) return;
+  if (!canUseTables()) {
+    container.innerHTML = lockedTablesView();
+    observeFadeIn();
+    return;
+  }
   if (allTables.length === 0) {
     container.innerHTML = `
       <div class="flex flex-col items-center justify-center text-center py-14 px-6 fade-in">
@@ -1496,6 +1850,13 @@ function renderTables() {
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
           <span>Расставить</span>
         </button>
+        <button type="button"
+                onclick="window.downloadBanquetCsv?.()"
+                class="hero-cta secondary"
+                aria-label="Скачать список для Excel">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>
+          <span>Excel</span>
+        </button>
       </div>
       <div class="hero-grid">
         <div class="hero-percent">
@@ -1541,6 +1902,10 @@ function renderTables() {
 }
 
 async function moveGuestToTable(guestId, newTableId, oldTableId) {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   const g = allGuests.find(x => x.id === guestId);
   if (!g) return;
   const newTid = newTableId || null;
@@ -1571,6 +1936,10 @@ async function moveGuestToTable(guestId, newTableId, oldTableId) {
 }
 
 function openAssignSheet(tableId) {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   document.getElementById('assignSheetBackdrop')?.remove();
   document.getElementById('assignSheetEl')?.remove();
 
@@ -1695,6 +2064,10 @@ function openAssignSheet(tableId) {
 }
 
 function openChipActions(g, fromTableId) {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   document.getElementById('chipActionsBackdrop')?.remove();
   document.getElementById('chipActionsSheet')?.remove();
 
@@ -1844,6 +2217,10 @@ function wireDragAndDrop() {
 }
 
 window.openTableSheet = function (table = null) {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   document.getElementById('table-edit-id').value = table ? table.id : '';
   document.getElementById('table-name').value = table ? table.name : '';
   document.getElementById('table-capacity').value = table?.capacity ?? '';
@@ -1862,6 +2239,10 @@ window.closeTableSheet = function () {
 
 window.submitTableForm = async function (e) {
   e.preventDefault();
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   const editId   = document.getElementById('table-edit-id').value;
   const name     = document.getElementById('table-name').value.trim();
   const capRaw   = document.getElementById('table-capacity').value;
@@ -1890,6 +2271,10 @@ window.submitTableForm = async function (e) {
 };
 
 function confirmDeleteTable(table) {
+  if (!canUseTables()) {
+    openPlanUpgradeSheet('tables');
+    return;
+  }
   document.getElementById('confirmTableBackdrop')?.remove();
   document.getElementById('confirmTableSheet')?.remove();
   const backdrop = document.createElement('div');
@@ -1962,6 +2347,11 @@ function wireTablesContainer() {
     const btn = e.target.closest('[data-action]');
     if (btn) {
       const act = btn.getAttribute('data-action');
+      if (act === 'upgrade-plan') {
+        e.stopPropagation();
+        openPlanUpgradeSheet('tables');
+        return;
+      }
       if (act === 'assign-guests') {
         e.stopPropagation();
         openAssignSheet(parseInt(btn.getAttribute('data-table-id')));
@@ -1990,7 +2380,10 @@ function wireTablesContainer() {
 }
 
 window.openCurrentAddSheet = function () {
-  if (state.tab === 'tables') window.openTableSheet();
+  if (state.tab === 'tables') {
+    if (canUseTables()) window.openTableSheet();
+    else openPlanUpgradeSheet('tables');
+  }
   else openAddSheet();
 };
 

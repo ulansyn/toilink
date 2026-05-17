@@ -10,6 +10,7 @@ import kg.toilink.repository.PaymentRepository;
 import kg.toilink.repository.UserRepository;
 import kg.toilink.service.PricingService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.http.ResponseEntity;
@@ -45,7 +46,10 @@ public class PaymentController {
             throw new BadRequestException("Event id is required for payment");
         }
 
-        String planCode = body.planCode() != null ? body.planCode().toUpperCase() : null;
+        String planCode = pricingService.normalizePublicPlanCode(body.planCode());
+        if (PricingService.FREE_CODE.equals(planCode)) {
+            throw new BadRequestException("Бесплатный тариф активируется без оплаты");
+        }
 
         var event = eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
                 .filter(e -> e.getUser().getId().equals(user.getId()))
@@ -85,7 +89,14 @@ public class PaymentController {
         p.setStatus("PENDING");
         p.setEvent(event);
 
-        return toMap(paymentRepository.save(p));
+        try {
+            return toMap(paymentRepository.save(p));
+        } catch (DataIntegrityViolationException ex) {
+            // Concurrent duplicate — return existing active payment
+            List<Payment> concurrent = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId(), planCode);
+            if (!concurrent.isEmpty()) return toMap(concurrent.get(0));
+            throw ex;
+        }
     }
 
     @PostMapping("/free-activate")
@@ -129,10 +140,10 @@ public class PaymentController {
                 .filter(p -> p.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
 
-        if ("CONFIRMED".equals(payment.getStatus())) {
+        if ("CONFIRMED".equals(payment.getStatus()) || "AWAITING_CONFIRMATION".equals(payment.getStatus())) {
             return toMap(payment);
         }
-        if (!"PENDING".equals(payment.getStatus()) && !"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+        if (!"PENDING".equals(payment.getStatus())) {
             throw new BadRequestException("Payment cannot be submitted from status: " + payment.getStatus());
         }
 
@@ -179,12 +190,17 @@ public class PaymentController {
         return m;
     }
 
-    private static final List<String> PLAN_RANK = List.of("FREE", "LINK", "TOI_PRO");
+    private static final List<String> PLAN_RANK = PricingService.PUBLIC_PLAN_CODES;
 
     private boolean isUpgrade(String current, String next) {
-        int from = PLAN_RANK.indexOf(current == null ? "FREE" : current);
-        int to   = PLAN_RANK.indexOf(next   == null ? "FREE" : next);
+        int from = planRank(current);
+        int to = planRank(next);
         return to > from;
+    }
+
+    private int planRank(String code) {
+        int rank = PLAN_RANK.indexOf(code == null ? PricingService.FREE_CODE : code);
+        return rank < 0 ? 0 : rank;
     }
 
     public record GetOrCreateRequest(Long eventId, String planCode) {}

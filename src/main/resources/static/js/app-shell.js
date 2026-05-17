@@ -3,7 +3,8 @@
     '/',
     '/templates.html',
     '/guests.html',
-    '/editor.html'
+    '/editor.html',
+    '/profile.html'
   ]);
   const SCROLL_KEY_PREFIX = 'tl:scroll:';
   const SNAPSHOT_KEY_PREFIX = 'tl:snapshot:';
@@ -235,9 +236,9 @@
       .then(async (registration) => {
         await navigator.serviceWorker.ready;
         swReady = true;
-        warmServiceWorkerUrls(['/', '/templates.html', '/editor.html']);
+        warmServiceWorkerUrls(['/', '/templates.html', '/editor.html', '/profile.html']);
         if (registration.active?.postMessage) {
-          registration.active.postMessage({ type: 'WARM_URLS', urls: ['/', '/templates.html', '/editor.html'] });
+          registration.active.postMessage({ type: 'WARM_URLS', urls: ['/', '/templates.html', '/editor.html', '/profile.html'] });
         }
       })
       .catch(() => {});
@@ -307,9 +308,19 @@
       installServiceWorker();
       warmCommonPages();
       prefetchVisibleLinks(8);
-      warmServiceWorkerUrls(['/', '/templates.html', '/editor.html']);
+      warmServiceWorkerUrls(['/', '/templates.html', '/editor.html', '/profile.html']);
     });
   });
+
+  function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function getCsrfHeaders() {
+    const token = getCsrfToken();
+    return token ? { 'X-XSRF-TOKEN': token } : {};
+  }
 
   window.ToiAppShell = {
     cacheGet,
@@ -320,6 +331,7 @@
     warmServiceWorkerUrls,
     captureSnapshot,
     scheduleSnapshotCapture,
-    restoreSnapshot
+    restoreSnapshot,
+    getCsrfHeaders
   };
 })();

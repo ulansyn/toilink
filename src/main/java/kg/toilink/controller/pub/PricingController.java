@@ -30,13 +30,15 @@ public class PricingController {
                 .filter(byCode::containsKey)
                 .map(code -> {
                     PricingPlan plan = byCode.get(code);
-                    return Map.<String, Object>of(
-                            "code", plan.getCode(),
-                            "name", plan.getName(),
-                            "amount", plan.getAmount(),
-                            "currency", plan.getCurrency(),
-                            "displayCurrency", plan.getDisplayCurrency()
-                    );
+                    int guestLimit = pricingService.guestLimit(code);
+                    Map<String, Object> m = new java.util.LinkedHashMap<>();
+                    m.put("code", plan.getCode());
+                    m.put("name", plan.getName());
+                    m.put("amount", plan.getAmount());
+                    m.put("currency", plan.getCurrency());
+                    m.put("displayCurrency", plan.getDisplayCurrency());
+                    m.put("guestLimit", guestLimit == Integer.MAX_VALUE ? null : guestLimit);
+                    return m;
                 })
                 .collect(Collectors.toList());
     }

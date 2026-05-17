@@ -53,3 +53,7 @@ databaseChangeLog:
       file: db/changelog/migrations/027-add-plan-code-to-events.yaml
   - include:
       file: db/changelog/migrations/028-seed-free-plan.yaml
+  - include:
+      file: db/changelog/migrations/029-active-payment-guard.yaml
+  - include:
+      file: db/changelog/migrations/030-indexes.yaml

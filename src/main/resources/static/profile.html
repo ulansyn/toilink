@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Профиль — ToiLink</title>
+  <meta name="theme-color" content="#FAF7F2"/>
+
+  <script>
+    fetch('/api/auth/me', { credentials: 'include' })
+      .then(r => { if (!r.ok) location.replace('/login.html'); })
+      .catch(() => location.replace('/login.html'));
+  </script>
+
+  <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
+  <link rel="stylesheet" href="/css/critical.css">
+  <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
+  <link rel="stylesheet" href="/css/app-shell.css?v=app2">
+  <link rel="stylesheet" href="/css/tailwind.css" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="/css/tailwind.css"></noscript>
+  <script src="/js/app-shell.js?v=app2"></script>
+
+  <style>
+    body { font-family: 'Inter', sans-serif; color: #1E2820; background: #FAF7F2; overscroll-behavior-y: none; }
+    .font-cormorant { font-family: 'Cormorant Garamond', serif; }
+
+    .top-nav {
+      background: rgba(250,247,242,.88);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(232,228,222,.6);
+    }
+    .nav-link { color: #6B6860; font-size: 14px; font-weight: 500; text-decoration: none; }
+    .nav-link.active { color: #F93B7A; }
+    .nav-link:hover { color: #F93B7A; }
+    .brand-link { display: flex; align-items: center; gap: 8px; text-decoration: none; color: #1E2820; }
+    .brand-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; }
+
+    .mobile-header {
+      background: rgba(250,247,242,.9);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(232,228,222,.6);
+    }
+
+    .nav-bar {
+      background: rgba(250,247,242,.92);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(232,228,222,.5);
+    }
+    .nav-item {
+      flex: 1; display: flex; flex-direction: column; align-items: center;
+      gap: 3px; padding: 10px 0; color: #9C968A;
+      text-decoration: none; cursor: pointer; background: none; border: none;
+    }
+    .nav-item.active { color: #F93B7A; }
+    .nav-item.active .nav-label { font-weight: 600; }
+    .nav-label { font-size: 10px; font-weight: 500; }
+
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 6px;
+      color: #1E2820; font-weight: 500; font-size: 14px;
+      padding: 9px 14px; border-radius: 100px;
+      transition: background .2s; cursor: pointer; background: none; border: none;
+    }
+    .btn-ghost:hover { background: rgba(30,40,32,.06); }
+
+    /* ── Profile page layout ── */
+    @media (min-width: 768px) {
+      .profile-layout {
+        display: grid; grid-template-columns: 300px 1fr; gap: 28px;
+        max-width: 960px; margin: 0 auto; padding: 40px 24px 48px;
+      }
+      .profile-sidebar { position: sticky; top: 80px; align-self: start; }
+    }
+    @media (max-width: 767px) {
+      .profile-layout { padding: 16px 16px 100px; display: flex; flex-direction: column; gap: 20px; }
+    }
+
+    /* ── User card ── */
+    .user-card {
+      background: #fff; border-radius: 22px;
+      border: 1px solid rgba(232,228,222,.8);
+      box-shadow: 0 2px 12px rgba(30,40,32,.05);
+      padding: 24px;
+    }
+
+    .profile-avatar {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: linear-gradient(160deg, #A8D2B0 0%, #2C4A30 100%);
+      color: #fff; font-size: 26px; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; font-family: 'Cormorant Garamond', serif;
+      box-shadow: 0 4px 14px rgba(44,74,48,.22);
+    }
+
+    /* ── Inline name editing ── */
+    .name-display {
+      display: flex; align-items: center; gap: 6px; cursor: pointer;
+      border-radius: 8px; padding: 2px 4px; margin: -2px -4px;
+      transition: background .15s;
+    }
+    .name-display:hover { background: rgba(30,40,32,.05); }
+    .name-edit-row { display: none; align-items: center; gap: 6px; }
+    .name-input {
+      font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600;
+      border: none; border-bottom: 2px solid #F93B7A; background: transparent;
+      color: #1E2820; outline: none; min-width: 0; flex: 1; padding: 1px 0;
+    }
+    .icon-btn {
+      width: 30px; height: 30px; border-radius: 50%; border: none;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; transition: background .15s;
+    }
+    .icon-btn-save { background: rgba(61,107,69,.12); color: #2C4A30; }
+    .icon-btn-save:hover { background: rgba(61,107,69,.22); }
+    .icon-btn-cancel { background: rgba(139,133,122,.12); color: #8B857A; }
+    .icon-btn-cancel:hover { background: rgba(139,133,122,.22); }
+
+    /* ── Stat tiles ── */
+    .stat-tile {
+      background: rgba(250,247,242,.8); border-radius: 14px;
+      border: 1px solid rgba(232,228,222,.6);
+      padding: 12px 14px; text-align: center;
+    }
+    .stat-number { font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 600; line-height: 1; }
+    .stat-label { font-size: 11px; color: #9C968A; margin-top: 2px; }
+
+    /* ── Section header ── */
+    .section-kicker {
+      font-size: 10px; font-weight: 700; letter-spacing: .12em;
+      text-transform: uppercase; color: #9C968A; margin-bottom: 12px;
+    }
+
+    /* ── Event card ── */
+    .event-card {
+      display: block; background: #fff; border-radius: 18px;
+      border: 1px solid rgba(232,228,222,.8);
+      box-shadow: 0 2px 8px rgba(30,40,32,.04);
+      padding: 16px 18px; text-decoration: none; color: inherit;
+      margin-bottom: 10px; transition: box-shadow .2s, transform .15s;
+    }
+    .event-card:hover { box-shadow: 0 6px 20px rgba(30,40,32,.09); transform: translateY(-1px); }
+    .event-card:active { transform: scale(.98); }
+
+    /* ── Plan chips ── */
+    .chip {
+      display: inline-flex; align-items: center;
+      padding: 2px 8px; border-radius: 100px;
+      font-size: 11px; font-weight: 700; letter-spacing: .04em;
+    }
+    .chip-free    { background: rgba(139,133,122,.12); color: #6B6860; }
+    .chip-link    { background: rgba(61,107,69,.12);   color: #2C4A30; }
+    .chip-pro     { background: rgba(249,59,122,.10);  color: #C71F5C; }
+    .chip-draft   { background: rgba(139,133,122,.08); color: #9C968A; }
+
+    /* ── Payment rows ── */
+    .payments-wrap {
+      background: #fff; border-radius: 18px;
+      border: 1px solid rgba(232,228,222,.8);
+      overflow: hidden;
+    }
+    .payment-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(232,228,222,.45);
+    }
+    .payment-row:last-child { border-bottom: none; }
+    .payment-icon {
+      width: 38px; height: 38px; border-radius: 50%;
+      background: rgba(232,228,222,.5);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ── Status chips ── */
+    .status { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 100px; font-size: 11px; font-weight: 600; }
+    .status-ok      { background: rgba(194,224,198,.4); color: #2C4A30; }
+    .status-wait    { background: rgba(212,156,92,.14); color: #7C5520; }
+    .status-grey    { background: rgba(139,133,122,.12); color: #8B857A; }
+    .status-err     { background: rgba(249,59,122,.10); color: #C71F5C; }
+
+    /* ── Logout ── */
+    .btn-logout {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; padding: 14px 18px; border-radius: 16px;
+      border: 1px solid rgba(199,31,92,.15); background: rgba(249,59,122,.04);
+      color: #C71F5C; font-size: 14px; font-weight: 500;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-logout:hover { background: rgba(249,59,122,.09); }
+
+    /* ── Skeleton ── */
+    @keyframes shimmer { 0% { background-position: -600px 0; } 100% { background-position: 600px 0; } }
+    .skeleton {
+      background: linear-gradient(90deg, #ECE7E0 0%, #F4EFE8 50%, #ECE7E0 100%);
+      background-size: 600px 100%; animation: shimmer 1.6s infinite linear; border-radius: 18px;
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%) translateY(8px);
+      background: #1E2820; color: #fff; padding: 10px 20px;
+      border-radius: 100px; font-size: 13px; font-weight: 500;
+      box-shadow: 0 8px 28px rgba(30,40,32,.28); z-index: 200;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease, transform .3s ease; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(-4px); }
+    @media (min-width: 768px) { .toast { bottom: 32px; } }
+  </style>
+</head>
+
+<body>
+
+<!-- ── TOP NAV (desktop) ── -->
+<header class="top-nav fixed top-0 left-0 right-0 z-40 hidden md:flex items-center" style="height:64px;">
+  <div class="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
+    <a href="/" class="brand-link" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="" style="height:28px;">
+      <span class="brand-text">ToiLink</span>
+    </a>
+    <nav class="flex items-center gap-8">
+      <a href="/index.html" class="nav-link">Мои события</a>
+      <a href="/templates.html" class="nav-link">Шаблоны</a>
+      <a href="/profile.html" class="nav-link active">Профиль</a>
+    </nav>
+    <div style="min-width:120px; text-align:right;">
+      <span id="topPhone" style="font-size:12px; color:#9C968A;"></span>
+    </div>
+  </div>
+</header>
+
+<!-- ── MOBILE HEADER ── -->
+<header class="mobile-header md:hidden fixed top-0 left-0 right-0 z-40" style="height:56px;">
+  <div class="flex items-center justify-between px-4 h-full">
+    <a href="/index.html" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .15s; color:#1E2820;" onmouseover="this.style.background='rgba(30,40,32,.07)'" onmouseout="this.style.background='transparent'">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+      </svg>
+    </a>
+    <span class="font-cormorant" style="font-size:18px; font-weight:600; font-style:italic;">Профиль</span>
+    <div style="width:36px;"></div>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="pt-14 md:pt-16" data-app-surface>
+  <div class="profile-layout" id="profileLayout">
+
+    <!-- ══ SIDEBAR ══ -->
+    <aside class="profile-sidebar">
+
+      <!-- User card -->
+      <div class="user-card" style="margin-bottom:14px;">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:22px;">
+          <div class="profile-avatar" id="avatarEl">?</div>
+          <div style="flex:1; min-width:0;">
+            <!-- Name display -->
+            <div class="name-display" id="nameDisplay" onclick="startEditName()" title="Нажмите, чтобы изменить имя">
+              <span id="nameEl" style="font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:600; line-height:1.25; word-break:break-word;"></span>
+              <svg style="width:14px;height:14px;color:#C8C3BC;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+              </svg>
+            </div>
+            <!-- Name edit form -->
+            <form class="name-edit-row" id="nameEditRow" onsubmit="saveName(event)">
+              <input class="name-input" id="nameInput" type="text" maxlength="100" autocomplete="off" placeholder="Ваше имя"/>
+              <button type="submit" class="icon-btn icon-btn-save" title="Сохранить">
+                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+              </button>
+              <button type="button" class="icon-btn icon-btn-cancel" onclick="cancelEditName()" title="Отмена">
+                <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </form>
+            <div id="phoneEl" style="font-size:13px; color:#9C968A; margin-top:3px;"></div>
+          </div>
+        </div>
+
+        <!-- Stats (always shown, 2 tiles) -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+          <div class="stat-tile">
+            <div class="stat-number" id="evCount">—</div>
+            <div class="stat-label">событий</div>
+          </div>
+          <div class="stat-tile">
+            <div class="stat-number" id="guestCount">—</div>
+            <div class="stat-label">гостей всего</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logout (desktop: in sidebar below card) -->
+      <button class="btn-logout hidden md:flex" onclick="doLogout()">
+        <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Выйти из аккаунта
+      </button>
+    </aside>
+
+    <!-- ══ MAIN CONTENT ══ -->
+    <div>
+
+      <!-- Мои события -->
+      <section style="margin-bottom:28px;">
+        <div class="section-kicker">Мои события</div>
+        <div id="eventsList">
+          <div class="skeleton" style="height:80px; margin-bottom:10px;"></div>
+          <div class="skeleton" style="height:80px;"></div>
+        </div>
+      </section>
+
+      <!-- История оплат -->
+      <section style="margin-bottom:28px;">
+        <div class="section-kicker">История оплат</div>
+        <div id="paymentsList" class="payments-wrap">
+          <div class="payment-row">
+            <div class="skeleton" style="width:38px;height:38px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="skeleton" style="height:13px;width:55%;margin-bottom:7px;"></div>
+              <div class="skeleton" style="height:11px;width:35%;"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Logout (mobile: in main content) -->
+      <section class="md:hidden">
+        <button class="btn-logout" onclick="doLogout()">
+          <svg style="width:18px;height:18px;flex-shrink:0;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+          </svg>
+          Выйти из аккаунта
+        </button>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="nav-bar md:hidden fixed bottom-0 left-0 right-0 z-30"
+     style="padding-bottom: env(safe-area-inset-bottom, 0px);">
+  <div class="flex">
+    <a href="/index.html" class="nav-item">
+      <svg style="width:24px;height:24px;" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span class="nav-label">Главная</span>
+    </a>
+    <a href="/templates.html" class="nav-item">
+      <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span class="nav-label">Шаблоны</span>
+    </a>
+    <a href="/profile.html" class="nav-item active">
+      <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span class="nav-label">Профиль</span>
+    </a>
+  </div>
+</nav>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+  const PLAN_META = {
+    FREE:    { label: 'Старт',   cls: 'chip chip-free' },
+    LINK:    { label: 'Той',     cls: 'chip chip-link' },
+    TOI_PRO: { label: 'Toi Pro', cls: 'chip chip-pro'  },
+  };
+
+  const STATUS_META = {
+    CONFIRMED:             { label: 'Оплачено',    cls: 'status status-ok'   },
+    AWAITING_CONFIRMATION: { label: 'На проверке', cls: 'status status-wait' },
+    PENDING:               { label: 'Ожидает',     cls: 'status status-wait' },
+    CANCELLED:             { label: 'Отменён',     cls: 'status status-grey' },
+    REJECTED:              { label: 'Отклонён',    cls: 'status status-err'  },
+  };
+
+  let toastTimer;
+  function showToast(msg, err) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.background = err ? '#8C2F2F' : '#1E2820';
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  function planChip(code) {
+    const m = PLAN_META[code] || { label: 'Черновик', cls: 'chip chip-draft' };
+    return `<span class="${m.cls}">${m.label}</span>`;
+  }
+
+  function statusChip(s) {
+    const m = STATUS_META[s] || { label: s || '—', cls: 'status status-grey' };
+    return `<span class="${m.cls}">${m.label}</span>`;
+  }
+
+  function fmtDate(iso) {
+    if (!iso) return '';
+    try { return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' }); }
+    catch { return iso; }
+  }
+
+  function fmtDateShort(iso) {
+    if (!iso) return '';
+    try { return new Date(iso).toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }); }
+    catch { return iso; }
+  }
+
+  function getInitials(name, phone) {
+    if (name && name.trim()) {
+      const p = name.trim().split(/\s+/);
+      return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : p[0][0].toUpperCase();
+    }
+    const d = (phone || '').replace(/\D/g, '');
+    return d.slice(-1).toUpperCase() || '?';
+  }
+
+  // ── Name editing ──
+  let _currentName = '';
+  let _phone = '';
+
+  function startEditName() {
+    document.getElementById('nameDisplay').style.display = 'none';
+    const row = document.getElementById('nameEditRow');
+    row.style.display = 'flex';
+    const inp = document.getElementById('nameInput');
+    inp.value = _currentName;
+    inp.focus();
+    inp.select();
+  }
+
+  function cancelEditName() {
+    document.getElementById('nameEditRow').style.display = 'none';
+    document.getElementById('nameDisplay').style.display = 'flex';
+  }
+
+  async function saveName(e) {
+    e.preventDefault();
+    const name = document.getElementById('nameInput').value.trim();
+    if (!name) { showToast('Введите имя', true); return; }
+    try {
+      const res = await fetch('/api/auth/me/name', {
+        method: 'PATCH', credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (!res.ok) throw new Error();
+      _currentName = name;
+      document.getElementById('nameEl').textContent = name;
+      document.getElementById('avatarEl').textContent = getInitials(name, _phone);
+      cancelEditName();
+      showToast('Имя обновлено');
+    } catch {
+      showToast('Не удалось сохранить', true);
+    }
+  }
+
+  // ── Logout ──
+  async function doLogout() {
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' }).catch(() => {});
+    try { localStorage.removeItem('tl_phone'); } catch (_) {}
+    location.href = '/login.html';
+  }
+
+  const PLAN_RANK = ['FREE', 'LINK', 'TOI_PRO'];
+  const UPGRADE_LABEL = { FREE: 'Улучшить до «Той»', LINK: 'Улучшить до Toi Pro' };
+
+  // ── Render events ──
+  function renderEvents(items) {
+    const el = document.getElementById('eventsList');
+    if (!items || items.length === 0) {
+      el.innerHTML = `<div style="text-align:center;padding:36px 16px;color:#9C968A;font-size:14px;background:#fff;border-radius:18px;border:1px solid rgba(232,228,222,.8);">
+        У вас пока нет событий.<br>
+        <a href="/index.html" style="color:#F93B7A;text-decoration:none;font-weight:500;margin-top:6px;display:inline-block;">Создать первое →</a>
+      </div>`;
+      return;
+    }
+
+    const published = items.filter(d => d.event.status === 'PUBLISHED');
+    const drafts    = items.filter(d => d.event.status !== 'PUBLISHED');
+
+    el.innerHTML = [...published, ...drafts].map(({ event: ev, stats }) => {
+      const title   = ev.title || (ev.person1 && ev.person2 ? `${ev.person1} & ${ev.person2}` : 'Без названия');
+      const date    = fmtDate(ev.eventDate);
+      const total   = stats?.total ?? 0;
+      const attend  = stats?.attending ?? 0;
+      const plan    = ev.planCode || 'FREE';
+      const isDraft = ev.status !== 'PUBLISHED';
+      const canUpgrade = !isDraft && plan !== 'TOI_PRO';
+      const upgradeLabel = UPGRADE_LABEL[plan] || 'Улучшить тариф';
+
+      return `<a href="/index.html?event=${ev.id}" class="event-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:${canUpgrade ? '10px' : '0'};">
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;line-height:1.3;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${title}</div>
+            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+              ${isDraft ? '<span class="chip chip-draft">Черновик</span>' : planChip(plan)}
+              ${date ? `<span style="font-size:12px;color:#9C968A;">${date}</span>` : ''}
+              ${!isDraft ? `<span style="font-size:12px;color:#6B6860;">${attend} подтвердили · ${total} всего</span>` : ''}
+            </div>
+          </div>
+          <svg style="width:18px;height:18px;color:#C8C3BC;flex-shrink:0;margin-top:3px;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </div>
+        ${canUpgrade ? `
+        <div style="border-top:1px solid rgba(232,228,222,.5);padding-top:10px;display:flex;align-items:center;justify-content:space-between;">
+          <span style="font-size:12px;color:#9C968A;">Хотите больше возможностей?</span>
+          <a href="/paywall.html?event=${ev.id}" onclick="event.stopPropagation()" style="font-size:12px;font-weight:600;color:#F93B7A;text-decoration:none;display:flex;align-items:center;gap:4px;">
+            ${upgradeLabel}
+            <svg style="width:12px;height:12px;" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </a>
+        </div>` : ''}
+      </a>`;
+    }).join('');
+  }
+
+  // ── Render payments ──
+  function renderPayments(payments) {
+    const el = document.getElementById('paymentsList');
+    if (!payments || payments.length === 0) {
+      el.innerHTML = '<div style="padding:28px 18px;text-align:center;color:#9C968A;font-size:13px;">Оплат пока нет</div>';
+      return;
+    }
+    el.innerHTML = payments.map(p => {
+      const planLabel = (PLAN_META[p.planCode] || { label: p.planCode || '—' }).label;
+      const cur       = p.displayCurrency || p.currency || 'сом';
+      const amount    = p.amount != null ? `${Number(p.amount).toLocaleString('ru-RU')} ${cur}` : '—';
+      const date      = fmtDateShort(p.createdAt);
+      return `<div class="payment-row">
+        <div class="payment-icon">
+          <svg style="width:18px;height:18px;color:#9C968A;" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;">
+            <div style="font-size:14px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Тариф «${planLabel}»</div>
+            <div style="font-size:14px;font-weight:600;flex-shrink:0;color:#1E2820;">${amount}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            ${statusChip(p.status)}
+            ${date ? `<span style="font-size:11px;color:#9C968A;">${date}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Init ──
+  async function init() {
+    try {
+      const [meRes, evRes, payRes] = await Promise.all([
+        fetch('/api/auth/me', { credentials: 'include' }),
+        fetch('/api/organizer/events/dashboard', { credentials: 'include' }),
+        fetch('/api/organizer/payments', { credentials: 'include' }),
+      ]);
+
+      if (!meRes.ok) { location.replace('/login.html'); return; }
+
+      const me       = await meRes.json();
+      const events   = evRes.ok   ? await evRes.json()  : [];
+      const payments = payRes.ok  ? await payRes.json() : [];
+
+      _currentName = me.name || '';
+      _phone       = me.phone || '';
+
+      document.getElementById('avatarEl').textContent = getInitials(_currentName, _phone);
+      document.getElementById('nameEl').textContent   = _currentName || _phone;
+      document.getElementById('phoneEl').textContent  = _phone;
+      document.getElementById('topPhone').textContent = _phone;
+
+      try { if (_phone) localStorage.setItem('tl_phone', _phone); } catch (_) {}
+
+      const totalGuests = events.reduce((s, d) => s + (d.stats?.total ?? 0), 0);
+      document.getElementById('evCount').textContent    = events.length;
+      document.getElementById('guestCount').textContent = totalGuests;
+
+      renderEvents(events);
+      renderPayments(payments);
+
+    } catch (err) {
+      console.error('profile init error', err);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  // ESC cancels name edit
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') cancelEditName(); });
+</script>
+</body>
+</html>

@@ -1787,12 +1787,12 @@
             <input id="paymentSearch" class="input" placeholder="Телефон, чек, событие"/>
             <select id="paymentStatus" class="select">
               <option value="">Все статусы</option>
-              <option value="PENDING">PENDING</option>
-              <option value="AWAITING_CONFIRMATION">AWAITING_CONFIRMATION</option>
-              <option value="CONFIRMED">CONFIRMED</option>
-              <option value="REJECTED">REJECTED</option>
-              <option value="REFUNDED">REFUNDED</option>
-              <option value="CANCELLED">CANCELLED</option>
+              <option value="PENDING">Создан заказ</option>
+              <option value="AWAITING_CONFIRMATION">Ждёт проверки</option>
+              <option value="CONFIRMED">Подтверждён</option>
+              <option value="REJECTED">Отклонён</option>
+              <option value="REFUNDED">Возврат</option>
+              <option value="CANCELLED">Отменён</option>
             </select>
           </div>
           <button class="ghost-btn" onclick="loadPayments()">Найти</button>
@@ -3574,7 +3574,15 @@ function paymentBadge(status) {
     REJECTED: 'red',
     REFUNDED: 'gray'
   };
-  return badge(status || '—', tones[status] || 'gray');
+  const labels = {
+    PENDING: 'Создан заказ',
+    AWAITING_CONFIRMATION: 'Ждёт проверки',
+    CONFIRMED: 'Подтверждён',
+    REJECTED: 'Отклонён',
+    REFUNDED: 'Возврат',
+    CANCELLED: 'Отменён'
+  };
+  return badge(labels[status] || status || '—', tones[status] || 'gray');
 }
 
 function badge(text, tone) {

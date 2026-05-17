@@ -10,6 +10,7 @@ import kg.toilink.entity.SeatingTable;
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
+import java.time.LocalDateTime;
 import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
 import kg.toilink.repository.RsvpResponseRepository;
@@ -33,6 +34,7 @@ public class GuestService {
     private final RsvpResponseRepository rsvpResponseRepository;
     private final SeatingTableRepository seatingTableRepository;
     private final UserService userService;
+    private final PricingService pricingService;
 
     @Transactional(readOnly = true)
     public List<GuestResponse> findAllByEvent(Long eventId, String phone) {
@@ -68,14 +70,16 @@ public class GuestService {
     @Transactional
     public GuestResponse addGuest(Long eventId, CreateGuestRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
-        checkGuestLimit(event);
+        int guestsToAdd = req.companionName() != null && !req.companionName().isBlank() ? 2 : 1;
+        checkGuestLimit(event, guestsToAdd);
         String side = req.side() != null ? req.side() : "SHARED";
+        String source = shouldCreatePersonalLink(event, req) ? "PERSONAL_LINK" : "MANUAL";
 
         Guest primary = guestRepository.save(Guest.builder()
                 .event(event)
                 .name(req.name())
                 .phone(req.phone())
-                .source(Boolean.FALSE.equals(req.personalInvite()) ? "MANUAL" : "PERSONAL_LINK")
+                .source(source)
                 .notes(req.notes())
                 .side(side)
                 .build());
@@ -121,7 +125,7 @@ public class GuestService {
         if (req.side() != null) guest.setSide(req.side());
         guest.setRelatedToId(req.relatedToId());
         guest.setRelationType(req.relatedToId() != null ? req.relationType() : null);
-        guest.setTableId(req.tableId());
+        guest.setTableId(validateTableAssignment(event, req.tableId()));
         Guest saved = guestRepository.save(guest);
 
         String finalStatus = applyRsvpStatus(saved, event, req.rsvpStatus());
@@ -159,30 +163,34 @@ public class GuestService {
     public void deleteGuest(Long eventId, Long guestId, String phone) {
         verifyOwnership(eventId, phone);
         Guest guest = guestRepository.findById(guestId)
+                .filter(g -> g.getDeletedAt() == null)
                 .orElseThrow(() -> NotFoundException.guest(guestId));
         if (!guest.getEvent().getId().equals(eventId)) {
             throw NotFoundException.guest(guestId);
         }
-        guestRepository.delete(guest);
+        guest.setDeletedAt(LocalDateTime.now());
+        guestRepository.save(guest);
     }
 
-    private void checkGuestLimit(Event event) {
-        String plan = event.getPlanCode();
-        int limit;
-        if (plan == null || "FREE".equals(plan)) {
-            limit = 30;
-        } else if ("LINK".equals(plan)) {
-            limit = 150;
-        } else {
-            return; // TOI_PRO — без ограничений
-        }
+    private void checkGuestLimit(Event event, int guestsToAdd) {
         long current = guestRepository.countByEventId(event.getId());
-        if (current >= limit) {
-            throw new BadRequestException(
-                "Достигнут лимит гостей для вашего тарифа (" + limit + "). " +
-                "Перейдите на более высокий тариф для добавления новых гостей."
-            );
+        pricingService.requireGuestCapacity(event.getPlanCode(), current, guestsToAdd);
+    }
+
+    private boolean shouldCreatePersonalLink(Event event, CreateGuestRequest req) {
+        return !Boolean.FALSE.equals(req.personalInvite())
+                && pricingService.allowsPersonalLinks(event.getPlanCode());
+    }
+
+    private Long validateTableAssignment(Event event, Long tableId) {
+        if (tableId == null) return null;
+        pricingService.requireSeating(event.getPlanCode());
+        SeatingTable table = seatingTableRepository.findById(tableId)
+                .orElseThrow(() -> new BadRequestException("Стол не найден"));
+        if (!table.getEvent().getId().equals(event.getId())) {
+            throw new BadRequestException("Стол не принадлежит этому событию");
         }
+        return tableId;
     }
 
     private Event verifyOwnership(Long eventId, String phone) {

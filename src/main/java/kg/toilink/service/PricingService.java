@@ -17,6 +17,13 @@ import java.util.List;
 public class PricingService {
 
     public static final String ACTIVATION_CODE = "ACTIVATION";
+    public static final String FREE_CODE = "FREE";
+    public static final String LINK_CODE = "LINK";
+    public static final String TOI_PRO_CODE = "TOI_PRO";
+    public static final int FREE_GUEST_LIMIT = 30;
+    public static final int LINK_GUEST_LIMIT = 150;
+
+    public static final List<String> PUBLIC_PLAN_CODES = List.of(FREE_CODE, LINK_CODE, TOI_PRO_CODE);
 
     private final PricingPlanRepository pricingPlanRepository;
     private final PaymentPricingProperties fallbackPricing;
@@ -29,9 +36,9 @@ public class PricingService {
 
     @Transactional(readOnly = true)
     public PricingPlan planByCode(String code) {
-        if (code == null || code.isBlank()) return activationPlan();
-        return pricingPlanRepository.findByCodeAndActiveTrue(code.toUpperCase())
-                .orElseGet(this::activationPlan);
+        String normalizedCode = normalizePublicPlanCode(code);
+        return pricingPlanRepository.findByCodeAndActiveTrue(normalizedCode)
+                .orElseThrow(() -> new BadRequestException("Тариф недоступен: " + normalizedCode));
     }
 
     @Transactional(readOnly = true)
@@ -41,13 +48,14 @@ public class PricingService {
 
     @Transactional
     public PricingPlan updatePlan(String code, BigDecimal amount, String currency, String displayCurrency, String name) {
-        BigDecimal normalizedAmount = normalizeAmount(amount);
+        String normalizedCode = normalizePublicPlanCode(code);
+        BigDecimal normalizedAmount = normalizePlanAmount(normalizedCode, amount);
         String normalizedCurrency = normalizeCurrency(currency);
         String normalizedDisplayCurrency = normalizeDisplayCurrency(displayCurrency);
         String normalizedName = normalizeName(name);
 
-        PricingPlan plan = pricingPlanRepository.findByCode(code.toUpperCase())
-                .orElseGet(() -> PricingPlan.builder().code(code.toUpperCase()).build());
+        PricingPlan plan = pricingPlanRepository.findByCode(normalizedCode)
+                .orElseGet(() -> PricingPlan.builder().code(normalizedCode).build());
         plan.setName(normalizedName);
         plan.setAmount(normalizedAmount);
         plan.setCurrency(normalizedCurrency);
@@ -61,7 +69,7 @@ public class PricingService {
                                             String currency,
                                             String displayCurrency,
                                             String name) {
-        BigDecimal normalizedAmount = normalizeAmount(amount);
+        BigDecimal normalizedAmount = normalizePositiveAmount(amount);
         String normalizedCurrency = normalizeCurrency(currency);
         String normalizedDisplayCurrency = normalizeDisplayCurrency(displayCurrency);
         String normalizedName = normalizeName(name);
@@ -93,6 +101,64 @@ public class PricingService {
         return amount.setScale(0, RoundingMode.HALF_UP).toPlainString();
     }
 
+    public String normalizePublicPlanCode(String code) {
+        if (code == null || code.isBlank()) {
+            throw new BadRequestException("Тариф обязателен");
+        }
+        String normalized = code.trim().toUpperCase();
+        if (!PUBLIC_PLAN_CODES.contains(normalized)) {
+            throw new BadRequestException("Неизвестный тариф: " + normalized);
+        }
+        return normalized;
+    }
+
+    public String normalizeEventPlanCode(String code) {
+        if (code == null || code.isBlank()) {
+            return FREE_CODE;
+        }
+        String normalized = code.trim().toUpperCase();
+        return PUBLIC_PLAN_CODES.contains(normalized) ? normalized : FREE_CODE;
+    }
+
+    public int guestLimit(String planCode) {
+        return switch (normalizeEventPlanCode(planCode)) {
+            case FREE_CODE -> FREE_GUEST_LIMIT;
+            case LINK_CODE -> LINK_GUEST_LIMIT;
+            default -> Integer.MAX_VALUE;
+        };
+    }
+
+    public boolean hasGuestLimit(String planCode) {
+        return guestLimit(planCode) != Integer.MAX_VALUE;
+    }
+
+    public boolean allowsPersonalLinks(String planCode) {
+        return TOI_PRO_CODE.equals(normalizeEventPlanCode(planCode));
+    }
+
+    public boolean allowsSeating(String planCode) {
+        return TOI_PRO_CODE.equals(normalizeEventPlanCode(planCode));
+    }
+
+    public void requireSeating(String planCode) {
+        if (!allowsSeating(planCode)) {
+            throw new BadRequestException(
+                    "Рассадка гостей доступна в тарифе Toi Pro. Перейдите на Toi Pro, чтобы создавать столы и назначать места."
+            );
+        }
+    }
+
+    public void requireGuestCapacity(String planCode, long currentGuests, int guestsToAdd) {
+        if (guestsToAdd <= 0 || !hasGuestLimit(planCode)) return;
+        int limit = guestLimit(planCode);
+        if (currentGuests + guestsToAdd > limit) {
+            throw new BadRequestException(
+                    "Достигнут лимит гостей для вашего тарифа (" + limit + "). " +
+                            "Перейдите на более высокий тариф для добавления новых гостей."
+            );
+        }
+    }
+
     private PricingPlan fallbackActivationPlan() {
         return PricingPlan.builder()
                 .code(ACTIVATION_CODE)
@@ -104,7 +170,21 @@ public class PricingService {
                 .build();
     }
 
-    private BigDecimal normalizeAmount(BigDecimal amount) {
+    private BigDecimal normalizePlanAmount(String code, BigDecimal amount) {
+        if (amount == null) {
+            throw new BadRequestException("Цена обязательна");
+        }
+        BigDecimal normalized = amount.setScale(2, RoundingMode.HALF_UP);
+        if (normalized.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BadRequestException("Цена не может быть отрицательной");
+        }
+        if (!FREE_CODE.equals(code) && normalized.compareTo(BigDecimal.ZERO) == 0) {
+            throw new BadRequestException("Цена платного тарифа должна быть больше нуля");
+        }
+        return normalized;
+    }
+
+    private BigDecimal normalizePositiveAmount(BigDecimal amount) {
         if (amount == null) {
             throw new BadRequestException("Цена обязательна");
         }

@@ -33,6 +33,7 @@ public class SeatingTableService {
     private final EventRepository eventRepository;
     private final GuestRepository guestRepository;
     private final UserService userService;
+    private final PricingService pricingService;
 
     @Transactional(readOnly = true)
     public List<TableResponse> findAllByEvent(Long eventId, String phone) {
@@ -52,13 +53,7 @@ public class SeatingTableService {
     @Transactional
     public TableResponse create(Long eventId, CreateTableRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
-        String plan = event.getPlanCode();
-        if (plan == null || "FREE".equals(plan) || "LINK".equals(plan)) {
-            throw new BadRequestException(
-                "Рассадка гостей доступна только в тарифе Toi Pro. " +
-                "Перейдите на Toi Pro для использования этой функции."
-            );
-        }
+        pricingService.requireSeating(event.getPlanCode());
         SeatingTable table = tableRepository.save(SeatingTable.builder()
                 .event(event)
                 .name(req.name().trim())
@@ -69,7 +64,8 @@ public class SeatingTableService {
 
     @Transactional
     public TableResponse update(Long eventId, Long tableId, UpdateTableRequest req, String phone) {
-        verifyOwnership(eventId, phone);
+        Event event = verifyOwnership(eventId, phone);
+        pricingService.requireSeating(event.getPlanCode());
         SeatingTable table = findTable(eventId, tableId);
         table.setName(req.name().trim());
         table.setCapacity(req.capacity());
@@ -81,7 +77,8 @@ public class SeatingTableService {
 
     @Transactional
     public void delete(Long eventId, Long tableId, String phone) {
-        verifyOwnership(eventId, phone);
+        Event event = verifyOwnership(eventId, phone);
+        pricingService.requireSeating(event.getPlanCode());
         SeatingTable table = findTable(eventId, tableId);
         guestRepository.clearTableId(tableId);
         tableRepository.delete(table);
@@ -90,6 +87,7 @@ public class SeatingTableService {
     @Transactional
     public List<TableResponse> bulkAssign(Long eventId, BulkSeatingRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
+        pricingService.requireSeating(event.getPlanCode());
         if (req.assignments() == null) throw new BadRequestException("assignments is required");
 
         // 1) Create new tables, map tempId → real id

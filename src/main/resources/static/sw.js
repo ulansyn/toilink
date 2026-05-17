@@ -1,4 +1,4 @@
-const SW_VERSION = 'toilink-app-v6';
+const SW_VERSION = 'toilink-app-v7';
 const PAGE_CACHE = `${SW_VERSION}:pages`;
 const ASSET_CACHE = `${SW_VERSION}:assets`;
 
@@ -6,7 +6,8 @@ const PRECACHE_PAGES = [
   '/landing.html',
   '/login.html',
   '/templates.html',
-  '/guests.html'
+  '/guests.html',
+  '/profile.html'
 ];
 
 // Routes where auth state determines the response — always fetch from network.

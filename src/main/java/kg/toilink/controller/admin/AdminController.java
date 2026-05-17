@@ -42,7 +42,7 @@ public class AdminController {
 
     private static final int MAX_PAGE_SIZE = 100;
     private static final Pattern SLUG_PATTERN = Pattern.compile("[a-z0-9а-яёңүө-]+");
-    private static final List<String> PLAN_RANK = List.of("FREE", "LINK", "TOI_PRO");
+    private static final List<String> PLAN_RANK = PricingService.PUBLIC_PLAN_CODES;
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -373,8 +373,11 @@ public class AdminController {
                                                HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
-        if ("REJECTED".equals(payment.getStatus())) {
-            throw new BadRequestException("Отклонённую оплату нельзя подтвердить. Попросите клиента создать новую заявку.");
+        if ("CONFIRMED".equals(payment.getStatus())) {
+            return AdminPaymentResponse.from(payment);
+        }
+        if (!"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+            throw new BadRequestException("Подтвердить можно только оплату со статусом AWAITING_CONFIRMATION");
         }
         payment.setStatus("CONFIRMED");
         payment.setConfirmedAt(LocalDateTime.now());
@@ -408,8 +411,8 @@ public class AdminController {
                                               HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
-        if ("CONFIRMED".equals(payment.getStatus())) {
-            throw new BadRequestException("Подтверждённую оплату нельзя отклонить");
+        if (!"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+            throw new BadRequestException("Отклонить можно только оплату со статусом AWAITING_CONFIRMATION");
         }
         String reason = body != null ? body.reason() : null;
         if (reason == null || reason.isBlank()) {
@@ -505,9 +508,14 @@ public class AdminController {
     }
 
     private boolean isUpgrade(String current, String next) {
-        int from = PLAN_RANK.indexOf(current == null ? "FREE" : current);
-        int to   = PLAN_RANK.indexOf(next   == null ? "FREE" : next);
+        int from = planRank(current);
+        int to = planRank(next);
         return to > from;
+    }
+
+    private int planRank(String code) {
+        int rank = PLAN_RANK.indexOf(code == null ? PricingService.FREE_CODE : code);
+        return rank < 0 ? 0 : rank;
     }
 
     private String validateSlug(String value) {

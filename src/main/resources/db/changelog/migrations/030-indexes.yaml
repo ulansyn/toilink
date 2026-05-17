@@ -1,0 +1,14 @@
+databaseChangeLog:
+  - changeSet:
+      id: 030-indexes
+      author: system
+      changes:
+        - sql:
+            sql: >
+              CREATE INDEX IF NOT EXISTS idx_guests_event_deleted
+                ON guests(event_id, deleted_at);
+        - sql:
+            sql: >
+              CREATE INDEX IF NOT EXISTS idx_events_status_deleted
+                ON events(status, deleted_at)
+                WHERE deleted_at IS NULL;
