@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,35 @@ public class PricingService {
     public PricingPlan activationPlan() {
         return pricingPlanRepository.findByCodeAndActiveTrue(ACTIVATION_CODE)
                 .orElseGet(this::fallbackActivationPlan);
+    }
+
+    @Transactional(readOnly = true)
+    public PricingPlan planByCode(String code) {
+        if (code == null || code.isBlank()) return activationPlan();
+        return pricingPlanRepository.findByCodeAndActiveTrue(code.toUpperCase())
+                .orElseGet(this::activationPlan);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PricingPlan> allPlans() {
+        return pricingPlanRepository.findAllByActiveTrueOrderByAmountAsc();
+    }
+
+    @Transactional
+    public PricingPlan updatePlan(String code, BigDecimal amount, String currency, String displayCurrency, String name) {
+        BigDecimal normalizedAmount = normalizeAmount(amount);
+        String normalizedCurrency = normalizeCurrency(currency);
+        String normalizedDisplayCurrency = normalizeDisplayCurrency(displayCurrency);
+        String normalizedName = normalizeName(name);
+
+        PricingPlan plan = pricingPlanRepository.findByCode(code.toUpperCase())
+                .orElseGet(() -> PricingPlan.builder().code(code.toUpperCase()).build());
+        plan.setName(normalizedName);
+        plan.setAmount(normalizedAmount);
+        plan.setCurrency(normalizedCurrency);
+        plan.setDisplayCurrency(normalizedDisplayCurrency);
+        plan.setActive(true);
+        return pricingPlanRepository.save(plan);
     }
 
     @Transactional

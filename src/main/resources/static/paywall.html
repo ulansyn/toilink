@@ -1356,15 +1356,23 @@
 
     async function selectPlan(planCode) {
         if (planCode === 'FREE') {
+            try {
+                await fetch('/api/organizer/payments/free-activate', {
+                    method: 'POST', credentials: 'include',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ eventId: getEventIdNumber() })
+                });
+            } catch (_) {}
             location.href = `/guests.html?event=${getEventId()}`;
             return;
         }
         selectedPlanCode = planCode;
         localStorage.setItem('selectedPlanCode', planCode);
         showPaymentScreen();
-        if (!payment) {
+        if (!payment || payment.planCode !== planCode) {
+            payment = null;
             try {
-                payment = await fetchLatestPayment();
+                payment = await fetchLatestPaymentForPlan(planCode);
                 if (!payment) payment = await createPayment();
             } catch (err) {
                 showToast(err.message || 'Ошибка создания заказа');
@@ -1468,31 +1476,36 @@
 	        if (payment) window.open(waLink(), '_blank', 'noopener');
 	    }
 
-	    async function fetchLatestPayment() {
-	        const eventId = getEventIdNumber();
-	        const res = await fetch(`/api/organizer/payments/event/${eventId}/latest`, {
-	            credentials: 'include'
-	        });
-	        if (res.status === 204) return null;
-	        if (!res.ok) {
-	            const data = await res.json().catch(() => ({}));
-	            throw new Error(data.message || 'Не удалось загрузить заказ');
-	        }
-	        return res.json();
-	    }
+    async function fetchLatestPayment() {
+        const eventId = getEventIdNumber();
+        const res = await fetch(`/api/organizer/payments/event/${eventId}/latest`, {
+            credentials: 'include'
+        });
+        if (res.status === 204) return null;
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || 'Не удалось загрузить заказ');
+        }
+        return res.json();
+    }
 
-	    async function createPayment() {
-	        const res = await fetch('/api/organizer/payments', {
-	            method: 'POST', credentials: 'include',
-	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ eventId: getEventIdNumber() })
-	        });
-	        if (!res.ok) {
-	            const data = await res.json().catch(() => ({}));
-	            throw new Error(data.message || 'Не удалось создать заказ');
-	        }
-	        return res.json();
-	    }
+    async function fetchLatestPaymentForPlan(planCode) {
+        const p = await fetchLatestPayment();
+        return (p && p.planCode === planCode) ? p : null;
+    }
+
+    async function createPayment() {
+        const res = await fetch('/api/organizer/payments', {
+            method: 'POST', credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ eventId: getEventIdNumber(), planCode: selectedPlanCode })
+        });
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || 'Не удалось создать заказ');
+        }
+        return res.json();
+    }
 
     async function initPaywall() {
         const me = await fetch('/api/auth/me', { credentials: 'include' })
@@ -1505,7 +1518,7 @@
         if (savedPlan && savedPlan !== 'FREE') {
             selectedPlanCode = savedPlan;
             try {
-                payment = await fetchLatestPayment();
+                payment = await fetchLatestPaymentForPlan(savedPlan);
             } catch (_) {}
             if (payment) {
                 showPaymentScreen();

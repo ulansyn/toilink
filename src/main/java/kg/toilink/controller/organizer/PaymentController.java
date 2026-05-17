@@ -31,7 +31,7 @@ public class PaymentController {
     private final PricingService pricingService;
 
     /**
-     * Идемпотентное создание платежа: если для этого события уже есть активный
+     * Идемпотентное создание платежа: если для этого события и тарифа уже есть активный
      * платёж (PENDING / AWAITING_CONFIRMATION) — возвращает его, не создаёт новый.
      */
     @PostMapping
@@ -45,13 +45,16 @@ public class PaymentController {
             throw new BadRequestException("Event id is required for payment");
         }
 
-        List<Payment> existing = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId());
+        String planCode = body.planCode() != null ? body.planCode().toUpperCase() : null;
+
+        List<Payment> existing = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId(), planCode);
         if (!existing.isEmpty()) return toMap(existing.get(0));
 
-        PricingPlan plan = pricingService.activationPlan();
+        PricingPlan plan = pricingService.planByCode(planCode);
         Payment p = new Payment();
         p.setUser(user);
         p.setPlanId(plan.getId());
+        p.setPlanCode(plan.getCode());
         p.setAmount(plan.getAmount());
         p.setCurrency(plan.getCurrency());
         p.setDisplayCurrency(plan.getDisplayCurrency());
@@ -62,6 +65,29 @@ public class PaymentController {
                 .orElseThrow(() -> NotFoundException.event(body.eventId())));
 
         return toMap(paymentRepository.save(p));
+    }
+
+    @PostMapping("/free-activate")
+    @Transactional
+    public Map<String, Object> freeActivate(@RequestBody GetOrCreateRequest body,
+                                            @AuthenticationPrincipal UserDetails principal) {
+        User user = userRepository.findByPhone(principal.getUsername())
+                .orElseThrow(() -> new NotFoundException("User not found"));
+
+        if (body.eventId() == null) {
+            throw new BadRequestException("Event id is required");
+        }
+
+        var event = eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
+                .filter(e -> e.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> NotFoundException.event(body.eventId()));
+
+        if ("DRAFT".equals(event.getStatus())) {
+            event.setStatus("PUBLISHED");
+            eventRepository.save(event);
+        }
+
+        return Map.of("status", event.getStatus(), "eventId", event.getId());
     }
 
     @PostMapping("/{id}/submit")
@@ -117,11 +143,12 @@ public class PaymentController {
         m.put("displayCurrency", p.getDisplayCurrency() != null
                 ? p.getDisplayCurrency()
                 : pricingService.displayCurrencyFor(p.getPlanId(), p.getCurrency()));
+        m.put("planCode", p.getPlanCode());
         m.put("eventId", p.getEvent() != null ? p.getEvent().getId() : null);
         m.put("rejectedReason", p.getRejectedReason());
         m.put("createdAt", p.getCreatedAt());
         return m;
     }
 
-    public record GetOrCreateRequest(Long eventId) {}
+    public record GetOrCreateRequest(Long eventId, String planCode) {}
 }

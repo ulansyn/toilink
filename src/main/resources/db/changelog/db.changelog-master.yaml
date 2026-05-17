@@ -47,3 +47,5 @@ databaseChangeLog:
       file: db/changelog/migrations/024-create-pricing-plans.yaml
   - include:
       file: db/changelog/migrations/025-reset-landing-settings.yaml
+  - include:
+      file: db/changelog/migrations/026-pricing-plans-three-tiers.yaml

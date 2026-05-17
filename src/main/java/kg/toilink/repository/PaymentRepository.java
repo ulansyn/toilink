@@ -23,8 +23,8 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     Optional<Payment> findFirstByUserIdAndEventIdOrderByCreatedAtDesc(Long userId, Long eventId);
 
-    @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND p.status IN ('PENDING','AWAITING_CONFIRMATION') ORDER BY p.createdAt DESC")
-    List<Payment> findActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId);
+    @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND (:planCode IS NULL OR p.planCode = :planCode) AND p.status IN ('PENDING','AWAITING_CONFIRMATION') ORDER BY p.createdAt DESC")
+    List<Payment> findActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId, @Param("planCode") String planCode);
 
     @EntityGraph(attributePaths = {"user", "event"})
     @Query("""

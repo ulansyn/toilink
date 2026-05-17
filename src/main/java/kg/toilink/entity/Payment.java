@@ -30,6 +30,9 @@ public class Payment {
     @Column(name = "plan_id")
     private Long planId;
 
+    @Column(name = "plan_code", length = 50)
+    private String planCode;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 

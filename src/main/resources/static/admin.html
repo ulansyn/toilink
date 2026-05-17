@@ -1772,44 +1772,7 @@
             <button class="ghost-btn" onclick="loadPricing()">Обновить</button>
           </div>
         </div>
-
-        <section class="dash-card" style="max-width:760px;">
-          <div class="chart-head">
-            <div>
-              <div class="chart-title">Активация события</div>
-              <div class="chart-sub">Эта сумма попадёт в новые заказы, paywall и публичный блок тарифов.</div>
-            </div>
-            <div id="pricingUpdatedAt" class="muted nowrap"></div>
-          </div>
-
-          <form id="pricingForm" onsubmit="savePricing(event)" style="display:grid;gap:14px;margin-top:18px;">
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
-              <div class="field">
-                <label>Название</label>
-                <input id="pricingName" class="input" placeholder="Активация события"/>
-              </div>
-              <div class="field">
-                <label>Цена</label>
-                <input id="pricingAmount" class="input" type="number" min="1" step="1" placeholder="990"/>
-              </div>
-              <div class="field">
-                <label>Валюта</label>
-                <input id="pricingCurrency" class="input" maxlength="10" placeholder="KGS"/>
-              </div>
-              <div class="field">
-                <label>На экране</label>
-                <input id="pricingDisplayCurrency" class="input" maxlength="20" placeholder="сом"/>
-              </div>
-            </div>
-            <div class="landing-preview-row">
-              <strong>Текущий тариф</strong>
-              <span id="pricingCurrent">—</span>
-            </div>
-            <div class="top-actions" style="justify-content:flex-start;">
-              <button class="primary-btn accent-btn" type="submit">Сохранить тариф</button>
-            </div>
-          </form>
-        </section>
+        <div id="pricingPlansWrap" style="display:grid;gap:16px;max-width:900px;"></div>
       </section>
 
       <section class="section" id="section-payments">
@@ -1834,7 +1797,7 @@
           <button class="ghost-btn" onclick="loadPayments()">Найти</button>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>ID</th><th>Пользователь</th><th>Событие</th><th>Сумма</th><th>Метод</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
+          <thead><tr><th>ID</th><th>Пользователь</th><th>Событие</th><th>Тариф</th><th>Сумма</th><th>Статус</th><th>Дата</th><th>Действия</th></tr></thead>
           <tbody id="paymentsTable"></tbody>
         </table></div>
         <div class="pager" id="paymentsPager"></div>
@@ -3405,40 +3368,70 @@ async function saveLanding() {
 }
 
 async function loadPricing() {
-  const p = await apiJson(`${API}/pricing/activation`);
-  if (!p) return;
-  state.pricing = p;
-  const amount = Number(p.amount || 0);
-  const amountText = amount.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
-  document.getElementById('pricingName').value = p.name || 'Активация события';
-  document.getElementById('pricingAmount').value = amount ? String(Math.round(amount)) : '';
-  document.getElementById('pricingCurrency').value = p.currency || 'KGS';
-  document.getElementById('pricingDisplayCurrency').value = p.displayCurrency || 'сом';
-  setText('pricingCurrent', `${amountText} ${p.displayCurrency || p.currency || 'KGS'} · ${p.name || 'Активация события'}`);
-  setText('pricingUpdatedAt', p.updatedAt ? `Обновлён ${fmtDateTime(p.updatedAt)}` : '');
+  const plans = await apiJson(`${API}/pricing/plans`);
+  if (!plans) return;
+  state.pricing = plans;
+  const wrap = document.getElementById('pricingPlansWrap');
+  if (!wrap) return;
+  wrap.innerHTML = plans.map(p => {
+    const amount = Number(p.amount || 0);
+    const amountText = amount.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
+    return `
+      <section class="dash-card">
+        <div class="chart-head">
+          <div>
+            <div class="chart-title">${esc(p.name || p.code)}</div>
+            <div class="chart-sub">Код: <strong>${esc(p.code)}</strong> · Текущая цена: <strong>${amountText} ${esc(p.displayCurrency || p.currency)}</strong>${p.updatedAt ? ` · Обновлён ${fmtDateTime(p.updatedAt)}` : ''}</div>
+          </div>
+        </div>
+        <form onsubmit="savePlanByCode(event,'${attr(p.code)}')" style="display:grid;gap:14px;margin-top:18px;">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+            <div class="field">
+              <label>Название</label>
+              <input class="input" name="name" value="${attr(p.name || '')}" placeholder="Название тарифа"/>
+            </div>
+            <div class="field">
+              <label>Цена</label>
+              <input class="input" name="amount" type="number" min="0" step="1" value="${Math.round(amount)}" placeholder="990"/>
+            </div>
+            <div class="field">
+              <label>Валюта (код)</label>
+              <input class="input" name="currency" maxlength="10" value="${attr(p.currency || 'KGS')}" placeholder="KGS"/>
+            </div>
+            <div class="field">
+              <label>На экране</label>
+              <input class="input" name="displayCurrency" maxlength="20" value="${attr(p.displayCurrency || 'сом')}" placeholder="сом"/>
+            </div>
+          </div>
+          <div class="top-actions" style="justify-content:flex-start;">
+            <button class="primary-btn accent-btn" type="submit">Сохранить ${esc(p.code)}</button>
+          </div>
+        </form>
+      </section>`;
+  }).join('');
+}
+
+async function savePlanByCode(e, code) {
+  e.preventDefault();
+  const form = e.target;
+  const amount = Number(form.amount.value);
+  if (!Number.isFinite(amount) || amount < 0) { toast('Укажите корректную цену'); return; }
+  const payload = {
+    name: form.name.value.trim() || code,
+    amount,
+    currency: form.currency.value.trim() || 'KGS',
+    displayCurrency: form.displayCurrency.value.trim() || 'сом',
+    reason: 'Изменение тарифа ' + code
+  };
+  const res = await apiJson(`${API}/pricing/plans/${encodeURIComponent(code)}`, jsonOptions(payload, 'PUT'));
+  if (!res) return;
+  toast('Тариф ' + code + ' сохранён');
+  await loadPricing();
+  loadAuditIfOpen();
 }
 
 async function savePricing(e) {
   e?.preventDefault();
-  const amount = Number(document.getElementById('pricingAmount').value);
-  if (!Number.isFinite(amount) || amount <= 0) {
-    toast('Укажите цену больше нуля');
-    return;
-  }
-  const payload = {
-    name: document.getElementById('pricingName').value.trim() || 'Активация события',
-    amount,
-    currency: document.getElementById('pricingCurrency').value.trim() || 'KGS',
-    displayCurrency: document.getElementById('pricingDisplayCurrency').value.trim() || 'сом',
-    reason: 'Изменение тарифа активации'
-  };
-  const res = await apiJson(`${API}/pricing/activation`, jsonOptions(payload, 'PUT'));
-  if (!res) return;
-  toast('Тариф сохранён');
-  state.pricing = res;
-  await loadPricing();
-  if (state.landingConfig) loadLanding();
-  loadAuditIfOpen();
 }
 
 async function loadPayments() {
@@ -3456,6 +3449,11 @@ async function loadPayments() {
   renderPager('paymentsPager', page, n => { state.paymentsPage = n; loadPayments(); });
 }
 
+function planLabel(code) {
+  const labels = { LINK: 'Той', TOI_PRO: 'Toi Pro', ACTIVATION: 'Активация', FREE: 'Старт' };
+  return code ? (labels[code] || esc(code)) : '—';
+}
+
 function paymentRow(p) {
   const phone = p.user?.phone;
   return `
@@ -3463,8 +3461,8 @@ function paymentRow(p) {
       <td class="mono muted">${esc(p.id)}</td>
       <td class="nowrap">${phone ? `<span class="copy-cell" data-copy="${attr(phone)}" title="Скопировать">${esc(phone)}</span>` : '—'}</td>
       <td>${esc(p.event?.title || '—')}</td>
+      <td>${planLabel(p.planCode)}</td>
       <td><strong>${fmtMoney(p.amount, p.displayCurrency || p.currency)}</strong></td>
-      <td>${esc(p.method || '—')}</td>
       <td>${paymentBadge(p.status)}</td>
       <td class="muted nowrap">${fmtDate(p.createdAt)}</td>
       <td><div class="row-actions">

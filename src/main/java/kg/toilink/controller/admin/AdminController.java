@@ -426,6 +426,31 @@ public class AdminController {
         return AdminPricingPlanResponse.from(plan);
     }
 
+    @GetMapping("/pricing/plans")
+    public List<AdminPricingPlanResponse> listPricingPlans() {
+        return pricingService.allPlans().stream().map(AdminPricingPlanResponse::from).toList();
+    }
+
+    @PutMapping("/pricing/plans/{code}")
+    @Transactional
+    public AdminPricingPlanResponse updatePricingPlan(@PathVariable String code,
+                                                      @RequestBody AdminPricingUpdateRequest body,
+                                                      @AuthenticationPrincipal UserDetails admin,
+                                                      HttpServletRequest request) {
+        if (body == null) {
+            throw new BadRequestException("Данные тарифа обязательны");
+        }
+        PricingPlan plan = pricingService.updatePlan(
+                code,
+                body.amount(),
+                body.currency(),
+                body.displayCurrency(),
+                body.name()
+        );
+        audit(admin, request, "PRICING_UPDATE", "PRICING_PLAN", plan.getId(), body.reason());
+        return AdminPricingPlanResponse.from(plan);
+    }
+
     private PageRequest pageRequest(int page, int size) {
         int safePage = Math.max(0, page);
         int safeSize = Math.max(1, Math.min(size, MAX_PAGE_SIZE));
@@ -754,6 +779,7 @@ public class AdminController {
             SmallUserResponse user,
             AdminEventBriefResponse event,
             Long planId,
+            String planCode,
             BigDecimal amount,
             String currency,
             String displayCurrency,
@@ -776,6 +802,7 @@ public class AdminController {
                     SmallUserResponse.from(payment.getUser()),
                     AdminEventBriefResponse.from(payment.getEvent()),
                     payment.getPlanId(),
+                    payment.getPlanCode(),
                     payment.getAmount(),
                     payment.getCurrency(),
                     payment.getDisplayCurrency(),
