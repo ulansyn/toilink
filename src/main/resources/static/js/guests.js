@@ -1070,19 +1070,26 @@ function applyEventMeta(event) {
 }
 
 function renderUpgradeBanner(event) {
-  const existing = document.getElementById('upgrade-banner');
-  if (existing) existing.remove();
+  const slot = document.getElementById('upgrade-banner');
+  if (!slot) return;
   const plan = event?.planCode || 'FREE';
-  if (plan === 'TOI_PRO') return; // уже максимальный
-  const banner = document.createElement('div');
-  banner.id = 'upgrade-banner';
-  banner.style.cssText = 'background:#fff8f0;border:1.5px solid #fde68a;border-radius:12px;padding:12px 16px;margin:12px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;';
+  if (plan === 'TOI_PRO') { slot.innerHTML = ''; return; }
   const current = PLAN_LABEL_G[plan] || plan;
   const next = plan === 'FREE' ? 'Той' : 'Toi Pro';
-  banner.innerHTML = `<span style="color:#92400e;">Тариф: <strong>${current}</strong> — хотите больше возможностей?</span>
-    <button onclick="goUpgrade()" style="background:#F93B7A;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Перейти на ${next}</button>`;
-  const toolbar = document.getElementById('toolbar');
-  if (toolbar) toolbar.parentNode.insertBefore(banner, toolbar);
+  const nextDesc = plan === 'FREE'
+    ? 'До 150 гостей, все шаблоны, карта и музыка'
+    : 'Рассадка по столикам, персональные ссылки, Excel';
+  slot.innerHTML = `
+    <div style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid #fcd34d;border-radius:14px;padding:14px 16px;margin-bottom:20px;display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:18px;">⭐</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#92400e;">Тариф «${current}» — хотите больше?</div>
+          <div style="font-size:12px;color:#a16207;margin-top:1px;">${nextDesc}</div>
+        </div>
+      </div>
+      <button onclick="goUpgrade()" style="background:#F93B7A;color:#fff;border:none;border-radius:10px;padding:10px 0;font-size:14px;font-weight:700;cursor:pointer;width:100%;letter-spacing:0.01em;">Перейти на «${next}» →</button>
+    </div>`;
 }
 
 function goUpgrade() {
