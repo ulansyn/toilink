@@ -33,12 +33,16 @@ public class AuthenticatedUserInterceptor implements HandlerInterceptor {
             return false;
         }
 
-        if (isAdminRequest(request) && !"SUPERADMIN".equals(user.getRole())) {
+        if (isAdminRequest(request) && !isAdminRole(user.getRole())) {
             response.sendError(HttpServletResponse.SC_FORBIDDEN);
             return false;
         }
 
         return true;
+    }
+
+    private boolean isAdminRole(String role) {
+        return "SUPERADMIN".equals(role) || "MANAGER".equals(role);
     }
 
     private boolean isAdminRequest(HttpServletRequest request) {
