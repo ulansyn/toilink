@@ -1245,7 +1245,7 @@
                 <div class="plan-card" id="planCardLINK" onclick="selectPlan('LINK')">
                     <div class="plan-current-pill">Текущий тариф</div>
                     <div class="plan-name">Той</div>
-                    <div class="plan-price">890 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">1 290</span></div>
+                    <div class="plan-price"><span id="planPriceLINK">890</span> <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">1 290</span></div>
                     <div class="plan-sub">Для большинства мероприятий</div>
                     <div class="plan-divider"></div>
                     <ul class="plan-features">
@@ -1269,7 +1269,7 @@
                         <div class="plan-card-inner" style="background:#fff;">
                             <div class="plan-current-pill">Текущий тариф</div>
                             <div class="plan-name">Toi Pro</div>
-                            <div class="plan-price">1 990 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">2 990</span></div>
+                            <div class="plan-price"><span id="planPriceTOI_PRO">1 990</span> <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">2 990</span></div>
                             <div class="plan-sub">Для крупных мероприятий</div>
                             <div class="plan-divider"></div>
                             <ul class="plan-features">
@@ -1789,6 +1789,13 @@
         } catch (_) {}
     }
 
+    function applyPlanCardPrices() {
+        for (const [code, info] of Object.entries(PLAN_INFO)) {
+            const el = document.getElementById('planPrice' + code);
+            if (el && info.amount != null) el.textContent = formatAmount(info.amount);
+        }
+    }
+
     async function initPaywall() {
         const eventId = getEventIdNumber();
         const [me, , eventData] = await Promise.all([
@@ -1798,6 +1805,8 @@
         ]);
         if (!me) { location.replace('/login.html'); return; }
         if (!eventId) { location.replace('/index.html'); return; }
+
+        applyPlanCardPrices();
 
         if (eventData?.planCode) {
             currentEventPlan = eventData.planCode;
