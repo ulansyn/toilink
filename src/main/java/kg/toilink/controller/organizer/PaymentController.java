@@ -83,6 +83,13 @@ public class PaymentController {
                 .orElseThrow(() -> NotFoundException.event(body.eventId()));
 
         if ("DRAFT".equals(event.getStatus())) {
+            long existing = eventRepository.countByUserIdAndStatusAndPlanCodeAndDeletedAtIsNull(
+                    user.getId(), "PUBLISHED", "FREE");
+            if (existing >= 1) {
+                throw new BadRequestException(
+                    "У вас уже есть бесплатное опубликованное событие. " +
+                    "Для нового события выберите платный тариф.");
+            }
             event.setStatus("PUBLISHED");
             event.setPlanCode("FREE");
             eventRepository.save(event);

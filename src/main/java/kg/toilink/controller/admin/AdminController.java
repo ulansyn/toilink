@@ -155,6 +155,29 @@ public class AdminController {
         return AdminUserResponse.from(user);
     }
 
+    @PutMapping("/users/{id}/role")
+    @Transactional
+    public AdminUserResponse changeUserRole(@PathVariable Long id,
+                                            @RequestBody Map<String, String> body,
+                                            @AuthenticationPrincipal UserDetails admin,
+                                            HttpServletRequest request) {
+        String newRole = body.get("role");
+        if (newRole == null || !List.of("CLIENT", "MANAGER", "SUPERADMIN").contains(newRole)) {
+            throw new BadRequestException("Недопустимая роль. Допустимые значения: CLIENT, MANAGER, SUPERADMIN");
+        }
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found: " + id));
+        if ("SUPERADMIN".equals(target.getRole()) && !"SUPERADMIN".equals(newRole)
+                && userRepository.countByRoleAndDeletedAtIsNull("SUPERADMIN") <= 1) {
+            throw new BadRequestException("Нельзя снять роль у последнего SUPERADMIN");
+        }
+        String oldRole = target.getRole();
+        target.setRole(newRole);
+        userRepository.save(target);
+        audit(admin, request, "USER_ROLE_CHANGE", "USER", id, oldRole + " → " + newRole);
+        return AdminUserResponse.from(target);
+    }
+
     @DeleteMapping("/users/{id}")
     @Transactional
     public ResponseEntity<Void> deleteUser(@PathVariable Long id,
@@ -311,6 +334,18 @@ public class AdminController {
         templateRepository.save(template);
         audit(admin, request, "TEMPLATE_UPDATE", "TEMPLATE", id, body.reason());
         return AdminTemplateResponse.from(template);
+    }
+
+    @DeleteMapping("/templates/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteTemplate(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserDetails admin,
+                                               HttpServletRequest request) {
+        Template template = templateRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.template(id));
+        templateRepository.delete(template);
+        audit(admin, request, "TEMPLATE_DELETE", "TEMPLATE", id, null);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/payments")

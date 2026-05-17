@@ -169,12 +169,12 @@ public class GuestService {
     private void checkGuestLimit(Event event) {
         String plan = event.getPlanCode();
         int limit;
-        if ("FREE".equals(plan)) {
+        if (plan == null || "FREE".equals(plan)) {
             limit = 30;
         } else if ("LINK".equals(plan)) {
             limit = 150;
         } else {
-            return; // TOI_PRO или null — без ограничений
+            return; // TOI_PRO — без ограничений
         }
         long current = guestRepository.countByEventId(event.getId());
         if (current >= limit) {

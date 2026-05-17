@@ -52,7 +52,8 @@ public class SeatingTableService {
     @Transactional
     public TableResponse create(Long eventId, CreateTableRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
-        if ("FREE".equals(event.getPlanCode()) || "LINK".equals(event.getPlanCode())) {
+        String plan = event.getPlanCode();
+        if (plan == null || "FREE".equals(plan) || "LINK".equals(plan)) {
             throw new BadRequestException(
                 "Рассадка гостей доступна только в тарифе Toi Pro. " +
                 "Перейдите на Toi Pro для использования этой функции."

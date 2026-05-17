@@ -2452,6 +2452,7 @@ function userRow(u) {
         ${u.active && !u.deleted ? `<button class="tiny-btn danger" onclick="blockUser(${Number(u.id)})">Блок</button>` : ''}
         ${!u.active && !u.deleted ? `<button class="tiny-btn good" onclick="unblockUser(${Number(u.id)})">Разблок</button>` : ''}
         <button class="tiny-btn" onclick="viewUserEvents(${Number(u.id)}, '${attr(u.phone)}')">События</button>
+        ${!u.deleted ? `<button class="tiny-btn" onclick="changeUserRole(${Number(u.id)}, '${attr(u.role)}')">Роль</button>` : ''}
         ${u.role !== 'SUPERADMIN' && !u.deleted ? `<button class="tiny-btn danger" onclick="deleteUser(${Number(u.id)})">Удалить</button>` : ''}
       </div></td>
     </tr>`;
@@ -2486,6 +2487,18 @@ async function deleteUser(id) {
   if (!ans) return;
   const res = await apiJson(`${API}/users/${id}`, jsonOptions({ reason: ans.reason }, 'DELETE'));
   if (res) { toast('Пользователь удалён'); loadUsers(); loadAuditIfOpen(); }
+}
+
+async function changeUserRole(id, currentRole) {
+  const roles = ['CLIENT', 'MANAGER', 'SUPERADMIN'].filter(r => r !== currentRole);
+  const chosen = window.prompt(`Текущая роль: ${currentRole}\nВыберите новую роль:\n${roles.map((r, i) => `${i + 1}. ${r}`).join('\n')}\n\nВведите номер:`);
+  if (!chosen) return;
+  const idx = parseInt(chosen, 10) - 1;
+  if (idx < 0 || idx >= roles.length) { toast('Некорректный выбор'); return; }
+  const newRole = roles[idx];
+  if (!window.confirm(`Сменить роль на ${newRole}?`)) return;
+  const res = await apiJson(`${API}/users/${id}/role`, jsonOptions({ role: newRole }, 'PUT'));
+  if (res) { toast(`Роль изменена на ${newRole}`); loadUsers(); loadAuditIfOpen(); }
 }
 
 async function viewUserEvents(id, phone) {
@@ -2617,8 +2630,16 @@ function templateRow(t) {
       <td><div class="row-actions">
         <button class="tiny-btn" onclick="editTemplate(${Number(t.id)}, '${attr(t.name)}', ${Number(t.sortOrder)}, ${Boolean(t.active)})">Править</button>
         <button class="tiny-btn ${t.active ? 'danger' : 'good'}" onclick="toggleTemplate(${Number(t.id)}, ${!t.active})">${t.active ? 'Скрыть' : 'Включить'}</button>
+        <button class="tiny-btn danger" onclick="deleteTemplate(${Number(t.id)}, '${attr(t.name)}')">Удалить</button>
       </div></td>
     </tr>`;
+}
+
+async function deleteTemplate(id, name) {
+  if (!window.confirm(`Удалить шаблон «${name}»? Это действие необратимо.`)) return;
+  const res = await fetch(`${API}/templates/${id}`, { method: 'DELETE', credentials: 'include' });
+  if (res.ok || res.status === 204) { toast('Шаблон удалён'); loadTemplates(); loadDashboard(); loadAuditIfOpen(); }
+  else { const d = await res.json().catch(() => ({})); toast(d.message || 'Ошибка удаления'); }
 }
 
 async function toggleTemplate(id, active) {
