@@ -134,12 +134,12 @@
         </div>
 
         <h1 class="text-[34px] md:text-[56px] font-semibold leading-[1.05] tracking-tight fu fu-1">
-            <span class="text-gray-900">Той вашей мечты —</span><br/>
-            <span class="grad-text">в одной ссылке</span>
+            <span class="text-gray-900">Приглашение, RSVP и гости</span><br/>
+            <span class="grad-text">для тоя в одной ссылке</span>
         </h1>
 
         <p class="mt-4 md:mt-5 text-[14px] md:text-[17px] text-gray-500 leading-relaxed fu fu-2 max-w-md md:max-w-lg mx-auto">
-            Красивое приглашение, RSVP и список гостей — за 5 минут.<br class="hidden md:block"/>
+            Красивое приглашение, ответы гостей и рассадка по столикам — всё в одном кабинете.<br class="hidden md:block"/>
             Гостям не нужно скачивать приложение или регистрироваться.
         </p>
 
@@ -822,21 +822,22 @@
      PRICING
 ═══════════════════════════════════════ -->
 <section id="pricing" class="py-14 md:py-20 px-5" style="background: #FFF5F8;" data-l-section="pricing">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <div class="text-center mb-10 reveal">
             <div class="sec-eyebrow mb-2">Тарифы</div>
             <h2 class="sec-h2">Простые <span class="grad-text">и честные</span> цены</h2>
-            <p class="sec-sub mt-3">Начните бесплатно. Премиум — один раз для одного события, без подписок.</p>
+            <p class="sec-sub mt-3">Начните бесплатно. Платный тариф — один раз для одного события, без подписок.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
+        <div class="grid md:grid-cols-3 gap-5 md:gap-6">
 
+            <!-- Старт -->
             <div class="card-white p-6 md:p-8 reveal reveal-d1 flex flex-col">
                 <div class="flex items-baseline justify-between mb-1">
                     <h3 class="text-[18px] font-bold text-gray-900">Старт</h3>
                     <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">бесплатно</span>
                 </div>
-                <p class="text-[13px] text-gray-500 mb-6">Попробовать без риска</p>
+                <p class="text-[13px] text-gray-500 mb-6">Попробовать и показать близким</p>
 
                 <div class="flex items-baseline gap-1 mb-1">
                     <span class="text-[40px] font-extrabold text-gray-900 leading-none">0</span>
@@ -847,74 +848,110 @@
                 <ul class="space-y-3 mb-7 flex-1">
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        До 50 гостей
+                        Одна ссылка для всех
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        RSVP-кнопки и список гостей
+                        До 30 гостей
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        3 базовых шаблона
+                        RSVP
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-400">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Маленький логотип ToiLink
+                        Логотип ToiLink в footer
                     </li>
                 </ul>
 
                 <button onclick="openAuth()" class="btn-outline-pink w-full py-3 text-[14px]" style="border-radius:14px;">
-                    Начать бесплатно
+                    Опубликовать бесплатно
                 </button>
             </div>
 
-            <div class="reveal reveal-d2 relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">
+            <!-- Той -->
+            <div class="card-white p-6 md:p-8 reveal reveal-d2 flex flex-col">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h3 class="text-[18px] font-bold text-gray-900">Той</h3>
+                    <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">одно событие</span>
+                </div>
+                <p class="text-[13px] text-gray-500 mb-6">Красивое приглашение по одной ссылке</p>
+
+                <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-[40px] font-extrabold text-gray-900 leading-none">890</span>
+                    <span class="text-[14px] font-medium text-gray-400">сом</span>
+                    <span class="text-[14px] text-gray-400 line-through ml-1">1 290</span>
+                </div>
+                <div class="text-[12px] text-gray-400 mb-6">разово за всё событие</div>
+
+                <ul class="space-y-3 mb-7 flex-1">
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        До 150 гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Все шаблоны, карта, музыка
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Список ответов гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Без логотипа ToiLink
+                    </li>
+                </ul>
+
+                <button onclick="openAuth()" class="btn-outline-pink w-full py-3.5 text-[14px]" style="border-radius:14px;">
+                    Выбрать Той
+                </button>
+            </div>
+
+            <!-- Toi Pro -->
+            <div class="reveal reveal-d3 relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">
                 <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:var(--color-dark);letter-spacing:0.12em;">
-                    ★ выбирают 87%
+                    Рекомендуем от 100 гостей
                 </div>
                 <div class="bg-white p-6 md:p-8 flex flex-col h-full" style="border-radius:18px;">
                     <div class="flex items-baseline justify-between mb-1">
-                        <h3 class="text-[18px] font-bold text-gray-900">Премиум</h3>
-                        <span class="text-[11px] uppercase tracking-wider font-bold" style="color:#C71F5C;">для тоя</span>
+                        <h3 class="text-[18px] font-bold text-gray-900">Toi Pro</h3>
+                        <span class="text-[11px] uppercase tracking-wider font-bold" style="color:#C71F5C;">для свадьбы и тоя</span>
                     </div>
-                    <p class="text-[13px] text-gray-500 mb-6">Идеально для большого события</p>
+                    <p class="text-[13px] text-gray-500 mb-6">Гости, персональные ссылки и столики</p>
 
                     <div class="flex items-baseline gap-2 mb-1">
-                        <span class="text-[40px] font-extrabold text-gray-900 leading-none">...</span>
+                        <span class="text-[40px] font-extrabold text-gray-900 leading-none">1 990</span>
                         <span class="text-[14px] font-medium text-gray-400">сом</span>
-                        <span class="text-[14px] text-gray-400 line-through ml-1">1 990</span>
+                        <span class="text-[14px] text-gray-400 line-through ml-1">2 990</span>
                     </div>
-                    <div class="text-[12px] mb-6" style="color:#C71F5C;font-weight:600;">разово за всё событие · скидка 50%</div>
+                    <div class="text-[12px] mb-6" style="color:#C71F5C;font-weight:600;">разово за всё событие</div>
 
                     <ul class="space-y-3 mb-7 flex-1">
-                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-900 font-semibold">
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Гостей — без ограничений
+                            Всё из тарифа «Той»
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Все 12 премиум-шаблонов
+                            Персональные ссылки гостям
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Без водяного знака
+                            Рассадка по столикам
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Экспорт списка гостей в Excel
+                            Excel для банкетного зала
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Уведомления о новых RSVP
-                        </li>
-                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Поддержка 24/7 в WhatsApp
+                            Группы и стороны гостей
                         </li>
                     </ul>
 
                     <button onclick="openAuth()" class="btn-pink w-full py-3.5 text-[14px]" style="border-radius:14px;">
-                        Создать приглашение
+                        Выбрать Toi Pro
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                     <p class="text-[11px] text-center text-gray-400 mt-3">Mbank · O!Dengi · Visa · MasterCard</p>
@@ -953,41 +990,41 @@
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Чем Той отличается от Toi Pro?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Той — одно красивое приглашение для всех гостей по одной ссылке, до 150 гостей. Toi Pro — полный кабинет организатора для большого события: персональные ссылки каждому гостю, рассадка по столикам, группы гостей и Excel для банкетного зала.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Можно ли начать бесплатно?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Тариф «Старт» бесплатный: до 30 гостей, RSVP и базовые шаблоны. Создайте приглашение, увидьте результат — и только потом решайте, нужен ли платный тариф.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Можно ли перейти на Toi Pro позже?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Напишите нам в WhatsApp — переведём вас на Toi Pro вручную. Ссылка для гостей при этом не изменится.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
                     Нужно ли гостям скачивать приложение?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
                     <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Нет. Гость получает ссылку, открывает её в браузере и видит красивое приглашение. Никаких скачиваний, регистраций и лишних шагов.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Как гости подтверждают участие?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На странице приглашения есть кнопки «Буду» и «Не смогу». Гость нажимает, и вы сразу видите ответ в личном кабинете. Можно также указать количество сопровождающих.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Можно ли изменить приглашение после публикации?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Вы можете редактировать текст, дату и место в любое время. Все уже отправленные ссылки автоматически покажут обновлённую информацию — ссылку заново рассылать не нужно.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Сколько гостей можно добавить?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На бесплатном тарифе — до 50 гостей. На Премиум — неограниченно. Для большого тоя рекомендуем Премиум — там нет ограничений.</p>
                 </div>
             </div>
 
@@ -1003,11 +1040,11 @@
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Как оплатить Премиум?
+                    Как оплатить тариф?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается моментально после подтверждения платежа.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается в течение нескольких часов после подтверждения платежа.</p>
                 </div>
             </div>
 

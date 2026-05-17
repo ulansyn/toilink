@@ -922,6 +922,157 @@
                 animation-duration: 0.01ms !important;
             }
         }
+
+        /* Plan selection screen */
+        .plan-select-screen { display: block; }
+        .payment-screen { display: none; }
+        .payment-screen.active { display: block; }
+        .plan-select-screen.hidden { display: none; }
+
+        .plan-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        @media (min-width: 640px) {
+            .plan-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+        }
+
+        .plan-card {
+            position: relative;
+            border-radius: 1.25rem;
+            background: rgba(255,255,255,0.92);
+            border: 1.5px solid rgba(249,59,122,0.12);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 180ms ease, box-shadow 180ms ease;
+            cursor: pointer;
+        }
+
+        .plan-card:hover {
+            border-color: rgba(249,59,122,0.35);
+            box-shadow: 0 8px 24px rgba(249,59,122,0.10);
+        }
+
+        .plan-card.recommended {
+            border-color: transparent;
+            padding: 0;
+            background: transparent;
+        }
+
+        .plan-card-inner {
+            border-radius: 1.15rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .plan-recommended-wrap {
+            border-radius: 1.25rem;
+            background: linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);
+            padding: 2px;
+            box-shadow: 0 14px 32px rgba(249,59,122,0.22);
+        }
+
+        .plan-badge {
+            position: absolute;
+            top: -0.7rem;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.25rem 0.7rem;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 750;
+            white-space: nowrap;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+        }
+
+        .plan-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--ink);
+        }
+
+        .plan-price {
+            margin-top: 0.35rem;
+            font-size: 1.65rem;
+            font-weight: 850;
+            line-height: 1;
+            color: var(--ink);
+        }
+
+        .plan-price-old {
+            font-size: 0.82rem;
+            color: var(--soft);
+            text-decoration: line-through;
+            margin-left: 0.3rem;
+            font-weight: 600;
+        }
+
+        .plan-sub {
+            margin-top: 0.3rem;
+            font-size: 0.78rem;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        .plan-cta {
+            margin-top: 1rem;
+            width: 100%;
+            min-height: 2.65rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            border-radius: 999px;
+            font-size: 0.86rem;
+            font-weight: 750;
+            transition: transform 170ms ease, box-shadow 170ms ease;
+        }
+
+        .plan-cta-free {
+            background: rgba(249,59,122,0.07);
+            color: #C71F5C;
+            border: 1px solid rgba(249,59,122,0.18);
+        }
+
+        .plan-cta-paid {
+            background: rgba(249,59,122,0.09);
+            color: #C71F5C;
+            border: 1px solid rgba(249,59,122,0.20);
+        }
+
+        .plan-cta-pro {
+            background: linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);
+            color: #fff;
+            box-shadow: 0 8px 20px rgba(249,59,122,0.24);
+        }
+
+        .plan-cta:hover { transform: translateY(-1px); }
+        .plan-cta-pro:hover { box-shadow: 0 12px 26px rgba(249,59,122,0.30); }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+            font-weight: 650;
+            margin-top: 1.1rem;
+            cursor: pointer;
+            transition: color 160ms ease;
+        }
+        .back-link:hover { color: var(--pink); }
     </style>
   <script src="/js/sheet-behavior.js"></script>
 </head>
@@ -947,146 +1098,185 @@
     </header>
 
     <main class="shell">
-        <section class="hero">
-            <div class="rating-pill fu">
-                <span class="stars">★★★★★</span>
-                <span class="divider">|</span>
-                <span>Ваш сайт готов к публикации</span>
+
+        <!-- ── SCREEN A: Plan selection ── -->
+        <section class="plan-select-screen" id="planSelectScreen" aria-label="Выбор тарифа">
+            <div class="hero fu">
+                <div class="rating-pill" style="margin-bottom:1rem;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    Ваше приглашение готово
+                </div>
+                <h1 class="fu fu-1">Выберите,<br/><span class="grad-text">как опубликовать</span></h1>
+                <p class="hero-sub fu fu-2">Все тарифы — один раз для одного события. Без подписки.</p>
             </div>
 
-            <h1 class="fu fu-1">
-                Остался последний шаг:<br/>
-                <span class="grad-text">активировать ссылку</span>
-            </h1>
+            <div class="plan-grid fu fu-2">
 
-            <p class="hero-sub fu fu-2">Оплатите разовую активацию, отправьте скриншот в WhatsApp — и мы откроем ваш сайт для гостей. Без подписки, без лишних настроек.</p>
-
-            <div class="hero-checks fu fu-3">
-                <span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    Личная ссылка
-                </span>
-                <span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    RSVP в кабинете
-                </span>
-                <span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                    6 месяцев работы
-                </span>
-            </div>
-        </section>
-
-        <section class="activation-wrap" aria-label="Активация сайта">
-            <div class="phone-stage fu fu-2" aria-hidden="true">
-                <div class="phone-bg"></div>
-
-                <div class="float-card float-left">
-                    <div class="float-label">Статус</div>
-                    <div class="float-value">Сайт <span class="float-accent">готов</span></div>
+                <!-- Старт -->
+                <div class="plan-card" onclick="selectPlan('FREE')">
+                    <div class="plan-name">Старт</div>
+                    <div class="plan-price">0 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span></div>
+                    <div class="plan-sub">До 30 гостей · RSVP<br/>Логотип ToiLink в footer</div>
+                    <button class="plan-cta plan-cta-free" type="button" onclick="selectPlan('FREE')">
+                        Опубликовать бесплатно
+                    </button>
                 </div>
 
-                <div class="phone">
-                    <div class="phone-screen">
-                        <div class="island"></div>
-                        <div class="screen-eyebrow">Сердечно приглашаем</div>
-                        <div class="screen-title">Айбек <span>&amp;</span> Айгуль</div>
-                        <div class="screen-date">— 23 мая 2026 —</div>
-                        <div class="screen-monogram">А&amp;А</div>
-                        <div style="display:flex;gap:0.5rem;margin-top:1rem;color:#1a1a1a;font-family:var(--font-serif);font-weight:600;">
-                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">19</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ДНЕЙ</div></div>
-                            <div style="color:#C8A060;font-size:1.35rem;">•</div>
-                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">14</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ЧАСОВ</div></div>
-                            <div style="color:#C8A060;font-size:1.35rem;">•</div>
-                            <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">32</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">МИН</div></div>
-                        </div>
-                        <div class="screen-rsvp">Подтвердить участие</div>
-                    </div>
+                <!-- Той -->
+                <div class="plan-card" onclick="selectPlan('LINK')">
+                    <div class="plan-name">Той</div>
+                    <div class="plan-price">890 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">1 290</span></div>
+                    <div class="plan-sub">До 150 гостей · Все шаблоны<br/>Карта, музыка · Без логотипа</div>
+                    <button class="plan-cta plan-cta-paid" type="button" onclick="selectPlan('LINK')">
+                        Выбрать Той →
+                    </button>
                 </div>
 
-                <div class="float-card float-right">
-                    <div class="float-label">После оплаты</div>
-                    <div class="float-value">Активация до <span class="float-accent">15 минут</span></div>
-                </div>
-            </div>
-
-            <aside class="checkout-card fu fu-3" aria-label="Оплата">
-                <div class="checkout-top">
-                    <div class="checkout-content">
-                        <div class="ready-pill">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
-                            Готово к запуску
-                        </div>
-                        <div class="price-label">Разовая активация сайта</div>
-                        <div class="price-row">
-                            <div class="price" id="activationPrice">...</div>
-                            <div class="currency" id="activationCurrency">сом</div>
-                        </div>
-                        <div class="price-note">Ссылка, RSVP и кабинет гостей. Без подписки.</div>
-                    </div>
-                </div>
-
-                <div class="checkout-body">
-                    <div class="qr-wrap">
-                        <div class="qr-box">
-                            <img src="/images/qr.jpeg" alt="QR-код для оплаты ToiLink" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
-                            <div class="qr-fallback">QR временно недоступен<br/>напишите нам в WhatsApp</div>
-                        </div>
-                        <div>
-                            <div class="pay-title">Оплатите по QR или переводом</div>
-                            <p class="pay-text">Сделайте скриншот QR-кода и откройте его в приложении банка.</p>
-                            <div class="methods" aria-label="Способы оплаты">
-                                <span class="method"><span class="dot"></span>Mbank</span>
-                                <span class="method"><span class="dot"></span>O!Dengi</span>
-                                <span class="method"><span class="dot"></span>Элсом</span>
-                                <span class="method"><span class="dot"></span>Карта</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="order-panel">
-                        <div class="order-title">Укажите номер заказа в комментарии к переводу</div>
-                        <div class="order-row">
-                            <div>
-                                <div class="order-label">Номер заказа</div>
-                                <div class="order-value" id="orderNum">Создаем заказ...</div>
-                            </div>
-                            <button class="copy-btn" type="button" onclick="copyOrder(event)" aria-label="Скопировать номер заказа">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                <!-- Toi Pro -->
+                <div class="plan-card recommended" onclick="selectPlan('TOI_PRO')">
+                    <div class="plan-badge">Рекомендуем от 100 гостей</div>
+                    <div class="plan-recommended-wrap">
+                        <div class="plan-card-inner" style="background:#fff;">
+                            <div class="plan-name">Toi Pro</div>
+                            <div class="plan-price">1 990 <span style="font-size:1rem;font-weight:700;color:var(--muted);">сом</span> <span class="plan-price-old">2 990</span></div>
+                            <div class="plan-sub">Персональные ссылки гостям<br/>Рассадка · Excel для банкета</div>
+                            <button class="plan-cta plan-cta-pro" type="button" onclick="selectPlan('TOI_PRO')">
+                                Выбрать Toi Pro →
                             </button>
                         </div>
                     </div>
-
-                    <div id="statusBanner" style="display:none;border-radius:0.875rem;padding:0.875rem 1rem;margin-bottom:0.5rem;font-size:0.8125rem;line-height:1.5;"></div>
-
-                    <a href="#" id="waBtn" rel="noopener" class="whatsapp-btn" onclick="onWaBtnClick(event)" style="display:none">
-                        <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.463 3.488A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-                        Я оплатил, активируйте сайт
-                    </a>
-                    <p class="microcopy" id="waMicrocopy" style="display:none">В WhatsApp уже подставится номер заказа. Прикрепите скриншот оплаты.</p>
                 </div>
-            </aside>
 
-            <div class="steps-card fu fu-3">
-                <div class="steps-title">Что произойдет дальше</div>
-                <div class="steps">
-                    <div class="step">
-                        <span class="step-num">1</span>
-	                        <span id="paymentStepText">Оплачиваете по QR или переводом через банк.</span>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">2</span>
-                        <span>Отправляете скриншот в WhatsApp вместе с номером заказа.</span>
-                    </div>
-                    <div class="step">
-                        <span class="step-num">3</span>
-                        <span>Мы активируем сайт, и вы отправляете красивую ссылку гостям.</span>
-                    </div>
-                </div>
             </div>
         </section>
 
-        <div class="bottom-note">ToiLink 2026 • Официальная активация сайта</div>
+        <!-- ── SCREEN B: Payment ── -->
+        <section class="payment-screen" id="paymentScreen" aria-label="Оплата">
+            <section class="hero">
+                <div class="rating-pill fu">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span id="selectedPlanPill">Toi Pro</span> выбран
+                </div>
+                <h1 class="fu fu-1">
+                    Оплатите<br/>
+                    <span class="grad-text" id="selectedPlanTitle">Toi Pro</span>
+                </h1>
+                <p class="hero-sub fu fu-2">Отправьте скриншот оплаты в WhatsApp — активируем в течение нескольких часов.</p>
+            </section>
+
+            <section class="activation-wrap" style="margin-top:1.5rem;">
+                <div class="phone-stage fu fu-2" aria-hidden="true">
+                    <div class="phone-bg"></div>
+                    <div class="float-card float-left">
+                        <div class="float-label">Статус</div>
+                        <div class="float-value">Сайт <span class="float-accent">готов</span></div>
+                    </div>
+                    <div class="phone">
+                        <div class="phone-screen">
+                            <div class="island"></div>
+                            <div class="screen-eyebrow">Сердечно приглашаем</div>
+                            <div class="screen-title">Айбек <span>&amp;</span> Айгуль</div>
+                            <div class="screen-date">— 23 мая 2026 —</div>
+                            <div class="screen-monogram">А&amp;А</div>
+                            <div style="display:flex;gap:0.5rem;margin-top:1rem;color:#1a1a1a;font-family:var(--font-serif);font-weight:600;">
+                                <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">19</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ДНЕЙ</div></div>
+                                <div style="color:#C8A060;font-size:1.35rem;">•</div>
+                                <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">14</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">ЧАСОВ</div></div>
+                                <div style="color:#C8A060;font-size:1.35rem;">•</div>
+                                <div style="text-align:center;"><div style="font-size:1.55rem;line-height:1;">32</div><div style="font:700 0.48rem Inter;color:#9CA3AF;">МИН</div></div>
+                            </div>
+                            <div class="screen-rsvp">Подтвердить участие</div>
+                        </div>
+                    </div>
+                    <div class="float-card float-right">
+                        <div class="float-label">После оплаты</div>
+                        <div class="float-value">Активация до <span class="float-accent">15 минут</span></div>
+                    </div>
+                </div>
+
+                <aside class="checkout-card fu fu-3" aria-label="Оплата">
+                    <div class="checkout-top">
+                        <div class="checkout-content">
+                            <div class="ready-pill">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                                Готово к запуску
+                            </div>
+                            <div class="price-label" id="pricePlanLabel">Toi Pro — разово за событие</div>
+                            <div class="price-row">
+                                <div class="price" id="activationPrice">...</div>
+                                <div class="currency" id="activationCurrency">сом</div>
+                            </div>
+                            <div class="price-note">Ссылка, RSVP и кабинет гостей. Без подписки.</div>
+                        </div>
+                    </div>
+
+                    <div class="checkout-body">
+                        <div class="qr-wrap">
+                            <div class="qr-box">
+                                <img src="/images/qr.jpeg" alt="QR-код для оплаты ToiLink" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'"/>
+                                <div class="qr-fallback">QR временно недоступен<br/>напишите нам в WhatsApp</div>
+                            </div>
+                            <div>
+                                <div class="pay-title">Оплатите по QR или переводом</div>
+                                <p class="pay-text">Сделайте скриншот QR-кода и откройте его в приложении банка.</p>
+                                <div class="methods" aria-label="Способы оплаты">
+                                    <span class="method"><span class="dot"></span>Mbank</span>
+                                    <span class="method"><span class="dot"></span>O!Dengi</span>
+                                    <span class="method"><span class="dot"></span>Элсом</span>
+                                    <span class="method"><span class="dot"></span>Карта</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="order-panel">
+                            <div class="order-title">Укажите номер заказа в комментарии к переводу</div>
+                            <div class="order-row">
+                                <div>
+                                    <div class="order-label">Номер заказа</div>
+                                    <div class="order-value" id="orderNum">Создаем заказ...</div>
+                                </div>
+                                <button class="copy-btn" type="button" onclick="copyOrder(event)" aria-label="Скопировать номер заказа">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="statusBanner" style="display:none;border-radius:0.875rem;padding:0.875rem 1rem;margin-bottom:0.5rem;font-size:0.8125rem;line-height:1.5;"></div>
+
+                        <a href="#" id="waBtn" rel="noopener" class="whatsapp-btn" onclick="onWaBtnClick(event)" style="display:none">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347M12.05 21.785h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.463 3.488A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                            Я оплатил, активируйте сайт
+                        </a>
+                        <p class="microcopy" id="waMicrocopy" style="display:none">В WhatsApp уже подставится номер заказа. Прикрепите скриншот оплаты.</p>
+
+                        <button class="back-link" type="button" onclick="showPlanSelect()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                            Выбрать другой тариф
+                        </button>
+                    </div>
+                </aside>
+
+                <div class="steps-card fu fu-3">
+                    <div class="steps-title">Что произойдет дальше</div>
+                    <div class="steps">
+                        <div class="step">
+                            <span class="step-num">1</span>
+                            <span id="paymentStepText">Оплачиваете по QR или переводом через банк.</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">2</span>
+                            <span>Отправляете скриншот в WhatsApp вместе с номером заказа.</span>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">3</span>
+                            <span>Мы активируем сайт, и вы отправляете красивую ссылку гостям.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <div class="bottom-note">ToiLink 2026 · Начните бесплатно, платите только за нужное</div>
     </main>
 </div>
 
@@ -1096,7 +1286,13 @@
     const FALLBACK_DISPLAY_CURRENCY = 'сом';
     const SUPPORT_PHONE = '996700000000';
 
+    const PLAN_INFO = {
+        LINK:    { name: 'Той',  amount: 890 },
+        TOI_PRO: { name: 'Toi Pro', amount: 1990 },
+    };
+
     let payment = null;
+    let selectedPlanCode = null;
 
     function getEventId() {
         return new URLSearchParams(location.search).get('event') || null;
@@ -1113,8 +1309,12 @@
         return value.toLocaleString('ru-RU', { maximumFractionDigits: 0 });
     }
 
-    function paymentAmountText() {
-        return payment ? formatAmount(payment.amount) : '';
+    function selectedPlanAmount() {
+        return PLAN_INFO[selectedPlanCode]?.amount || (payment?.amount) || null;
+    }
+
+    function selectedPlanName() {
+        return PLAN_INFO[selectedPlanCode]?.name || 'тариф';
     }
 
     function paymentCurrencyText() {
@@ -1122,13 +1322,14 @@
     }
 
     function paymentPriceText() {
-        const amount = paymentAmountText();
-        return amount ? `${amount} ${paymentCurrencyText()}` : 'стоимость активации';
+        const amount = selectedPlanAmount();
+        return amount ? `${formatAmount(amount)} ${paymentCurrencyText()}` : 'стоимость тарифа';
     }
 
     function waText() {
         const order = payment ? 'TL-' + payment.id : '—';
-        return `Здравствуйте! Я оплатил(а) ${paymentPriceText()} за активацию сайта ToiLink.\nНомер заказа: ${order}`;
+        const plan = selectedPlanName();
+        return `Здравствуйте! Я оплатил(а) ${paymentPriceText()} за тариф «${plan}» на ToiLink.\nНомер заказа: ${order}`;
     }
 
     function waLink()      { return `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(waText())}`; }
@@ -1138,14 +1339,49 @@
         return `https://wa.me/${SUPPORT_PHONE}?text=${encodeURIComponent(t)}`;
     }
 
-	    function render() {
-	        document.getElementById('orderNum').textContent = payment ? 'TL-' + payment.id : 'Создаем заказ...';
-	        document.getElementById('supportLink').href = supportLink();
-	        document.getElementById('activationPrice').textContent = paymentAmountText() || '...';
-	        document.getElementById('activationCurrency').textContent = paymentCurrencyText();
-	        document.getElementById('paymentStepText').textContent = payment
-	            ? `Оплачиваете ${paymentPriceText()} по QR или переводом через банк.`
-	            : 'Оплачиваете по QR или переводом через банк.';
+    function showPlanSelect() {
+        document.getElementById('planSelectScreen').classList.remove('hidden');
+        document.getElementById('paymentScreen').classList.remove('active');
+    }
+
+    function showPaymentScreen() {
+        document.getElementById('planSelectScreen').classList.add('hidden');
+        document.getElementById('paymentScreen').classList.add('active');
+        const name = selectedPlanName();
+        const el = id => document.getElementById(id);
+        el('selectedPlanPill').textContent = name;
+        el('selectedPlanTitle').textContent = name;
+        el('pricePlanLabel').textContent = `${name} — разово за событие`;
+    }
+
+    async function selectPlan(planCode) {
+        if (planCode === 'FREE') {
+            location.href = `/guests.html?event=${getEventId()}`;
+            return;
+        }
+        selectedPlanCode = planCode;
+        localStorage.setItem('selectedPlanCode', planCode);
+        showPaymentScreen();
+        if (!payment) {
+            try {
+                payment = await fetchLatestPayment();
+                if (!payment) payment = await createPayment();
+            } catch (err) {
+                showToast(err.message || 'Ошибка создания заказа');
+            }
+        }
+        render();
+    }
+
+    function render() {
+        const amount = selectedPlanAmount();
+        document.getElementById('orderNum').textContent = payment ? 'TL-' + payment.id : 'Создаем заказ...';
+        document.getElementById('supportLink').href = supportLink();
+        document.getElementById('activationPrice').textContent = amount ? formatAmount(amount) : '...';
+        document.getElementById('activationCurrency').textContent = paymentCurrencyText();
+        document.getElementById('paymentStepText').textContent = amount
+            ? `Оплачиваете ${paymentPriceText()} по QR или переводом через банк.`
+            : 'Оплачиваете по QR или переводом через банк.';
 
         const banner    = document.getElementById('statusBanner');
         const waBtn     = document.getElementById('waBtn');
@@ -1264,15 +1500,22 @@
         if (!me) { location.replace('/login.html'); return; }
         if (!getEventIdNumber()) { location.replace('/index.html'); return; }
 
-	        try {
-	            payment = await fetchLatestPayment();
-	            if (!payment) payment = await createPayment();
-	        } catch (err) {
-	            showToast(err.message || 'Ошибка');
-	        }
-
-	        render();
-	    }
+        // Restore plan selection if user had already started (e.g. page reload after payment)
+        const savedPlan = localStorage.getItem('selectedPlanCode');
+        if (savedPlan && savedPlan !== 'FREE') {
+            selectedPlanCode = savedPlan;
+            try {
+                payment = await fetchLatestPayment();
+            } catch (_) {}
+            if (payment) {
+                showPaymentScreen();
+                render();
+                return;
+            }
+        }
+        // Default: show plan selection screen
+        showPlanSelect();
+    }
 
     initPaywall();
 </script>

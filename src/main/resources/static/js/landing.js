@@ -265,10 +265,10 @@ window.__landingConfig = null;
         const section = lSection('pricing');
         if (!section) return;
         lApplySimpleHeader('pricing', pricing);
-        const grid = section.querySelector('.grid.md\\:grid-cols-2');
+        const grid = section.querySelector('.grid.md\\:grid-cols-3') || section.querySelector('.grid.md\\:grid-cols-2');
         if (grid && Array.isArray(pricing.plans)) {
-            grid.innerHTML = pricing.plans.map((plan, idx) => {
-                const premium = idx === 1;
+            grid.innerHTML = pricing.plans.map((plan) => {
+                const premium = !!plan.recommended;
                 const features = Array.isArray(plan.features) ? plan.features : [];
                 const card = `
                     ${plan.badge ? `<div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:var(--color-dark);letter-spacing:0.12em;">${lEsc(plan.badge)}</div>` : ''}

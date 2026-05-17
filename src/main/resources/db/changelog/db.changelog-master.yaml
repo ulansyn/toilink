@@ -45,3 +45,5 @@ databaseChangeLog:
       file: db/changelog/migrations/023-add-event-guest-groups.yaml
   - include:
       file: db/changelog/migrations/024-create-pricing-plans.yaml
+  - include:
+      file: db/changelog/migrations/025-reset-landing-settings.yaml

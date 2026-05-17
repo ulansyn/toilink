@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: 025-reset-landing-settings
+      author: toilink
+      comment: Reset landing settings so the new 3-plan defaults take effect
+      changes:
+        - delete:
+            tableName: landing_settings
+            where: settings_key = 'main'
