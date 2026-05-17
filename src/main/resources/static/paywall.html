@@ -1352,7 +1352,7 @@
     const FALLBACK_DISPLAY_CURRENCY = 'сом';
     const SUPPORT_PHONE = '996700000000';
 
-    const PLAN_INFO = {
+    let PLAN_INFO = {
         LINK:    { name: 'Той',  amount: 890 },
         TOI_PRO: { name: 'Toi Pro', amount: 1990 },
     };
@@ -1573,9 +1573,22 @@
         return res.json();
     }
 
+    async function loadPlanInfo() {
+        try {
+            const plans = await fetch('/api/public/pricing').then(r => r.ok ? r.json() : []);
+            plans.forEach(p => {
+                if (p.code && p.code !== 'FREE') {
+                    PLAN_INFO[p.code] = { name: p.name, amount: Number(p.amount) };
+                }
+            });
+        } catch (_) {}
+    }
+
     async function initPaywall() {
-        const me = await fetch('/api/auth/me', { credentials: 'include' })
-            .then(r => r.ok ? r.json() : null).catch(() => null);
+        const [me] = await Promise.all([
+            fetch('/api/auth/me', { credentials: 'include' }).then(r => r.ok ? r.json() : null).catch(() => null),
+            loadPlanInfo()
+        ]);
         if (!me) { location.replace('/login.html'); return; }
         if (!getEventIdNumber()) { location.replace('/index.html'); return; }
 

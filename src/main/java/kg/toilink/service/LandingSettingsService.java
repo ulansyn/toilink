@@ -1,6 +1,7 @@
 package kg.toilink.service;
 
 import kg.toilink.entity.LandingSettings;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.repository.LandingSettingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +22,7 @@ public class LandingSettingsService {
 
     private final LandingSettingsRepository repository;
     private final ObjectMapper objectMapper;
+    private final PricingService pricingService;
 
     public String getMainContentJson() {
         String contentJson = repository.findBySettingsKey(DEFAULT_KEY)
@@ -166,9 +172,9 @@ public class LandingSettingsService {
                     "title": "Простые и честные цены",
                     "subtitle": "Начните бесплатно. Платный тариф — один раз для одного события, без подписок.",
                     "plans": [
-                      {"name": "Старт", "tag": "бесплатно", "description": "Попробовать и показать близким", "price": "0", "currency": "сом", "note": "навсегда · без карты", "cta": "Опубликовать бесплатно", "recommended": false, "features": ["Одна ссылка для всех", "До 30 гостей", "RSVP", "Логотип ToiLink в footer"]},
-                      {"name": "Той", "tag": "одно событие", "description": "Красивое приглашение по одной ссылке", "price": "890", "currency": "сом", "oldPrice": "1 290", "note": "разово за всё событие", "cta": "Выбрать Той", "recommended": false, "features": ["До 150 гостей", "Все шаблоны, карта, музыка", "Список ответов гостей", "Без логотипа ToiLink"]},
-                      {"name": "Toi Pro", "tag": "для свадьбы и тоя", "description": "Гости, персональные ссылки и столики", "price": "1 990", "currency": "сом", "oldPrice": "2 990", "note": "разово за всё событие", "badge": "Рекомендуем от 100 гостей", "cta": "Выбрать Toi Pro", "recommended": true, "features": ["Всё из тарифа «Той»", "Персональные ссылки гостям", "Рассадка по столикам", "Excel для банкетного зала", "Группы и стороны гостей"]}
+                      {"code": "FREE", "name": "Старт", "tag": "бесплатно", "description": "Попробовать и показать близким", "price": "0", "currency": "сом", "note": "навсегда · без карты", "cta": "Опубликовать бесплатно", "recommended": false, "features": ["Одна ссылка для всех", "До 30 гостей", "RSVP", "Логотип ToiLink в footer"]},
+                      {"code": "LINK", "name": "Той", "tag": "одно событие", "description": "Красивое приглашение по одной ссылке", "price": "890", "currency": "сом", "oldPrice": "1 290", "note": "разово за всё событие", "cta": "Выбрать Той", "recommended": false, "features": ["До 150 гостей", "Все шаблоны, карта, музыка", "Список ответов гостей", "Без логотипа ToiLink"]},
+                      {"code": "TOI_PRO", "name": "Toi Pro", "tag": "для свадьбы и тоя", "description": "Гости, персональные ссылки и столики", "price": "1 990", "currency": "сом", "oldPrice": "2 990", "note": "разово за всё событие", "badge": "Рекомендуем от 100 гостей", "cta": "Выбрать Toi Pro", "recommended": true, "features": ["Всё из тарифа «Той»", "Персональные ссылки гостям", "Рассадка по столикам", "Excel для банкетного зала", "Группы и стороны гостей"]}
                     ],
                     "badges": ["Гарантия возврата 7 дней", "Доступ — мгновенно", "Поддержка на русском и кыргызском"]
                   },
@@ -204,6 +210,26 @@ public class LandingSettingsService {
     }
 
     private String applyCurrentPricing(String contentJson) {
-        return contentJson;
+        try {
+            ObjectNode root = (ObjectNode) objectMapper.readTree(contentJson);
+            JsonNode plansNode = root.path("pricing").path("plans");
+            if (!plansNode.isArray()) return contentJson;
+
+            Map<String, PricingPlan> byCode = pricingService.allPlans().stream()
+                    .collect(Collectors.toMap(PricingPlan::getCode, p -> p));
+
+            for (JsonNode planNode : plansNode) {
+                if (!(planNode instanceof ObjectNode plan)) continue;
+                String code = plan.path("code").asText(null);
+                PricingPlan dbPlan = byCode.get(code);
+                if (dbPlan == null) continue;
+                plan.put("price", pricingService.formatPrice(dbPlan.getAmount()));
+                plan.put("currency", dbPlan.getDisplayCurrency());
+            }
+
+            return objectMapper.writeValueAsString(root);
+        } catch (Exception e) {
+            return contentJson;
+        }
     }
 }

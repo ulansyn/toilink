@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: 028-seed-free-plan
+      author: codex
+      changes:
+        - sql:
+            sql: "INSERT INTO pricing_plans (code, name, amount, currency, display_currency, active) VALUES ('FREE', 'Старт', 0, 'KGS', 'сом', true) ON CONFLICT (code) DO NOTHING"

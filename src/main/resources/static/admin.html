@@ -3368,8 +3368,9 @@ async function saveLanding() {
 }
 
 async function loadPricing() {
-  const plans = await apiJson(`${API}/pricing/plans`);
-  if (!plans) return;
+  const all = await apiJson(`${API}/pricing/plans`);
+  if (!all) return;
+  const plans = all.filter(p => ['FREE', 'LINK', 'TOI_PRO'].includes(p.code));
   state.pricing = plans;
   const wrap = document.getElementById('pricingPlansWrap');
   if (!wrap) return;
@@ -3450,8 +3451,8 @@ async function loadPayments() {
 }
 
 function planLabel(code) {
-  const labels = { LINK: 'Той', TOI_PRO: 'Toi Pro', ACTIVATION: 'Активация', FREE: 'Старт' };
-  return code ? (labels[code] || esc(code)) : '—';
+  const labels = { FREE: 'Старт', LINK: 'Той', TOI_PRO: 'Toi Pro' };
+  return code ? (labels[code] || '—') : '—';
 }
 
 function paymentRow(p) {
