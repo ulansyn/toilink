@@ -47,8 +47,21 @@ public class PaymentController {
 
         String planCode = body.planCode() != null ? body.planCode().toUpperCase() : null;
 
+        var event = eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
+                .filter(e -> e.getUser().getId().equals(user.getId()))
+                .orElseThrow(() -> NotFoundException.event(body.eventId()));
+
+        if ("PUBLISHED".equals(event.getStatus()) && !isUpgrade(event.getPlanCode(), planCode)) {
+            throw new BadRequestException("Нельзя перейти на тариф ниже или равный текущему");
+        }
+
+        // идемпотентность: вернуть существующий активный платёж для того же плана
         List<Payment> existing = paymentRepository.findActiveByUserAndEvent(user.getId(), body.eventId(), planCode);
         if (!existing.isEmpty()) return toMap(existing.get(0));
+
+        // отменить старые PENDING/AWAITING_CONFIRMATION платежи для других планов
+        paymentRepository.findAllActiveByUserAndEvent(user.getId(), body.eventId())
+                .forEach(p -> p.setStatus("CANCELLED"));
 
         PricingPlan plan = pricingService.planByCode(planCode);
         Payment p = new Payment();
@@ -60,9 +73,7 @@ public class PaymentController {
         p.setDisplayCurrency(plan.getDisplayCurrency());
         p.setMethod("QR");
         p.setStatus("PENDING");
-        p.setEvent(eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
-                .filter(e -> e.getUser().getId().equals(user.getId()))
-                .orElseThrow(() -> NotFoundException.event(body.eventId())));
+        p.setEvent(event);
 
         return toMap(paymentRepository.save(p));
     }
@@ -156,6 +167,14 @@ public class PaymentController {
         m.put("rejectedReason", p.getRejectedReason());
         m.put("createdAt", p.getCreatedAt());
         return m;
+    }
+
+    private static final List<String> PLAN_RANK = List.of("FREE", "LINK", "TOI_PRO");
+
+    private boolean isUpgrade(String current, String next) {
+        int from = PLAN_RANK.indexOf(current == null ? "FREE" : current);
+        int to   = PLAN_RANK.indexOf(next   == null ? "FREE" : next);
+        return to > from;
     }
 
     public record GetOrCreateRequest(Long eventId, String planCode) {}

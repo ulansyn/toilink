@@ -42,6 +42,7 @@ public class AdminController {
 
     private static final int MAX_PAGE_SIZE = 100;
     private static final Pattern SLUG_PATTERN = Pattern.compile("[a-z0-9а-яёңүө-]+");
+    private static final List<String> PLAN_RANK = List.of("FREE", "LINK", "TOI_PRO");
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -385,10 +386,14 @@ public class AdminController {
         paymentRepository.save(payment);
 
         Event linkedEvent = payment.getEvent();
-        if (linkedEvent != null && "DRAFT".equals(linkedEvent.getStatus())) {
-            linkedEvent.setStatus("PUBLISHED");
-            linkedEvent.setPlanCode(payment.getPlanCode());
-            eventRepository.save(linkedEvent);
+        if (linkedEvent != null) {
+            boolean isDraft = "DRAFT".equals(linkedEvent.getStatus());
+            boolean isUpgrade = isUpgrade(linkedEvent.getPlanCode(), payment.getPlanCode());
+            if (isDraft || isUpgrade) {
+                if (isDraft) linkedEvent.setStatus("PUBLISHED");
+                linkedEvent.setPlanCode(payment.getPlanCode());
+                eventRepository.save(linkedEvent);
+            }
         }
 
         audit(admin, request, "PAYMENT_CONFIRM", "PAYMENT", id, body != null ? body.reason() : null);
@@ -497,6 +502,12 @@ public class AdminController {
         if (!status.equals("DRAFT") && !status.equals("PUBLISHED") && !status.equals("CLOSED")) {
             throw new BadRequestException("Invalid event status: " + status);
         }
+    }
+
+    private boolean isUpgrade(String current, String next) {
+        int from = PLAN_RANK.indexOf(current == null ? "FREE" : current);
+        int to   = PLAN_RANK.indexOf(next   == null ? "FREE" : next);
+        return to > from;
     }
 
     private String validateSlug(String value) {

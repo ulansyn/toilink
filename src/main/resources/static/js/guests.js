@@ -1057,12 +1057,36 @@ window.submitAddGuest = async function (e) {
   }
 };
 
+const PLAN_RANK_G = ['FREE', 'LINK', 'TOI_PRO'];
+const PLAN_LABEL_G = { FREE: 'Старт', LINK: 'Той', TOI_PRO: 'Toi Pro' };
+
 function applyEventMeta(event) {
   const name = event?.title || 'Гости';
   document.title = `ToiLink — ${name}`;
   const mob = document.getElementById('mob-event-title'); if (mob) mob.textContent = name;
   const crumb = document.getElementById('crumb-event');   if (crumb) crumb.textContent = name;
   renderShareLinks(event);
+  renderUpgradeBanner(event);
+}
+
+function renderUpgradeBanner(event) {
+  const existing = document.getElementById('upgrade-banner');
+  if (existing) existing.remove();
+  const plan = event?.planCode || 'FREE';
+  if (plan === 'TOI_PRO') return; // уже максимальный
+  const banner = document.createElement('div');
+  banner.id = 'upgrade-banner';
+  banner.style.cssText = 'background:#fff8f0;border:1.5px solid #fde68a;border-radius:12px;padding:12px 16px;margin:12px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:14px;';
+  const current = PLAN_LABEL_G[plan] || plan;
+  const next = plan === 'FREE' ? 'Той' : 'Toi Pro';
+  banner.innerHTML = `<span style="color:#92400e;">Тариф: <strong>${current}</strong> — хотите больше возможностей?</span>
+    <button onclick="goUpgrade()" style="background:#F93B7A;color:#fff;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;">Перейти на ${next}</button>`;
+  const toolbar = document.getElementById('toolbar');
+  if (toolbar) toolbar.parentNode.insertBefore(banner, toolbar);
+}
+
+function goUpgrade() {
+  location.href = `/paywall.html?event=${eventId}`;
 }
 
 // ─── Share links section ──────────────────────────────────────────────────────
