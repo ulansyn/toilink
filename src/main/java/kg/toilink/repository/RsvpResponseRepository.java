@@ -2,6 +2,7 @@ package kg.toilink.repository;
 
 import kg.toilink.entity.RsvpResponse;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -41,4 +42,8 @@ public interface RsvpResponseRepository extends JpaRepository<RsvpResponse, Long
     List<EventStatusCountView> countStatusesByEventIds(@Param("eventIds") Collection<Long> eventIds);
 
     long countByRespondedAtAfter(LocalDateTime after);
+
+    @Modifying
+    @Query("DELETE FROM RsvpResponse r WHERE r.event.id = :eventId")
+    void deleteAllByEventId(@Param("eventId") Long eventId);
 }

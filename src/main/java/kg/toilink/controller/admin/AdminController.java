@@ -131,6 +131,7 @@ public class AdminController {
                                        @RequestBody(required = false) AdminReasonRequest body,
                                        @AuthenticationPrincipal UserDetails admin,
                                        HttpServletRequest request) {
+        requireSuperAdmin(admin);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
         protectLastSuperAdmin(user, admin);
@@ -146,6 +147,7 @@ public class AdminController {
                                          @RequestBody(required = false) AdminReasonRequest body,
                                          @AuthenticationPrincipal UserDetails admin,
                                          HttpServletRequest request) {
+        requireSuperAdmin(admin);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
         user.setActive(true);
@@ -162,6 +164,7 @@ public class AdminController {
                                             @RequestBody Map<String, String> body,
                                             @AuthenticationPrincipal UserDetails admin,
                                             HttpServletRequest request) {
+        requireSuperAdmin(admin);
         String newRole = body.get("role");
         if (newRole == null || !List.of("CLIENT", "MANAGER", "SUPERADMIN").contains(newRole)) {
             throw new BadRequestException("Недопустимая роль. Допустимые значения: CLIENT, MANAGER, SUPERADMIN");
@@ -185,6 +188,7 @@ public class AdminController {
                                            @RequestBody(required = false) AdminReasonRequest body,
                                            @AuthenticationPrincipal UserDetails admin,
                                            HttpServletRequest request) {
+        requireSuperAdmin(admin);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
         protectLastSuperAdmin(user, admin);
@@ -201,7 +205,7 @@ public class AdminController {
                                                   @RequestParam(defaultValue = "20") int size) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
-        return eventRepository.searchAdmin(user.getPhone(), null, true, pageRequest(page, size))
+        return eventRepository.findAdminByUserId(user.getId(), pageRequest(page, size))
                 .map(AdminEventResponse::from);
     }
 
@@ -256,7 +260,10 @@ public class AdminController {
                                            HttpServletRequest request) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.event(id));
-        event.setDeletedAt(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        guestRepository.softDeleteAllByEventId(id, now);
+        rsvpResponseRepository.deleteAllByEventId(id);
+        event.setDeletedAt(now);
         eventRepository.save(event);
         audit(admin, request, "EVENT_DELETE", "EVENT", id, reason(body));
         return ResponseEntity.noContent().build();
@@ -457,6 +464,7 @@ public class AdminController {
     public AdminPricingPlanResponse updateActivationPricing(@RequestBody AdminPricingUpdateRequest body,
                                                             @AuthenticationPrincipal UserDetails admin,
                                                             HttpServletRequest request) {
+        requireSuperAdmin(admin);
         if (body == null) {
             throw new BadRequestException("Данные тарифа обязательны");
         }
@@ -481,6 +489,7 @@ public class AdminController {
                                                       @RequestBody AdminPricingUpdateRequest body,
                                                       @AuthenticationPrincipal UserDetails admin,
                                                       HttpServletRequest request) {
+        requireSuperAdmin(admin);
         if (body == null) {
             throw new BadRequestException("Данные тарифа обязательны");
         }
@@ -576,6 +585,17 @@ public class AdminController {
     private Long currentAdminId(UserDetails admin) {
         if (admin == null) return null;
         return userRepository.findByPhone(admin.getUsername()).map(User::getId).orElse(null);
+    }
+
+    private void requireSuperAdmin(UserDetails admin) {
+        if (admin == null) {
+            throw new BadRequestException("Требуются права SUPERADMIN");
+        }
+        User current = userRepository.findByPhone(admin.getUsername())
+                .orElseThrow(() -> new BadRequestException("Требуются права SUPERADMIN"));
+        if (!"SUPERADMIN".equals(current.getRole()) || current.getDeletedAt() != null || !current.isActive()) {
+            throw new BadRequestException("Требуются права SUPERADMIN");
+        }
     }
 
     private String clientIp(HttpServletRequest request) {

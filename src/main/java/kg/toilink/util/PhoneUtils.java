@@ -2,8 +2,9 @@ package kg.toilink.util;
 
 /**
  * Phone normalization for guest deduplication.
- * Strips all non-digits and known KG leading prefixes (0 → 996, 8 → 996, +996 → 996),
- * yielding a canonical digits-only string usable as an equality key.
+ * Strips all non-digits and normalizes KG national format (0XXXXXXXXX → 996XXXXXXXXX).
+ * The 8-prefix is intentionally NOT normalized — it is ambiguous across countries
+ * (Russia, Kazakhstan, legacy formats) and would produce incorrect country codes.
  */
 public final class PhoneUtils {
 
@@ -13,10 +14,7 @@ public final class PhoneUtils {
         if (phone == null) return null;
         String digits = phone.replaceAll("\\D", "");
         if (digits.isEmpty()) return null;
-        // Leading 0 (national) or 8 (legacy) → 996 country code
         if (digits.startsWith("0") && digits.length() == 10) {
-            digits = "996" + digits.substring(1);
-        } else if (digits.startsWith("8") && digits.length() == 11) {
             digits = "996" + digits.substring(1);
         }
         return digits;

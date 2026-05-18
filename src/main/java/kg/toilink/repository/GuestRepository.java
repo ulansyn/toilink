@@ -23,6 +23,8 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
 
     Optional<Guest> findByTokenAndDeletedAtIsNull(UUID token);
 
+    Optional<Guest> findBySourceAndRelatedToIdAndDeletedAtIsNull(String source, Long relatedToId);
+
     Optional<Guest> findByEventIdAndNameAndSource(Long eventId, String name, String source);
 
     @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.phone IS NOT NULL AND g.phone <> '' AND g.deletedAt IS NULL")

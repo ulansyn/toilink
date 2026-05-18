@@ -1,8 +1,10 @@
 package kg.toilink.repository;
 
+import jakarta.persistence.LockModeType;
 import kg.toilink.entity.Event;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -25,8 +27,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e WHERE e.id = :id AND e.deletedAt IS NULL")
     Optional<Event> findByIdAndDeletedAtIsNull(@Param("id") Long id);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT e FROM Event e WHERE e.id = :id AND e.deletedAt IS NULL")
+    Optional<Event> findByIdForUpdate(@Param("id") Long id);
+
     @Query("SELECT e FROM Event e WHERE e.user.id = :userId AND e.deletedAt IS NULL ORDER BY e.createdAt DESC")
     List<Event> findAllByUserIdOrderByCreatedAtDesc(@Param("userId") Long userId);
+
+    @EntityGraph(attributePaths = {"user", "template"})
+    @Query("SELECT e FROM Event e WHERE e.user.id = :userId ORDER BY e.createdAt DESC")
+    Page<Event> findAdminByUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT e FROM Event e LEFT JOIN FETCH e.user ORDER BY e.createdAt DESC")
     List<Event> findAllWithUser();

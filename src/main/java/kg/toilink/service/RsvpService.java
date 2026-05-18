@@ -20,10 +20,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class RsvpService {
+
+    private static final Set<String> RSVP_STATUSES = Set.of("ATTENDING", "DECLINED", "MAYBE");
+    private static final int MAX_GROUP_SIZE = 20;
 
     private final EventRepository eventRepository;
     private final GuestRepository guestRepository;
@@ -35,6 +40,7 @@ public class RsvpService {
         Event event = eventRepository.findBySlug(slug)
                 .orElseThrow(() -> NotFoundException.eventBySlug(slug));
 
+        validateStatus(req.status());
         if ("DRAFT".equals(event.getStatus())) {
             throw new BadRequestException("Event is not published yet");
         }
@@ -45,7 +51,9 @@ public class RsvpService {
             throw new BadRequestException("RSVP deadline has passed");
         }
 
-        Guest guest = resolveGuest(event, req);
+        String groupCode = validateGroupCode(event, req.groupCode());
+        int groupSize = normalizeGroupSize(req.groupSize());
+        Guest guest = ensureGuestToken(resolveGuest(event, req, groupCode));
 
         // Spouse companion: only when event explicitly allows it (blocksConfig.rsvp.allowCompanion === true)
         if (isCompanionAllowed(event)) {
@@ -56,7 +64,7 @@ public class RsvpService {
                 .ifPresentOrElse(
                         existing -> {
                             existing.setStatus(req.status());
-                            existing.setGroupSize(req.groupSize() != null && req.groupSize() > 0 ? req.groupSize() : 1);
+                            existing.setGroupSize(groupSize);
                             existing.setComment(req.comment());
                             rsvpResponseRepository.save(existing);
                         },
@@ -64,7 +72,7 @@ public class RsvpService {
                                 .guest(guest)
                                 .event(event)
                                 .status(req.status())
-                                .groupSize(req.groupSize() != null && req.groupSize() > 0 ? req.groupSize() : 1)
+                                .groupSize(groupSize)
                                 .comment(req.comment())
                                 .build())
                 );
@@ -75,7 +83,7 @@ public class RsvpService {
     /** Result returned to controller — includes guestToken for localStorage persistence */
     public record RsvpResult(String status, java.util.UUID guestToken) {}
 
-    private Guest resolveGuest(Event event, RsvpRequest req) {
+    private Guest resolveGuest(Event event, RsvpRequest req, String groupCode) {
         // 1. Token-based match (most precise — guest opens a personal link or returns via localStorage token)
         if (req.guestToken() != null) {
             Guest guest = guestRepository.findByTokenAndDeletedAtIsNull(req.guestToken())
@@ -83,7 +91,7 @@ public class RsvpService {
             if (!guest.getEvent().getId().equals(event.getId())) {
                 throw new BadRequestException("Guest token does not belong to this event");
             }
-            return applyIncomingFields(guest, req);
+            return applyIncomingFields(guest, req, groupCode);
         }
 
         if (req.name() == null || req.name().isBlank()) {
@@ -95,7 +103,7 @@ public class RsvpService {
         if (normalizedPhone != null) {
             Optional<Guest> match = findByNormalizedPhone(event.getId(), normalizedPhone);
             if (match.isPresent()) {
-                return applyIncomingFields(match.get(), req);
+                return applyIncomingFields(match.get(), req, groupCode);
             }
         }
 
@@ -105,7 +113,8 @@ public class RsvpService {
                 .name(req.name().trim())
                 .phone(req.phone() != null && !req.phone().isBlank() ? req.phone().trim() : null)
                 .source("PUBLIC_LINK")
-                .side(req.groupCode() != null && !req.groupCode().isBlank() ? req.groupCode() : null)
+                .side(groupCode != null ? groupCode : null)
+                .token(UUID.randomUUID())
                 .build());
     }
 
@@ -115,7 +124,7 @@ public class RsvpService {
      * Side is overwritten when the URL carries a specific groupCode — we trust the URL.
      * Source is never downgraded (PERSONAL_LINK stays PERSONAL_LINK even if guest opens public link).
      */
-    private Guest applyIncomingFields(Guest guest, RsvpRequest req) {
+    private Guest applyIncomingFields(Guest guest, RsvpRequest req, String groupCode) {
         boolean changed = false;
         if (req.name() != null && !req.name().isBlank()) {
             guest.setName(req.name().trim());
@@ -127,11 +136,61 @@ public class RsvpService {
             changed = true;
         }
         if (req.groupCode() != null && !req.groupCode().isBlank()
-                && !Objects.equals(req.groupCode(), guest.getSide())) {
-            guest.setSide(req.groupCode());
+                && !Objects.equals(groupCode, guest.getSide())) {
+            guest.setSide(groupCode);
             changed = true;
         }
         return changed ? guestRepository.save(guest) : guest;
+    }
+
+    private Guest ensureGuestToken(Guest guest) {
+        if (guest.getToken() != null) {
+            return guest;
+        }
+        guest.setToken(UUID.randomUUID());
+        return guestRepository.save(guest);
+    }
+
+    private void validateStatus(String status) {
+        if (status == null || !RSVP_STATUSES.contains(status)) {
+            throw new BadRequestException("Status must be ATTENDING, DECLINED or MAYBE");
+        }
+    }
+
+    private int normalizeGroupSize(Integer groupSize) {
+        if (groupSize == null) return 1;
+        if (groupSize < 1 || groupSize > MAX_GROUP_SIZE) {
+            throw new BadRequestException("Group size must be between 1 and " + MAX_GROUP_SIZE);
+        }
+        return groupSize;
+    }
+
+    private String validateGroupCode(Event event, String groupCode) {
+        if (groupCode == null || groupCode.isBlank()) {
+            return null;
+        }
+        String trimmed = groupCode.trim();
+        String guestGroups = event.getGuestGroups();
+        if (guestGroups == null || guestGroups.isBlank()) {
+            throw new BadRequestException("Unknown guest group");
+        }
+        try {
+            JsonNode groups = objectMapper.readTree(guestGroups);
+            if (!groups.isArray()) {
+                throw new BadRequestException("Unknown guest group");
+            }
+            for (JsonNode group : groups) {
+                JsonNode code = group.get("code");
+                if (code != null && trimmed.equals(code.asText())) {
+                    return trimmed;
+                }
+            }
+        } catch (BadRequestException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BadRequestException("Unknown guest group");
+        }
+        throw new BadRequestException("Unknown guest group");
     }
 
     private Optional<Guest> findByNormalizedPhone(Long eventId, String normalizedPhone) {
@@ -234,14 +293,7 @@ public class RsvpService {
                 return related.get();
             }
         }
-        // Fallback: search all guests of the event for an auto-companion pointing at primary.
-        // (Covers cases where primary.relatedToId points to a manual companion but an auto exists too.)
-        for (Guest g : guestRepository.findAllByEventId(primary.getEvent().getId())) {
-            if ("COMPANION_AUTO".equals(g.getSource())
-                    && primary.getId().equals(g.getRelatedToId())) {
-                return g;
-            }
-        }
-        return null;
+        return guestRepository.findBySourceAndRelatedToIdAndDeletedAtIsNull("COMPANION_AUTO", primary.getId())
+                .orElse(null);
     }
 }

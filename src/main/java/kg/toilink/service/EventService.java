@@ -14,7 +14,9 @@ import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
 import kg.toilink.repository.RsvpResponseRepository;
 import kg.toilink.repository.TemplateRepository;
+import kg.toilink.util.SlugGenerator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -95,7 +97,12 @@ public class EventService {
                 .slug(slug)
                 .build();
 
-        return EventResponse.from(eventRepository.save(event));
+        try {
+            return EventResponse.from(eventRepository.save(event));
+        } catch (DataIntegrityViolationException e) {
+            event.setSlug(slug + "-" + SlugGenerator.random());
+            return EventResponse.from(eventRepository.save(event));
+        }
     }
 
     /** Default guest groups by template type. Wedding gets groom/bride; other templates start empty. */
@@ -123,6 +130,10 @@ public class EventService {
         if (req.blocksConfig() != null) event.setBlocksConfig(req.blocksConfig());
         if (req.status() != null) {
             validateStatus(req.status());
+            if ("PUBLISHED".equals(req.status()) && "DRAFT".equals(event.getStatus())) {
+                throw new BadRequestException(
+                        "Чтобы опубликовать событие, выберите тариф в разделе оплаты.");
+            }
             event.setStatus(req.status());
         }
 
@@ -134,6 +145,7 @@ public class EventService {
         Event event = getEventForUser(id, phone);
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         guestRepository.softDeleteAllByEventId(id, now);
+        rsvpResponseRepository.deleteAllByEventId(id);
         event.setDeletedAt(now);
         eventRepository.save(event);
     }

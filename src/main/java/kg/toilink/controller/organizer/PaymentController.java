@@ -51,7 +51,7 @@ public class PaymentController {
             throw new BadRequestException("Бесплатный тариф активируется без оплаты");
         }
 
-        var event = eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
+        var event = eventRepository.findByIdForUpdate(body.eventId())
                 .filter(e -> e.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> NotFoundException.event(body.eventId()));
 

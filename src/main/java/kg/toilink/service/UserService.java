@@ -4,6 +4,7 @@ import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.exception.NotFoundException;
 import kg.toilink.repository.UserRepository;
+import kg.toilink.util.PhoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -24,7 +25,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
-        User user = userRepository.findByPhone(phone)
+        User user = findExistingUserByPhone(phone)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + phone));
         if (user.getDeletedAt() != null) {
             throw new UsernameNotFoundException("User deleted: " + phone);
@@ -45,18 +46,19 @@ public class UserService implements UserDetailsService {
      * - Existing user, wrong password → throw BadRequestException
      * - Existing user, correct password → return user
      */
-    @Transactional
+    @Transactional(noRollbackFor = BadRequestException.class)
     public User loginOrRegister(String phone, String rawPassword) {
         return loginOrRegister(phone, rawPassword, null);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BadRequestException.class)
     public User loginOrRegister(String phone, String rawPassword, String ip) {
-        Optional<User> existing = userRepository.findByPhone(phone);
+        String normalizedPhone = normalizeLoginPhone(phone);
+        Optional<User> existing = findExistingUserByPhone(phone);
 
         if (existing.isEmpty()) {
             User user = User.builder()
-                    .phone(phone)
+                    .phone(normalizedPhone)
                     .passwordHash(passwordEncoder.encode(rawPassword))
                     .role("CLIENT")
                     .lastLoginAt(LocalDateTime.now())
@@ -98,18 +100,19 @@ public class UserService implements UserDetailsService {
 
     @Transactional
     public User findOrCreate(String phone) {
-        return userRepository.findByPhone(phone)
-                .orElseGet(() -> userRepository.save(User.builder().phone(phone).build()));
+        String normalizedPhone = normalizeLoginPhone(phone);
+        return findExistingUserByPhone(phone)
+                .orElseGet(() -> userRepository.save(User.builder().phone(normalizedPhone).build()));
     }
 
     @Transactional(readOnly = true)
     public Optional<User> findByPhone(String phone) {
-        return userRepository.findByPhone(phone);
+        return findExistingUserByPhone(phone);
     }
 
     @Transactional
     public User updateName(String phone, String name) {
-        User u = userRepository.findByPhone(phone)
+        User u = findExistingUserByPhone(phone)
                 .orElseThrow(() -> new NotFoundException("User not found"));
         u.setName(name);
         return userRepository.save(u);
@@ -120,5 +123,22 @@ public class UserService implements UserDetailsService {
         user.setLockedUntil(null);
         user.setLastLoginAt(LocalDateTime.now());
         user.setLastLoginIp(ip);
+    }
+
+    private String normalizeLoginPhone(String phone) {
+        String normalized = PhoneUtils.normalize(phone);
+        if (normalized == null || normalized.length() < 7 || normalized.length() > 19) {
+            throw new BadRequestException("Введите корректный номер телефона");
+        }
+        return "+" + normalized;
+    }
+
+    private Optional<User> findExistingUserByPhone(String phone) {
+        String normalizedPhone = normalizeLoginPhone(phone);
+        Optional<User> normalizedUser = userRepository.findByPhone(normalizedPhone);
+        if (normalizedUser.isPresent() || normalizedPhone.equals(phone)) {
+            return normalizedUser;
+        }
+        return userRepository.findByPhone(phone);
     }
 }
