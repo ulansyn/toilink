@@ -60,6 +60,9 @@ public class Event {
     @Column(nullable = false, length = 20)
     private String status;
 
+    @Column(name = "plan_code", length = 50)
+    private String planCode;
+
     private LocalDateTime rsvpDeadline;
 
     @Column(nullable = false, length = 10)

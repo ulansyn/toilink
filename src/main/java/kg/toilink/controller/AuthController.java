@@ -35,6 +35,8 @@ public class AuthController {
         ctx.setAuthentication(auth);
         SecurityContextHolder.setContext(ctx);
 
+        HttpSession old = httpReq.getSession(false);
+        if (old != null) old.invalidate();
         HttpSession session = httpReq.getSession(true);
         session.setAttribute("SPRING_SECURITY_CONTEXT", ctx);
 
@@ -48,6 +50,19 @@ public class AuthController {
         SecurityContextHolder.clearContext();
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/me/name")
+    public ResponseEntity<AuthResponse> updateName(
+            @RequestBody UpdateNameRequest req,
+            @AuthenticationPrincipal UserDetails principal) {
+        if (principal == null) return ResponseEntity.status(401).build();
+        String name = req.name() == null ? "" : req.name().strip();
+        if (name.isEmpty() || name.length() > 100) return ResponseEntity.badRequest().build();
+        User u = userService.updateName(principal.getUsername(), name);
+        return ResponseEntity.ok(new AuthResponse(u.getPhone(), u.getName(), u.getRole()));
+    }
+
+    public record UpdateNameRequest(String name) {}
 
     @GetMapping("/me")
     public ResponseEntity<AuthResponse> me(@AuthenticationPrincipal UserDetails user, HttpServletRequest req) {

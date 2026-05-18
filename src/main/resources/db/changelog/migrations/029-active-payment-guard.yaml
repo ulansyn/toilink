@@ -1,0 +1,30 @@
+databaseChangeLog:
+  - changeSet:
+      id: 029-active-payment-guard
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              WITH ranked AS (
+                SELECT id,
+                       ROW_NUMBER() OVER (
+                         PARTITION BY user_id, event_id, plan_code
+                         ORDER BY created_at DESC, id DESC
+                       ) AS rn
+                FROM payments
+                WHERE status IN ('PENDING', 'AWAITING_CONFIRMATION')
+                  AND event_id IS NOT NULL
+                  AND plan_code IS NOT NULL
+              )
+              UPDATE payments p
+              SET status = 'CANCELLED', updated_at = NOW()
+              FROM ranked r
+              WHERE p.id = r.id
+                AND r.rn > 1
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS ux_payments_active_event_plan
+              ON payments (user_id, event_id, plan_code)
+              WHERE status IN ('PENDING', 'AWAITING_CONFIRMATION')
+                AND event_id IS NOT NULL
+                AND plan_code IS NOT NULL

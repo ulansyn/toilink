@@ -9,9 +9,9 @@
     <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
-    <link rel="stylesheet" href="/css/fonts.css">
-  <link rel="stylesheet" href="/css/tokens.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/critical.css">
+    <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
   <link rel="stylesheet" href="/css/date-time-picker.css"/>
 
   <style>
@@ -1075,6 +1075,7 @@
     /* Util */
     .hidden { display: none !important; }
   </style>
+  <script src="/js/sheet-behavior.js"></script>
 </head>
 <body>
 
@@ -1229,7 +1230,7 @@
         <p class="locked-sub">Активируйте сайт — гости получат доступ</p>
       </div>
     </div>
-    <button class="btn-pink full lg" onclick="goToPaywall()">Открыть доступ — 990 сом →</button>
+    <button class="btn-pink full lg" onclick="goToPaywall()">Открыть доступ →</button>
     <div class="locked-secondary-actions">
       <button onclick="goToEditor()" style="flex:1;height:2.75rem;border-radius:999px;border:1.5px solid var(--border);background:none;font-family:var(--sans);font-size:0.875rem;font-weight:500;color:var(--text-2);cursor:pointer">Редактировать</button>
       <a href="/index.html" style="flex:1;display:flex;align-items:center;justify-content:center;height:2.75rem;border-radius:999px;border:1.5px solid var(--border);font-family:var(--sans);font-size:0.875rem;font-weight:500;color:var(--text-2);text-decoration:none">Мой кабинет</a>

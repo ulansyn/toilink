@@ -9,9 +9,9 @@
     <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
-    <link rel="stylesheet" href="/css/fonts.css">
-  <link rel="stylesheet" href="/css/tokens.css"/>
-  <link rel="stylesheet" href="/css/base.css"/>
+    <link rel="stylesheet" href="/css/critical.css">
+    <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
 
   <style>
     :root {
@@ -639,11 +639,13 @@
 
   function pick(id, category, type) {
     document.getElementById('loadCover').classList.add('show');
+    const workingTemplateId = 'template-1';
     try {
       sessionStorage.setItem('tl_from_catalog', '1');
-      localStorage.setItem('tl_selected_template', 'template-' + id);
+      localStorage.setItem('tl_selected_template', workingTemplateId);
       localStorage.setItem('tl_template_selection', JSON.stringify({
-        templateId: 'template-' + id,
+        templateId: workingTemplateId,
+        catalogTemplateId: 'template-' + id,
         category: category || 'WEDDING',
         type: type || 'SITE',
       }));

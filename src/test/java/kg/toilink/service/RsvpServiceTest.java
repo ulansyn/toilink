@@ -49,7 +49,7 @@ class RsvpServiceTest {
 
         when(eventRepository.findBySlug("event")).thenReturn(Optional.of(event));
 
-        RsvpRequest request = new RsvpRequest(null, "   ", "ATTENDING", 1, null);
+        RsvpRequest request = new RsvpRequest(null, "   ", null, null, null, "ATTENDING", 1, null);
 
         assertThrows(BadRequestException.class, () -> rsvpService.rsvp("event", request));
     }
@@ -71,7 +71,7 @@ class RsvpServiceTest {
         });
         when(rsvpResponseRepository.findByGuestIdAndEventId(10L, 1L)).thenReturn(Optional.empty());
 
-        rsvpService.rsvp("event", new RsvpRequest(null, "Айжан", "ATTENDING", 2, "Приду"));
+        rsvpService.rsvp("event", new RsvpRequest(null, "Айжан", null, null, null, "ATTENDING", 2, "Приду"));
 
         ArgumentCaptor<Guest> guestCaptor = ArgumentCaptor.forClass(Guest.class);
         verify(guestRepository).save(guestCaptor.capture());
@@ -95,7 +95,7 @@ class RsvpServiceTest {
         when(eventRepository.findBySlug("event")).thenReturn(Optional.of(event));
         when(guestRepository.findByTokenAndDeletedAtIsNull(token)).thenReturn(Optional.empty());
 
-        RsvpRequest request = new RsvpRequest(token, null, "ATTENDING", 1, null);
+        RsvpRequest request = new RsvpRequest(token, null, null, null, null, "ATTENDING", 1, null);
 
         assertThrows(BadRequestException.class, () -> rsvpService.rsvp("event", request));
     }

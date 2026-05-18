@@ -30,9 +30,19 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-        CacheControl assetCache = CacheControl.maxAge(7, TimeUnit.DAYS).cachePublic();
+        CacheControl assetCache = CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable();
         CacheControl fontCache = CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable();
         CacheControl uploadCache = CacheControl.maxAge(30, TimeUnit.DAYS).cachePublic();
+        CacheControl serviceWorkerCache = CacheControl.maxAge(0, TimeUnit.SECONDS).cachePublic().mustRevalidate();
+        CacheControl metadataCache = CacheControl.maxAge(1, TimeUnit.DAYS).cachePublic();
+
+        registry.addResourceHandler("/sw.js")
+                .addResourceLocations("classpath:/static/")
+                .setCacheControl(serviceWorkerCache);
+
+        registry.addResourceHandler("/manifest.webmanifest", "/robots.txt", "/sitemap.xml")
+                .addResourceLocations("classpath:/static/")
+                .setCacheControl(metadataCache);
 
         registry.addResourceHandler("/js/**")
                 .addResourceLocations("classpath:/static/js/")

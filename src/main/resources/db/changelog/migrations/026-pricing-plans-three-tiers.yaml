@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 026-add-plan-code-to-payments
+      author: codex
+      changes:
+        - addColumn:
+            tableName: payments
+            columns:
+              - column:
+                  name: plan_code
+                  type: varchar(50)
+
+  - changeSet:
+      id: 026-seed-link-plan
+      author: codex
+      changes:
+        - sql:
+            sql: "INSERT INTO pricing_plans (code, name, amount, currency, display_currency, active) VALUES ('LINK', 'Той', 890, 'KGS', 'сом', true) ON CONFLICT (code) DO NOTHING"
+
+  - changeSet:
+      id: 026-seed-toi-pro-plan
+      author: codex
+      changes:
+        - sql:
+            sql: "INSERT INTO pricing_plans (code, name, amount, currency, display_currency, active) VALUES ('TOI_PRO', 'Toi Pro', 1990, 'KGS', 'сом', true) ON CONFLICT (code) DO NOTHING"

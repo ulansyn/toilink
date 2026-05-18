@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
@@ -19,6 +20,14 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStatusOrderByCreatedAtDesc(String status);
 
     List<Payment> findByUserIdOrderByCreatedAtDesc(Long userId);
+
+    Optional<Payment> findFirstByUserIdAndEventIdOrderByCreatedAtDesc(Long userId, Long eventId);
+
+    @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND (:planCode IS NULL OR p.planCode = :planCode) AND p.status IN ('PENDING','AWAITING_CONFIRMATION') ORDER BY p.createdAt DESC")
+    List<Payment> findActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId, @Param("planCode") String planCode);
+
+    @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND p.status IN ('PENDING','AWAITING_CONFIRMATION')")
+    List<Payment> findAllActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId);
 
     @EntityGraph(attributePaths = {"user", "event"})
     @Query("""
@@ -46,4 +55,27 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     long countByStatus(String status);
 
     long countByStatusAndCreatedAtAfter(String status, LocalDateTime after);
+
+    long countByStatusIn(List<String> statuses);
+
+    @Query(value = """
+            SELECT DATE(confirmed_at) AS day,
+                   COALESCE(SUM(amount), 0) AS revenue,
+                   COUNT(*) AS cnt
+            FROM payments
+            WHERE status = 'CONFIRMED'
+              AND confirmed_at >= :since
+            GROUP BY DATE(confirmed_at)
+            ORDER BY DATE(confirmed_at)
+            """, nativeQuery = true)
+    List<Object[]> dailyRevenue(@Param("since") LocalDateTime since);
+
+    @Query(value = """
+            SELECT COALESCE(method, 'other') AS method, COUNT(*) AS cnt
+            FROM payments
+            WHERE status = 'CONFIRMED'
+            GROUP BY method
+            ORDER BY cnt DESC
+            """, nativeQuery = true)
+    List<Object[]> methodBreakdown();
 }

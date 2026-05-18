@@ -4,6 +4,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import kg.toilink.entity.AdminAuditLog;
 import kg.toilink.entity.Event;
 import kg.toilink.entity.Payment;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.entity.Template;
 import kg.toilink.entity.User;
 import kg.toilink.exception.BadRequestException;
@@ -16,6 +17,7 @@ import kg.toilink.repository.RsvpResponseRepository;
 import kg.toilink.repository.TemplateRepository;
 import kg.toilink.repository.UserRepository;
 import kg.toilink.service.LandingSettingsService;
+import kg.toilink.service.PricingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import tools.jackson.databind.ObjectMapper;
@@ -39,6 +42,7 @@ public class AdminController {
 
     private static final int MAX_PAGE_SIZE = 100;
     private static final Pattern SLUG_PATTERN = Pattern.compile("[a-z0-9а-яёңүө-]+");
+    private static final List<String> PLAN_RANK = PricingService.PUBLIC_PLAN_CODES;
 
     private final UserRepository userRepository;
     private final EventRepository eventRepository;
@@ -48,6 +52,7 @@ public class AdminController {
     private final PaymentRepository paymentRepository;
     private final AdminAuditLogRepository auditLogRepository;
     private final LandingSettingsService landingSettingsService;
+    private final PricingService pricingService;
     private final ObjectMapper objectMapper;
 
     @GetMapping("/dashboard")
@@ -67,11 +72,40 @@ public class AdminController {
                 rsvpResponseRepository.countByRespondedAtAfter(todayStart),
                 rsvpResponseRepository.countByRespondedAtAfter(weekStart),
                 templateRepository.countByIsActiveTrue(),
-                paymentRepository.countByStatus("AWAITING_CONFIRMATION") + paymentRepository.countByStatus("PENDING"),
+                paymentRepository.countByStatus("AWAITING_CONFIRMATION"),
+                paymentRepository.countByStatus("CONFIRMED"),
                 paymentRepository.countByStatusAndCreatedAtAfter("CONFIRMED", todayStart),
                 paymentRepository.sumConfirmed(),
                 paymentRepository.sumConfirmedAfter(todayStart)
         );
+    }
+
+    @GetMapping("/dashboard/chart")
+    public List<Map<String, Object>> revenueChart(@RequestParam(defaultValue = "30") int days) {
+        LocalDateTime since = LocalDate.now().minusDays(days - 1).atStartOfDay();
+        List<Object[]> rows = paymentRepository.dailyRevenue(since);
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(Map.of(
+                "date", row[0].toString(),
+                "revenue", ((Number) row[1]).doubleValue(),
+                "count", ((Number) row[2]).longValue()
+            ));
+        }
+        return result;
+    }
+
+    @GetMapping("/dashboard/payment-methods")
+    public List<Map<String, Object>> paymentMethods() {
+        List<Object[]> rows = paymentRepository.methodBreakdown();
+        List<Map<String, Object>> result = new java.util.ArrayList<>();
+        for (Object[] row : rows) {
+            result.add(Map.of(
+                "method", row[0].toString(),
+                "count", ((Number) row[1]).longValue()
+            ));
+        }
+        return result;
     }
 
     @GetMapping("/users")
@@ -120,6 +154,29 @@ public class AdminController {
         userRepository.save(user);
         audit(admin, request, "USER_UNBLOCK", "USER", id, reason(body));
         return AdminUserResponse.from(user);
+    }
+
+    @PutMapping("/users/{id}/role")
+    @Transactional
+    public AdminUserResponse changeUserRole(@PathVariable Long id,
+                                            @RequestBody Map<String, String> body,
+                                            @AuthenticationPrincipal UserDetails admin,
+                                            HttpServletRequest request) {
+        String newRole = body.get("role");
+        if (newRole == null || !List.of("CLIENT", "MANAGER", "SUPERADMIN").contains(newRole)) {
+            throw new BadRequestException("Недопустимая роль. Допустимые значения: CLIENT, MANAGER, SUPERADMIN");
+        }
+        User target = userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("User not found: " + id));
+        if ("SUPERADMIN".equals(target.getRole()) && !"SUPERADMIN".equals(newRole)
+                && userRepository.countByRoleAndDeletedAtIsNull("SUPERADMIN") <= 1) {
+            throw new BadRequestException("Нельзя снять роль у последнего SUPERADMIN");
+        }
+        String oldRole = target.getRole();
+        target.setRole(newRole);
+        userRepository.save(target);
+        audit(admin, request, "USER_ROLE_CHANGE", "USER", id, oldRole + " → " + newRole);
+        return AdminUserResponse.from(target);
     }
 
     @DeleteMapping("/users/{id}")
@@ -280,6 +337,18 @@ public class AdminController {
         return AdminTemplateResponse.from(template);
     }
 
+    @DeleteMapping("/templates/{id}")
+    @Transactional
+    public ResponseEntity<Void> deleteTemplate(@PathVariable Long id,
+                                               @AuthenticationPrincipal UserDetails admin,
+                                               HttpServletRequest request) {
+        Template template = templateRepository.findById(id)
+                .orElseThrow(() -> NotFoundException.template(id));
+        templateRepository.delete(template);
+        audit(admin, request, "TEMPLATE_DELETE", "TEMPLATE", id, null);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/payments")
     public Page<AdminPaymentResponse> listPayments(
             @RequestParam(defaultValue = "0") int page,
@@ -304,6 +373,12 @@ public class AdminController {
                                                HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
+        if ("CONFIRMED".equals(payment.getStatus())) {
+            return AdminPaymentResponse.from(payment);
+        }
+        if (!"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+            throw new BadRequestException("Подтвердить можно только оплату со статусом AWAITING_CONFIRMATION");
+        }
         payment.setStatus("CONFIRMED");
         payment.setConfirmedAt(LocalDateTime.now());
         payment.setConfirmedBy(currentAdminId(admin));
@@ -312,6 +387,18 @@ public class AdminController {
         if (externalRef != null) payment.setExternalRef(externalRef);
         if (body != null && body.notes() != null) payment.setNotes(body.notes());
         paymentRepository.save(payment);
+
+        Event linkedEvent = payment.getEvent();
+        if (linkedEvent != null) {
+            boolean isDraft = "DRAFT".equals(linkedEvent.getStatus());
+            boolean isUpgrade = isUpgrade(linkedEvent.getPlanCode(), payment.getPlanCode());
+            if (isDraft || isUpgrade) {
+                if (isDraft) linkedEvent.setStatus("PUBLISHED");
+                linkedEvent.setPlanCode(payment.getPlanCode());
+                eventRepository.save(linkedEvent);
+            }
+        }
+
         audit(admin, request, "PAYMENT_CONFIRM", "PAYMENT", id, body != null ? body.reason() : null);
         return AdminPaymentResponse.from(payment);
     }
@@ -324,6 +411,9 @@ public class AdminController {
                                               HttpServletRequest request) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Payment not found: " + id));
+        if (!"AWAITING_CONFIRMATION".equals(payment.getStatus())) {
+            throw new BadRequestException("Отклонить можно только оплату со статусом AWAITING_CONFIRMATION");
+        }
         String reason = body != null ? body.reason() : null;
         if (reason == null || reason.isBlank()) {
             throw new BadRequestException("Причина отклонения обязательна");
@@ -357,6 +447,54 @@ public class AdminController {
         return new AdminLandingResponse(contentJson);
     }
 
+    @GetMapping("/pricing/activation")
+    public AdminPricingPlanResponse getActivationPricing() {
+        return AdminPricingPlanResponse.from(pricingService.activationPlan());
+    }
+
+    @PutMapping("/pricing/activation")
+    @Transactional
+    public AdminPricingPlanResponse updateActivationPricing(@RequestBody AdminPricingUpdateRequest body,
+                                                            @AuthenticationPrincipal UserDetails admin,
+                                                            HttpServletRequest request) {
+        if (body == null) {
+            throw new BadRequestException("Данные тарифа обязательны");
+        }
+        PricingPlan plan = pricingService.updateActivationPlan(
+                body.amount(),
+                body.currency(),
+                body.displayCurrency(),
+                body.name()
+        );
+        audit(admin, request, "PRICING_UPDATE", "PRICING_PLAN", plan.getId(), body.reason());
+        return AdminPricingPlanResponse.from(plan);
+    }
+
+    @GetMapping("/pricing/plans")
+    public List<AdminPricingPlanResponse> listPricingPlans() {
+        return pricingService.allPlans().stream().map(AdminPricingPlanResponse::from).toList();
+    }
+
+    @PutMapping("/pricing/plans/{code}")
+    @Transactional
+    public AdminPricingPlanResponse updatePricingPlan(@PathVariable String code,
+                                                      @RequestBody AdminPricingUpdateRequest body,
+                                                      @AuthenticationPrincipal UserDetails admin,
+                                                      HttpServletRequest request) {
+        if (body == null) {
+            throw new BadRequestException("Данные тарифа обязательны");
+        }
+        PricingPlan plan = pricingService.updatePlan(
+                code,
+                body.amount(),
+                body.currency(),
+                body.displayCurrency(),
+                body.name()
+        );
+        audit(admin, request, "PRICING_UPDATE", "PRICING_PLAN", plan.getId(), body.reason());
+        return AdminPricingPlanResponse.from(plan);
+    }
+
     private PageRequest pageRequest(int page, int size) {
         int safePage = Math.max(0, page);
         int safeSize = Math.max(1, Math.min(size, MAX_PAGE_SIZE));
@@ -367,6 +505,17 @@ public class AdminController {
         if (!status.equals("DRAFT") && !status.equals("PUBLISHED") && !status.equals("CLOSED")) {
             throw new BadRequestException("Invalid event status: " + status);
         }
+    }
+
+    private boolean isUpgrade(String current, String next) {
+        int from = planRank(current);
+        int to = planRank(next);
+        return to > from;
+    }
+
+    private int planRank(String code) {
+        int rank = PLAN_RANK.indexOf(code == null ? PricingService.FREE_CODE : code);
+        return rank < 0 ? 0 : rank;
     }
 
     private String validateSlug(String value) {
@@ -477,6 +626,7 @@ public class AdminController {
             long rsvpsWeek,
             long templatesActive,
             long paymentsPending,
+            long paymentsConfirmedTotal,
             long paymentsConfirmedToday,
             BigDecimal revenueTotal,
             BigDecimal revenueToday
@@ -515,6 +665,40 @@ public class AdminController {
     public record AdminLandingUpdateRequest(String contentJson, String reason) {}
 
     public record AdminLandingResponse(String contentJson) {}
+
+    public record AdminPricingUpdateRequest(
+            String name,
+            BigDecimal amount,
+            String currency,
+            String displayCurrency,
+            String reason
+    ) {}
+
+    public record AdminPricingPlanResponse(
+            Long id,
+            String code,
+            String name,
+            BigDecimal amount,
+            String currency,
+            String displayCurrency,
+            boolean active,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt
+    ) {
+        static AdminPricingPlanResponse from(PricingPlan plan) {
+            return new AdminPricingPlanResponse(
+                    plan.getId(),
+                    plan.getCode(),
+                    plan.getName(),
+                    plan.getAmount(),
+                    plan.getCurrency(),
+                    plan.getDisplayCurrency(),
+                    plan.isActive(),
+                    plan.getCreatedAt(),
+                    plan.getUpdatedAt()
+            );
+        }
+    }
 
     public record SmallUserResponse(Long id, String phone, String name, String role) {
         static SmallUserResponse from(User user) {
@@ -650,8 +834,10 @@ public class AdminController {
             SmallUserResponse user,
             AdminEventBriefResponse event,
             Long planId,
+            String planCode,
             BigDecimal amount,
             String currency,
+            String displayCurrency,
             String method,
             String status,
             String externalRef,
@@ -671,8 +857,10 @@ public class AdminController {
                     SmallUserResponse.from(payment.getUser()),
                     AdminEventBriefResponse.from(payment.getEvent()),
                     payment.getPlanId(),
+                    payment.getPlanCode(),
                     payment.getAmount(),
                     payment.getCurrency(),
+                    payment.getDisplayCurrency(),
                     payment.getMethod(),
                     payment.getStatus(),
                     payment.getExternalRef(),

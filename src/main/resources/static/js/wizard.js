@@ -10,6 +10,7 @@ const W = {
   iframeReady: false,
   templateId: 'template-1',
   numericTemplateId: null,
+  backendTemplateId: null,
   eventId: null,
   config: null,
 };
@@ -116,7 +117,7 @@ window.pickTemplate = pickTemplate;
 // ── Init wizard after template is chosen ──────────────────────
 
 function initWizard() {
-  W.templateId = localStorage.getItem('tl_selected_template') || 'template-1';
+  W.templateId = normalizeTemplatePath(localStorage.getItem('tl_selected_template') || 'template-1');
   W.config     = getWizardConfig();
 
   renderWizard();
@@ -570,7 +571,7 @@ async function saveEventToApi() {
     title,
     person1:    d.person1    || null,
     person2:    d.person2    || null,
-    templateId: null,
+    templateId: await resolveBackendTemplateId(),
     eventDate,
     location:   [d.venueName, d.venueAddress].filter(Boolean).join(', ') || null,
     language:   'ru',
@@ -611,7 +612,7 @@ function goToLocked() {
 
 function goToPaywall() {
   saveDraft();
-  location.href = '/paywall.html';
+  location.href = W.eventId ? `/paywall.html?event=${encodeURIComponent(W.eventId)}` : '/index.html';
 }
 
 function goToEditor() {
@@ -619,6 +620,28 @@ function goToEditor() {
   else           location.href = '/index.html';
 }
 window.goToEditor = goToEditor;
+
+function normalizeTemplatePath(templatePath) {
+  // Only template-1 is currently shipped in /static/templates and active in DB.
+  // Keep all catalog choices on the working template until more templates are real.
+  return templatePath === 'template-1' ? templatePath : 'template-1';
+}
+
+async function resolveBackendTemplateId() {
+  if (W.backendTemplateId) return W.backendTemplateId;
+  try {
+    const res = await fetch('/api/organizer/templates', { credentials: 'include' });
+    if (!res.ok) return null;
+    const templates = await res.json();
+    const match = Array.isArray(templates)
+      ? templates.find(t => t.templatePath === W.templateId) || templates.find(t => t.templatePath === 'template-1')
+      : null;
+    W.backendTemplateId = match?.id || null;
+    return W.backendTemplateId;
+  } catch (_) {
+    return null;
+  }
+}
 
 // ── Draft persistence ──────────────────────────────────────────
 

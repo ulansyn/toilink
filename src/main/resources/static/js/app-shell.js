@@ -3,7 +3,8 @@
     '/',
     '/templates.html',
     '/guests.html',
-    '/editor.html'
+    '/editor.html',
+    '/profile.html'
   ]);
   const SCROLL_KEY_PREFIX = 'tl:scroll:';
   const SNAPSHOT_KEY_PREFIX = 'tl:snapshot:';
@@ -87,6 +88,7 @@
     try {
       const surface = pageSurface();
       if (!surface) return false;
+      if (surface.hasAttribute('data-app-shell-loading')) return false;
       const html = surface.innerHTML;
       if (!html || html.length > SNAPSHOT_MAX_SIZE) return false;
       cacheSet(snapshotKey(), html);
@@ -109,8 +111,14 @@
     try {
       const surface = pageSurface();
       if (!surface) return false;
-      const html = cacheGet(snapshotKey(), SNAPSHOT_MAX_AGE);
+      const key = snapshotKey();
+      const html = cacheGet(key, SNAPSHOT_MAX_AGE);
       if (!html) return false;
+      // Skeleton HTML has no id= attributes; reject and clean up stale skeleton snapshots.
+      if (!html.includes('id=')) {
+        try { sessionStorage.removeItem(key); } catch (_) {}
+        return false;
+      }
       surface.innerHTML = html;
       document.documentElement.setAttribute('data-app-shell-snapshot', '1');
       return true;
@@ -228,9 +236,9 @@
       .then(async (registration) => {
         await navigator.serviceWorker.ready;
         swReady = true;
-        warmServiceWorkerUrls(['/', '/templates.html', '/editor.html']);
+        warmServiceWorkerUrls(['/', '/templates.html', '/editor.html', '/profile.html']);
         if (registration.active?.postMessage) {
-          registration.active.postMessage({ type: 'WARM_URLS', urls: ['/', '/templates.html', '/editor.html'] });
+          registration.active.postMessage({ type: 'WARM_URLS', urls: ['/', '/templates.html', '/editor.html', '/profile.html'] });
         }
       })
       .catch(() => {});
@@ -300,9 +308,19 @@
       installServiceWorker();
       warmCommonPages();
       prefetchVisibleLinks(8);
-      warmServiceWorkerUrls(['/', '/templates.html', '/editor.html']);
+      warmServiceWorkerUrls(['/', '/templates.html', '/editor.html', '/profile.html']);
     });
   });
+
+  function getCsrfToken() {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]*)/);
+    return match ? decodeURIComponent(match[1]) : '';
+  }
+
+  function getCsrfHeaders() {
+    const token = getCsrfToken();
+    return token ? { 'X-XSRF-TOKEN': token } : {};
+  }
 
   window.ToiAppShell = {
     cacheGet,
@@ -313,6 +331,7 @@
     warmServiceWorkerUrls,
     captureSnapshot,
     scheduleSnapshotCapture,
-    restoreSnapshot
+    restoreSnapshot,
+    getCsrfHeaders
   };
 })();

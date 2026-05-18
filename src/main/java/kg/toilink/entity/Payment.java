@@ -30,11 +30,17 @@ public class Payment {
     @Column(name = "plan_id")
     private Long planId;
 
+    @Column(name = "plan_code", length = 50)
+    private String planCode;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
     @Column(length = 10)
     private String currency;
+
+    @Column(name = "display_currency", length = 20)
+    private String displayCurrency;
 
     @Column(length = 30)
     private String method;
@@ -81,6 +87,7 @@ public class Payment {
         updatedAt = LocalDateTime.now();
         if (status == null) status = "PENDING";
         if (currency == null) currency = "KGS";
+        if (displayCurrency == null) displayCurrency = "KGS".equalsIgnoreCase(currency) ? "сом" : currency;
     }
 
     @PreUpdate

@@ -59,6 +59,7 @@ async function deleteEvent(eventId) {
   const res = await fetch(`${BASE_URL}/api/organizer/events/${eventId}`, {
     method: 'DELETE',
     credentials: 'include',
+    headers: window.ToiAppShell?.getCsrfHeaders?.() || {},
   });
   if (!res.ok) throw new Error('Ошибка удаления');
 }
@@ -88,6 +89,26 @@ function statusLabel(status) {
 
 function statusChipClass(status) {
   return { DRAFT: 'chip chip-draft', PUBLISHED: 'chip chip-published', CLOSED: 'chip chip-closed' }[status] || 'chip chip-draft';
+}
+
+const PLAN_META_D = {
+  FREE: { label: 'Старт', next: 'LINK' },
+  LINK: { label: 'Той', next: 'TOI_PRO' },
+  TOI_PRO: { label: 'Toi Pro', next: null },
+};
+
+function eventPlanCode(event) {
+  const code = (event?.planCode || 'FREE').toUpperCase();
+  return PLAN_META_D[code] ? code : 'FREE';
+}
+
+function eventPlanLabel(event) {
+  return PLAN_META_D[eventPlanCode(event)].label;
+}
+
+function upgradeHref(event, targetPlan = null) {
+  const plan = targetPlan || PLAN_META_D[eventPlanCode(event)]?.next || 'TOI_PRO';
+  return `/paywall.html?event=${event.id}&plan=${plan}`;
 }
 
 function isPubliclyVisibleEvent(event) {
@@ -285,6 +306,8 @@ function guestRow(g) {
 
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderEmpty() {
+  const _gh = document.getElementById('genericHero');
+  if (_gh) _gh.style.display = '';
   document.getElementById('content').innerHTML = `
     <div class="flex flex-col items-center justify-center text-center py-20 md:py-28 px-6 fade-in">
       <div class="relative mb-9">
@@ -311,7 +334,7 @@ function renderEmpty() {
         Ваше первое<br>приглашение
       </h2>
       <p class="text-muted text-[14px] md:text-[15px] max-w-[300px] leading-relaxed mb-8">
-        Красивый сайт-приглашение с RSVP и личными ссылками — за 5 минут.
+        Красивый сайт-приглашение с RSVP — за 5 минут. Личные ссылки и столы можно подключить в Toi Pro.
       </p>
       <div class="flex flex-col sm:flex-row gap-3">
         <a href="/templates.html" class="btn-primary">
@@ -364,8 +387,9 @@ function renderEventCard(event, stats) {
     <div id="card-${event.id}" class="event-card fade-in">
       <a href="${eventUrl}" target="_blank" rel="noopener" class="event-cover block">
         ${coverHtml}
-        <div class="absolute top-3 right-3 z-[2]">
+        <div class="absolute top-3 right-3 z-[2]" style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
           <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
+          <span class="plan-chip"><span class="chip-dot"></span>${eventPlanLabel(event)}</span>
         </div>
       </a>
 
@@ -488,7 +512,7 @@ function buildLpCta(event, s, eventUrl) {
     return { tone: 'dark', eyebrow: 'Внимание', icon: ICONS.lock,
       title: 'Сайт пока не активирован',
       desc: 'Гости видят пустую страницу. Активируйте, чтобы они смогли подтвердить участие.',
-      cta: 'Активировать', href: '/paywall.html' };
+      cta: 'Активировать', href: `/paywall.html?event=${event.id}` };
   }
   if (total === 0) {
     return { tone: 'pink', eyebrow: 'Что дальше', icon: ICONS.users,
@@ -506,6 +530,55 @@ function buildLpCta(event, s, eventUrl) {
     title: 'Все гости ответили',
     desc: 'Можно подвести итоги и скачать финальный список для тамады.',
     cta: 'Открыть список', href: `/guests.html?eventId=${event.id}` };
+}
+
+// ─── Plan status block ────────────────────────────────────────────────────────
+const PLAN_FEATURES_D = {
+  FREE:    ['До 30 гостей', 'RSVP по общей ссылке', 'Базовый шаблон'],
+  LINK:    ['До 150 гостей', 'Все шаблоны', 'Карта и музыка', 'Без логотипа'],
+  TOI_PRO: ['Без лимита гостей', 'Персональные ссылки', 'Рассадка по столам', 'Excel для банкета'],
+};
+
+function buildPlanBlock(event, stats) {
+  const code  = eventPlanCode(event);
+  const label = PLAN_META_D[code].label;
+  const feats = PLAN_FEATURES_D[code] || [];
+  const total = stats?.total ?? 0;
+  const limit = code === 'FREE' ? 30 : code === 'LINK' ? 150 : null;
+  const pct   = limit ? Math.min(100, Math.round((total / limit) * 100)) : 0;
+
+  if (code === 'TOI_PRO') {
+    return `
+      <div class="lp-plan-block lp-plan-block-pro">
+        <div class="lp-plan-block-left">
+          <span class="lp-plan-chip lp-plan-chip-pro">Toi Pro</span>
+          <span class="lp-plan-block-desc">Все функции активны</span>
+        </div>
+        <div class="lp-plan-block-feats">
+          ${feats.slice(0, 3).map(f => `<span class="lp-plan-feat"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>${f}</span>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  const usageHtml = limit ? `
+    <div class="lp-usage-row">
+      <span class="lp-usage-label">${total} / ${limit} гостей</span>
+      <div class="lp-usage-track"><div class="lp-usage-fill" style="width:${pct}%"></div></div>
+    </div>` : '';
+
+  return `
+    <div class="lp-plan-block">
+      <div class="lp-plan-block-left">
+        <span class="lp-plan-chip">${label}</span>
+        ${usageHtml}
+      </div>
+      <div class="lp-plan-block-right">
+        <div class="lp-plan-block-feats">
+          ${feats.slice(0, 2).map(f => `<span class="lp-plan-feat included"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>${f}</span>`).join('')}
+        </div>
+        <a href="${upgradeHref(event)}" class="lp-plan-upgrade-btn">Улучшить</a>
+      </div>
+    </div>`;
 }
 
 // ─── Event Hub (single-event layout, landing-style) ───────────────────────────
@@ -557,6 +630,7 @@ function renderEventHub(event, stats) {
         <div class="hub-overlay"></div>
         <div class="hub-status">
           <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
+          <span class="plan-chip"><span class="chip-dot"></span>${eventPlanLabel(event)}</span>
         </div>
 
         <div class="hub-eyebrow">${event.person1 ? (event.title || 'Приглашение') : 'Ваше приглашение'}</div>
@@ -682,7 +756,23 @@ function renderEventHub(event, stats) {
           </div>
           <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
         </a>
+
+        ${eventPlanCode(event) !== 'TOI_PRO' ? `
+        <a href="${upgradeHref(event)}" class="lp-action plan-upgrade">
+          <div class="lp-action-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7l4 4-4 4M5 12h12"/></svg>
+          </div>
+          <div class="lp-action-body">
+            <div class="lp-action-title">${eventPlanCode(event) === 'LINK' ? 'Открыть Toi Pro' : 'Улучшить тариф'}</div>
+            <div class="lp-action-desc">${eventPlanCode(event) === 'LINK' ? 'столы, Excel, персональные ссылки' : 'до 150 гостей, карта и музыка'}</div>
+          </div>
+          <svg class="lp-action-arrow" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        </a>` : ''}
       </div>
+
+      <!-- Plan status block -->
+      ${buildPlanBlock(event, s)}
+
 
       <!-- Share strip -->
       <div class="lp-share">
@@ -731,6 +821,8 @@ window.shareEvent = async function (url, title) {
 };
 
 function renderEvents(events, statsMap) {
+  const _gh = document.getElementById('genericHero');
+  if (_gh) _gh.style.display = '';
   const sorted = [...events].sort((a, b) => {
     const da = a.eventDate ? new Date(a.eventDate).getTime() : 0;
     const db = b.eventDate ? new Date(b.eventDate).getTime() : 0;
@@ -807,7 +899,6 @@ function prefetchLikelyNextSteps(events) {
 
 function renderDashboardSnapshot(events, statsMap) {
   if (!events) return false;
-  updatePaymentStrip(events);
   if (events.length === 0) {
     renderEmpty();
     return true;
@@ -940,20 +1031,21 @@ function installShareDelegation() {
 
 async function init() {
   installShareDelegation();
-  const phone = await window.initAuth();
-  if (!phone) return;
 
-  document.querySelectorAll('.user-phone').forEach(el => el.textContent = phone);
-
-  // reset generic hero visibility (may have been hidden by Hub render previously)
-  const genericHero = document.getElementById('genericHero');
-  if (genericHero) genericHero.style.display = '';
-
+  // Render cached content immediately — no need to wait for auth network call.
   const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 2 * 60_000);
   const cachedStats = cacheGet(STATS_CACHE_KEY, 2 * 60_000) || {};
   if (cachedEvents) {
     renderDashboardSnapshot(cachedEvents, cachedStats);
     prefetchLikelyNextSteps(cachedEvents);
+  }
+
+  const phone = await window.initAuth();
+  if (!phone) return;
+
+  document.querySelectorAll('.user-phone').forEach(el => el.textContent = phone);
+
+  if (cachedEvents) {
     refreshDashboard().catch(() => {});
     return;
   }
@@ -974,13 +1066,6 @@ async function init() {
       </div>`;
     _observeFadeIn();
   }
-}
-
-function updatePaymentStrip(events) {
-  const strip = document.getElementById('paymentStrip');
-  if (!strip) return;
-  const hasDraft = Array.isArray(events) && events.some(e => e.status === 'DRAFT');
-  strip.style.display = hasDraft ? 'flex' : 'none';
 }
 
 init();

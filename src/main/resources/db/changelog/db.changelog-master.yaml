@@ -43,3 +43,17 @@ databaseChangeLog:
       file: db/changelog/migrations/022-seed-test-user.yaml
   - include:
       file: db/changelog/migrations/023-add-event-guest-groups.yaml
+  - include:
+      file: db/changelog/migrations/024-create-pricing-plans.yaml
+  - include:
+      file: db/changelog/migrations/025-reset-landing-settings.yaml
+  - include:
+      file: db/changelog/migrations/026-pricing-plans-three-tiers.yaml
+  - include:
+      file: db/changelog/migrations/027-add-plan-code-to-events.yaml
+  - include:
+      file: db/changelog/migrations/028-seed-free-plan.yaml
+  - include:
+      file: db/changelog/migrations/029-active-payment-guard.yaml
+  - include:
+      file: db/changelog/migrations/030-indexes.yaml

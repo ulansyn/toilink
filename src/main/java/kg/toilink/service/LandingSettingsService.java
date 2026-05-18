@@ -1,6 +1,7 @@
 package kg.toilink.service;
 
 import kg.toilink.entity.LandingSettings;
+import kg.toilink.entity.PricingPlan;
 import kg.toilink.exception.BadRequestException;
 import kg.toilink.repository.LandingSettingsRepository;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.JsonNode;
 import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
+
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,11 +22,13 @@ public class LandingSettingsService {
 
     private final LandingSettingsRepository repository;
     private final ObjectMapper objectMapper;
+    private final PricingService pricingService;
 
     public String getMainContentJson() {
-        return repository.findBySettingsKey(DEFAULT_KEY)
+        String contentJson = repository.findBySettingsKey(DEFAULT_KEY)
                 .map(LandingSettings::getContentJson)
                 .orElseGet(this::defaultContentJson);
+        return applyCurrentPricing(contentJson);
     }
 
     @Transactional
@@ -55,10 +62,10 @@ public class LandingSettingsService {
         return """
                 {
                   "meta": {
-                    "title": "ToiLink — Красивые цифровые приглашения на той и свадьбу",
-                    "description": "Создайте элегантное онлайн-приглашение на свадьбу, той, юбилей или день рождения за 5 минут. RSVP онлайн, список гостей, премиальные шаблоны.",
-                    "ogTitle": "ToiLink — Цифровые приглашения за 5 минут",
-                    "ogDescription": "Ссылка, RSVP и список гостей — всё в одном месте."
+                    "title": "ToiLink — Цифровые приглашения на той и свадьбу в Бишкеке",
+                    "description": "Создайте онлайн-приглашение на свадьбу, той, юбилей или день рождения за 5 минут. RSVP, рассадка гостей, персональные ссылки.",
+                    "ogTitle": "ToiLink — Приглашение, RSVP и гости в одной ссылке",
+                    "ogDescription": "Приглашение, RSVP и гости для тоя в одной ссылке."
                   },
                   "sections": {
                     "hero": true,
@@ -79,9 +86,9 @@ public class LandingSettingsService {
                   },
                   "hero": {
                     "badge": "4.9 · 1 200+ семей в Бишкеке",
-                    "titleTop": "Той вашей мечты —",
-                    "titleAccent": "в одной ссылке",
-                    "subtitle": "Красивое приглашение, RSVP и список гостей — за 5 минут.\\nГостям не нужно скачивать приложение или регистрироваться.",
+                    "titleTop": "Приглашение, RSVP и гости",
+                    "titleAccent": "для тоя в одной ссылке",
+                    "subtitle": "Красивое приглашение, ответы гостей и рассадка по столикам — всё в одном кабинете.\\nГостям не нужно скачивать приложение или регистрироваться.",
                     "primaryCta": "Создать бесплатно",
                     "secondaryCta": "Посмотреть шаблоны",
                     "bullets": ["Без оплаты карты", "Готово за 5 минут", "Без приложений"]
@@ -163,10 +170,11 @@ public class LandingSettingsService {
                   "pricing": {
                     "eyebrow": "Тарифы",
                     "title": "Простые и честные цены",
-                    "subtitle": "Начните бесплатно. Премиум — один раз для одного события, без подписок.",
+                    "subtitle": "Начните бесплатно. Платный тариф — один раз для одного события, без подписок.",
                     "plans": [
-                      {"name": "Старт", "tag": "бесплатно", "description": "Попробовать без риска", "price": "0", "currency": "сом", "note": "навсегда · без карты", "cta": "Начать бесплатно", "features": ["До 50 гостей", "RSVP-кнопки и список гостей", "3 базовых шаблона", "Маленький логотип ToiLink"]},
-                      {"name": "Премиум", "tag": "для тоя", "description": "Идеально для большого события", "price": "990", "currency": "сом", "oldPrice": "1 990", "note": "разово за всё событие · скидка 50%", "badge": "★ выбирают 87%", "cta": "Создать приглашение", "features": ["Гостей — без ограничений", "Все 12 премиум-шаблонов", "Без водяного знака", "Экспорт списка гостей в Excel", "Уведомления о новых RSVP", "Поддержка 24/7 в WhatsApp"]}
+                      {"code": "FREE", "name": "Старт", "tag": "бесплатно", "description": "Попробовать и показать близким", "price": "0", "currency": "сом", "note": "навсегда · без карты", "cta": "Опубликовать бесплатно", "recommended": false, "features": ["Одна ссылка для всех", "До 30 гостей", "RSVP", "Логотип ToiLink в footer"]},
+                      {"code": "LINK", "name": "Той", "tag": "одно событие", "description": "Красивое приглашение по одной ссылке", "price": "890", "currency": "сом", "oldPrice": "1 290", "note": "разово за всё событие", "cta": "Выбрать Той", "recommended": false, "features": ["До 150 гостей", "Все шаблоны, карта, музыка", "Список ответов гостей", "Без логотипа ToiLink"]},
+                      {"code": "TOI_PRO", "name": "Toi Pro", "tag": "для свадьбы и тоя", "description": "Гости, персональные ссылки и столики", "price": "1 990", "currency": "сом", "oldPrice": "2 990", "note": "разово за всё событие", "badge": "Рекомендуем от 100 гостей", "cta": "Выбрать Toi Pro", "recommended": true, "features": ["Всё из тарифа «Той»", "Персональные ссылки гостям", "Рассадка по столикам", "Excel для банкетного зала", "Группы и стороны гостей"]}
                     ],
                     "badges": ["Гарантия возврата 7 дней", "Доступ — мгновенно", "Поддержка на русском и кыргызском"]
                   },
@@ -174,12 +182,12 @@ public class LandingSettingsService {
                     "eyebrow": "FAQ",
                     "title": "Частые вопросы",
                     "items": [
+                      {"question": "Чем Той отличается от Toi Pro?", "answer": "Той — одно красивое приглашение для всех гостей по одной ссылке, до 150 гостей. Toi Pro — полный кабинет организатора для большого события: персональные ссылки каждому гостю, рассадка по столикам, группы гостей и Excel для банкетного зала."},
+                      {"question": "Можно ли начать бесплатно?", "answer": "Да. Тариф «Старт» бесплатный: до 30 гостей, RSVP и базовые шаблоны. Создайте приглашение, увидьте результат — и только потом решайте, нужен ли платный тариф."},
+                      {"question": "Можно ли перейти на Toi Pro позже?", "answer": "Да. Напишите нам в WhatsApp — переведём вас на Toi Pro вручную. Ссылка для гостей при этом не изменится."},
                       {"question": "Нужно ли гостям скачивать приложение?", "answer": "Нет. Гость получает ссылку, открывает её в браузере и видит красивое приглашение. Никаких скачиваний, регистраций и лишних шагов."},
-                      {"question": "Как гости подтверждают участие?", "answer": "На странице приглашения есть кнопки «Буду» и «Не смогу». Гость нажимает, и вы сразу видите ответ в личном кабинете. Можно также указать количество сопровождающих."},
-                      {"question": "Можно ли изменить приглашение после публикации?", "answer": "Да. Вы можете редактировать текст, дату и место в любое время. Все уже отправленные ссылки автоматически покажут обновлённую информацию — ссылку заново рассылать не нужно."},
-                      {"question": "Сколько гостей можно добавить?", "answer": "На бесплатном тарифе — до 50 гостей. На Премиум — неограниченно. Для большого тоя рекомендуем Премиум — там нет ограничений."},
                       {"question": "Как выглядит ссылка для гостей?", "answer": "Ссылка выглядит красиво: toilink.kg/e/айбек-айгуль. При отправке в WhatsApp или Telegram автоматически показывается превью-карточка с деталями события."},
-                      {"question": "Как оплатить Премиум?", "answer": "Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается моментально после подтверждения платежа."}
+                      {"question": "Как оплатить тариф?", "answer": "Оплата через Mbank, O!Dengi, банковскую карту или перевод. Активируем в течение нескольких часов после подтверждения платежа."}
                     ]
                   },
                   "finalCta": {
@@ -199,5 +207,29 @@ public class LandingSettingsService {
                   }
                 }
                 """;
+    }
+
+    private String applyCurrentPricing(String contentJson) {
+        try {
+            ObjectNode root = (ObjectNode) objectMapper.readTree(contentJson);
+            JsonNode plansNode = root.path("pricing").path("plans");
+            if (!plansNode.isArray()) return contentJson;
+
+            Map<String, PricingPlan> byCode = pricingService.allPlans().stream()
+                    .collect(Collectors.toMap(PricingPlan::getCode, p -> p));
+
+            for (JsonNode planNode : plansNode) {
+                if (!(planNode instanceof ObjectNode plan)) continue;
+                String code = plan.path("code").asText(null);
+                PricingPlan dbPlan = byCode.get(code);
+                if (dbPlan == null) continue;
+                plan.put("price", pricingService.formatPrice(dbPlan.getAmount()));
+                plan.put("currency", dbPlan.getDisplayCurrency());
+            }
+
+            return objectMapper.writeValueAsString(root);
+        } catch (Exception e) {
+            return contentJson;
+        }
     }
 }

@@ -1,0 +1,45 @@
+databaseChangeLog:
+  - changeSet:
+      id: 022-seed-test-user
+      author: toilink
+      context: dev
+      changes:
+        - sql:
+            sql: |
+              -- Юзер +996999999999 / пароль 1111
+              INSERT INTO users (phone, name, role, is_active, password_hash, failed_login_count)
+              VALUES ('+996999999999', 'Тест Девелопер', 'CLIENT', true,
+                      '$2a$10$rjfGUDUMRHF7BtjqPM8TrONHIbTgyG0gylYc1sp/Y7PePftWWoE4K', 0)
+              ON CONFLICT (phone) DO UPDATE SET
+                password_hash = '$2a$10$rjfGUDUMRHF7BtjqPM8TrONHIbTgyG0gylYc1sp/Y7PePftWWoE4K',
+                name = 'Тест Девелопер';
+
+              -- Событие для этого юзера
+              INSERT INTO events (user_id, template_id, title, slug, status, language, preview_token)
+              SELECT u.id, (SELECT MIN(id) FROM templates), 'Свадьба Тестовая', 'dev-test-event-999',
+                     'PUBLISHED', 'ru', gen_random_uuid()
+              FROM users u
+              WHERE u.phone = '+996999999999'
+              ON CONFLICT (slug) DO NOTHING;
+
+              -- 300 рандомных гостей (только если гостей ещё нет)
+              INSERT INTO guests (event_id, name, source, side)
+              SELECT
+                e.id,
+                (ARRAY['Айгерим','Бегим','Гулзат','Диана','Эльмира','Фатима','Гульназ','Хадича',
+                        'Индира','Жыпар','Айжан','Алтынай','Бурул','Гулим','Динара','Зарина',
+                        'Камила','Малика','Назира','Перизат','Азамат','Бакыт','Чынгыз','Данияр',
+                        'Эрлан','Мурат','Нурлан','Аскар','Руслан','Тимур','Улан','Канат','Болот',
+                        'Жоомарт','Ырысбек','Эмиль','Рустам','Санжар','Феруз','Дильшод'])[1 + floor(random() * 40)::int]
+                || ' ' ||
+                (ARRAY['Абдуллаев','Бердибеков','Чолпонбаев','Джакыпов','Эркебаев','Жумабеков',
+                        'Исаков','Карыбеков','Мамытбеков','Нурбеков','Орозбеков','Рыспеков',
+                        'Сатыбалдиев','Токтосунов','Усупбеков','Алымбеков','Байгазиев','Джумалиев',
+                        'Эсенбеков','Жороев','Кенешбеков','Мамаев','Назаров','Пазылов','Рашидов',
+                        'Соронбаев','Турдубеков','Узакбаев','Жантемиров','Бакасов'])[1 + floor(random() * 30)::int],
+                'MANUAL',
+                (ARRAY['BRIDE','GROOM','SHARED'])[1 + floor(random() * 3)::int]
+              FROM events e
+              CROSS JOIN generate_series(1, 300) s
+              WHERE e.slug = 'dev-test-event-999'
+                AND NOT EXISTS (SELECT 1 FROM guests g WHERE g.event_id = e.id);

@@ -8,6 +8,10 @@
   let currentOptions = null;
 
   function openLaunchSheet() {
+    if (typeof window.canUseTables === 'function' && !window.canUseTables()) {
+      window.openPlanUpgradeSheet?.('tables');
+      return;
+    }
     if (!Array.isArray(window._allGuestsRef) || !Array.isArray(window._allTablesRef)) {
       window.toast?.('Данные ещё загружаются', false);
       return;
@@ -318,6 +322,10 @@
   // ─── Apply ────────────────────────────────────────────────────────────────
   async function applyResult() {
     if (!currentResult) return;
+    if (typeof window.canUseTables === 'function' && !window.canUseTables()) {
+      window.openPlanUpgradeSheet?.('tables');
+      return;
+    }
     const btn = document.getElementById('seat-apply-btn');
     btn.disabled = true;
     const orig = btn.innerHTML;

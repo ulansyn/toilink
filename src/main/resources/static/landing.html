@@ -11,749 +11,57 @@
     <meta name="theme-color" content="#ffffff"/>
 
     <link rel="icon" type="image/webp" href="/images/logo.webp" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="canonical" href="https://toilink.kg/" />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:image" content="/images/logo.webp" />
+    <meta property="og:image:type" content="image/webp" />
 
-    <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
-    <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/cormorant-500.woff2">
-    <link rel="stylesheet" href="/css/fonts.css">
-    <link rel="stylesheet" href="/css/tokens.css"/>
-    <link rel="stylesheet" href="/css/base.css"/>
-    <link rel="stylesheet" href="/css/tailwind.css"/>
+    <script>
+        (function () {
+            try {
+                var reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                if (reducedMotion) return;
+                var root = document.documentElement;
+                root.classList.add('landing-intro');
+                var start = function () {
+                    window.requestAnimationFrame(function () {
+                        root.classList.add('intro-ready');
+                        window.setTimeout(function () {
+                            root.classList.remove('landing-intro', 'intro-ready');
+                        }, 1700);
+                    });
+                };
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', start, { once: true });
+                } else {
+                    start();
+                }
+            } catch (e) {}
+        })();
+    </script>
 
-    <style>
-        *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        * { -ms-overflow-style: none; scrollbar-width: none; }
-        ::-webkit-scrollbar { display: none; }
-        html { scroll-behavior: smooth; }
-        body {
-            font-family: var(--font-sans);
-            background: transparent;
-            color: var(--color-text);
-            overscroll-behavior-y: none;
-        }
+    <link rel="preload" href="/css/landing.css?v=perf1" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/css/landing.css?v=perf1"></noscript>
+    <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
+    <link rel="stylesheet" href="/css/tailwind.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="/css/tailwind.css"></noscript>
 
-        /* ── Radial background glows ── */
-        .bg-glow {
-            background: #ffffff;
-            background-image:
-                    radial-gradient(ellipse 70% 50% at 85% 0%,   rgba(249, 59,122, 0.07) 0%, transparent 70%),
-                    radial-gradient(ellipse 55% 40% at 15% 95%,  rgba(249, 59,122, 0.05) 0%, transparent 65%);
-        }
+        <style>
 
-        /* ── Buttons ── */
-        .btn-pink {
-            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-            color: #fff;
-            border: none;
-            border-radius: 999px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: box-shadow 200ms ease, transform 200ms ease;
-            box-shadow: 0 6px 24px rgba(249, 59, 122, 0.32);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-pink:hover  { box-shadow: 0 10px 32px rgba(249, 59, 122, 0.42); transform: translateY(-1px); }
-        .btn-pink:active { transform: translateY(0); box-shadow: 0 4px 14px rgba(249, 59, 122, 0.25); }
-
-        .btn-outline-pink {
-            background: transparent;
-            color: #F93B7A;
-            border: 1.5px solid #F93B7A;
-            border-radius: 999px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 200ms ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        .btn-outline-pink:hover { background: rgba(249, 59, 122, 0.06); }
-
-        .btn-dark {
-            background: #111827;
-            color: #fff;
-            border-radius: 999px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 200ms ease, box-shadow 200ms ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            border: none;
-        }
-        .btn-dark:hover { transform: translateY(-1px); box-shadow: 0 10px 28px rgba(17,24,39,0.18); }
-
-        /* ── Badge (fire pill) ── */
-        .badge-fire {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(249, 59, 122, 0.10);
-            color: #C71F5C;
-            border-radius: 999px;
-            padding: 6px 18px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: rgba(249, 59, 122, 0.10);
-            color: #C71F5C;
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-        }
-
-        /* ── Feature icon box ── */
-        .feat-box {
-            width: 40px; height: 40px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            background: #FFF0F6;
-        }
-
-        /* ──────────────────────────────────────
-           iPHONE 17 PRO MOCKUP
-        ────────────────────────────────────── */
-        .iphone-scene-wrap {
-            position: relative;
-            height: 640px;
-            overflow: hidden;
-        }
-        .iphone-bg-circle {
-            position: absolute;
-            width: 310px;
-            height: 310px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #fdedf3 0%, #f8c8df 100%);
-            top: 31%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 0;
-            opacity: 0.7;
-        }
-        .iphone-scene {
-            position: absolute;
-            width: 600px;
-            height: 700px;
-            perspective: 1400px;
-            perspective-origin: 50% 48%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            top: 34%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.75);
-            z-index: 1;
-        }
-        .ip-badge {
-            position: absolute;
-            width: 80px; height: 80px;
-            border-radius: 20px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 14px 36px rgba(0,0,0,0.20), 0 4px 10px rgba(0,0,0,0.14);
-            z-index: 10;
-        }
-        .ip-badge-heart {
-            background: linear-gradient(148deg, #ff6fa8 0%, #ee2e6e 100%);
-            left: 28px; top: 130px;
-            transform: rotate(-5deg);
-        }
-        .ip-badge-people {
-            background: linear-gradient(148deg, #ffbc6e 0%, #ee6c28 100%);
-            right: 24px; bottom: 148px;
-            transform: rotate(5deg);
-        }
-        .ip-gem {
-            position: absolute;
-            border-radius: 3px;
-            transform: rotate(45deg);
-            z-index: 5;
-        }
-        .iphone-shell {
-            position: relative;
-            width: 258px; height: 530px;
-            border-radius: 50px;
-            background:
-                    linear-gradient(112deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 9%, transparent 17%),
-                    linear-gradient(90deg, rgba(86,86,86,0.30) 0%, rgba(65,65,65,0.18) 13%, transparent 30%),
-                    linear-gradient(160deg, #414141 0%, #262626 16%, #070707 39%, #050505 58%, #202020 80%, #414141 100%);
-            transform: rotateY(-20deg) rotateZ(10deg) rotateX(5deg);
-            transform-style: preserve-3d;
-            padding: 5px;
-            z-index: 6;
-        }
-        .iphone-shell::before {
-            content: '';
-            position: absolute;
-            top: 1px; left: 1px; right: 1px; bottom: 1px;
-            border-radius: 49px;
-            background:
-                    linear-gradient(90deg,
-                    #4a4a4a 0%,
-                    #414141 24%,
-                    #3a3a3a 52%,
-                    #303030 78%,
-                    #464646 100%
-            );
-            box-shadow:
-                    inset 1px 0 0 rgba(255,255,255,0.14),
-                    inset -5px 0 9px rgba(255,255,255,0.04),
-                    inset -10px 0 16px rgba(0,0,0,0.48);
-            transform: translate3d(6px, 3px, -1px);
-            z-index: -1;
-            pointer-events: none;
-        }
-        .iphone-shell::after {
-            content: '';
-            position: absolute;
-            top: -1px; left: 12%; right: 14%;
-            height: 4px;
-            border-radius: 0 0 8px 8px;
-            background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(255,255,255,0.16) 22%,
-            rgba(236,226,212,0.54) 48%,
-            rgba(255,255,255,0.18) 74%,
-            transparent 100%
-            );
-            box-shadow: 0 1px 9px rgba(255,244,224,0.18);
-            z-index: 1;
-            pointer-events: none;
-        }
-        .ip-btn {
-            position: absolute;
-            pointer-events: none;
-            background: linear-gradient(90deg,
-            #2a2828 0%,
-            #4e4c4c 30%,
-            #585454 55%,
-            #383434 80%,
-            #1e1c1c 100%
-            );
-            box-shadow:
-                    inset 0  1px 0 rgba(255,255,255,0.32),
-                    inset 0 -1px 0 rgba(0,0,0,0.75),
-                    inset 1px 0 0 rgba(255,255,255,0.12),
-                    0 1px 3px rgba(0,0,0,0.60);
-        }
-        .ip-btn-power {
-            right: -6px;
-            top: 180px;
-            width: 6px;
-            height: 64px;
-            border-radius: 0 3px 3px 0;
-            background: linear-gradient(90deg,
-            #242424 0%,
-            #414141 22%,
-            #4a4a4a 48%,
-            #3d3d3d 68%,
-            #292929 100%
-            );
-            box-shadow:
-                    inset 0  1px 0 rgba(255,255,255,0.62),
-                    inset 0 -1px 0 rgba(0,0,0,0.90),
-                    inset 0  2px 0 rgba(255,244,224,0.26),
-                    inset 0 -2px 0 rgba(0,0,0,0.60),
-                    2px 0 5px rgba(0,0,0,0.70);
-        }
-        .iphone-screen {
-            width: 100%; height: 100%;
-            border-radius: 45px;
-            overflow: hidden;
-            position: relative;
-            background: #faf6f0;
-            box-shadow:
-                    inset 0 0 0 1px rgba(0,0,0,0.54),
-                    inset 0 0 0 2px rgba(255,255,255,0.05),
-                    inset 0 2px 8px rgba(0,0,0,0.12);
-            display: flex;
-            flex-direction: column;
-        }
-        .iphone-screen::before {
-            content: '';
-            position: absolute; inset: 0;
-            border-radius: 45px;
-            background:
-                    linear-gradient(132deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0.09) 23%, transparent 44%),
-                    linear-gradient(310deg, transparent 58%, rgba(0,0,0,0.05) 100%);
-            pointer-events: none;
-            z-index: 100;
-        }
-        .ip-dynamic-island {
-            position: absolute;
-            top: 13px; left: 50%;
-            transform: translateX(-50%);
-            width: 70px; height: 22px;
-            background: #111;
-            border-radius: 16px;
-            z-index: 50;
-        }
-        .ip-status {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 54px 22px 0;
-            font-size: 10.5px; font-weight: 660;
-            color: #111; letter-spacing: -0.2px;
-            flex-shrink: 0;
-        }
-        .ip-status-right { display:flex; align-items:center; gap:4px; }
-        .ip-content {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center;
-            padding: 5px 16px 10px;
-            overflow-y: auto;
-            scrollbar-width: none;
-        }
-        .ip-content::-webkit-scrollbar { display: none; }
-        .ip-names {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 25px; font-weight: 600;
-            color: #1a1a1a; text-align: center;
-            letter-spacing: 0.2px; margin-top: 4px;
-        }
-        .ip-names .amp { color: #b08a48; font-style: italic; font-weight: 500; padding: 0 4px; }
-        .ip-date {
-            font-family: 'Cormorant Garamond', serif;
-            font-style: italic; font-size: 11.5px;
-            color: #b08a48; text-align: center;
-            margin-top: 2px; letter-spacing: 0.5px;
-        }
-        .ip-photo-wrap {
-            position: relative; width: 150px; height: 150px;
-            margin-top: 4px; flex-shrink: 0;
-        }
-        .ip-photo-circle {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 114px; height: 114px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #f5e8d8 0%, #ece0cc 100%);
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 0 0 4px #faf6f0, 0 4px 18px rgba(0,0,0,0.09);
-            z-index: 2;
-        }
-        .ip-photo-circle svg { opacity: 0.38; }
-        .ip-leaves { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
-        .ip-countdown {
-            display: flex; align-items: flex-start; justify-content: center;
-            margin-top: 6px; flex-shrink: 0;
-        }
-        .ip-cd-block { text-align: center; padding: 0 5px; }
-        .ip-cd-num {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 26px; font-weight: 600;
-            color: #1a1a1a; line-height: 1;
-        }
-        .ip-cd-lbl { font-size: 8px; color: #9ca3af; letter-spacing: 0.3px; margin-top: 2px; display: block; }
-        .ip-cd-sep {
-            font-family: 'Cormorant Garamond', serif;
-            font-size: 22px; color: #c8a878;
-            padding-top: 1px; user-select: none;
-        }
-        .ip-rsvp {
-            margin-top: 10px; width: 100%;
-            background: linear-gradient(135deg, #c8a060 0%, #a87e40 100%);
-            color: #fff; text-align: center;
-            padding: 12px 0; border-radius: 999px;
-            font-size: 13px; font-weight: 600; letter-spacing: 0.3px;
-            box-shadow: 0 6px 20px rgba(185,150,80,0.36);
-            flex-shrink: 0;
-        }
-        .ip-skip { text-align: center; font-size: 11px; color: #aaa; margin-top: 8px; flex-shrink: 0; }
-
-        /* ── Stats card ── */
-        /* ── Liquid Glass Card ── */
-        .stats-card {
-            /* Полупрозрачный белый с легким оттенком */
-            background: rgba(255, 255, 255, 0.4);
-
-            /* Эффект матового стекла */
-            backdrop-filter: blur(12px) saturate(160%);
-            -webkit-backdrop-filter: blur(12px) saturate(160%);
-
-            /* Скругление */
-            border-radius: 28px;
-
-            /* Тонкая «стеклянная» рамка */
-            border: 1px solid rgba(255, 255, 255, 0.5);
-
-            /* Сложная тень для объема */
-            box-shadow:
-                    0 8px 32px 0 rgba(31, 38, 135, 0.07),
-                    inset 0 0 0 1px rgba(255, 255, 255, 0.2);
-        }
-
-        /* Убираем серые границы, делаем их стеклянными */
-        .glass-border {
-            border-color: rgba(255, 255, 255, 0.3) !important;
-        }
-
-        /* Немного освежим текст для читаемости на стекле */
-        .stats-card span.text-gray-900 {
-            color: #1a1a1a;
-        }
-
-        /* ── White cards ── */
-        .card-white {
-            background: #fff;
-            border-radius: 18px;
-            box-shadow: 0 2px 14px rgba(0,0,0,0.06);
-        }
-
-        /* ── Step number ── */
-        .step-num {
-            width: 40px; height: 40px;
-            border-radius: 999px;
-            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-            color: #fff;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 15px;
-            flex-shrink: 0;
-        }
-
-        /* ── Use-case tabs ── */
-        .uc-tab {
-            padding: 9px 18px;
-            border-radius: 999px;
-            font-size: 13px;
-            font-weight: 600;
-            color: #6B7280;
-            border: 1.5px solid #E5E7EB;
-            background: #fff;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: all .2s ease;
-            flex-shrink: 0;
-        }
-        .uc-tab:hover:not(.active) { border-color: #F93B7A; color: #F93B7A; }
-        .uc-tab.active {
-            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-            color: #fff;
-            border-color: transparent;
-            box-shadow: 0 6px 18px rgba(249,59,122,0.28);
-        }
-
-        .uc-tabs-row {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding: 4px 0 8px;
-            scroll-snap-type: x mandatory;
-            -webkit-overflow-scrolling: touch;
-        }
-        .uc-tabs-row .uc-tab { scroll-snap-align: start; }
-
-        /* ── UC card visual ── */
-        .uc-visual {
-            position: relative;
-            border-radius: 28px;
-            overflow: hidden;
-            aspect-ratio: 4/3;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 14px 40px rgba(249,59,122,0.18);
-            transition: background 360ms ease;
-        }
-        @media (min-width: 768px) {
-            .uc-visual { aspect-ratio: 5/4; }
-        }
-        .uc-deco-circle {
-            position: absolute;
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .check-row {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-        }
-        .check-mark {
-            width: 22px; height: 22px;
-            border-radius: 999px;
-            background: rgba(249,59,122,0.10);
-            color: #F93B7A;
-            display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
-        /* ── Templates ── */
-        .tpl-card {
-            border-radius: 22px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 220ms ease, box-shadow 220ms ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-            background: #fff;
-            display: flex;
-            flex-direction: column;
-        }
-        .tpl-card:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(249,59,122,0.18); }
-        .tpl-preview {
-            position: relative;
-            aspect-ratio: 3/4;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .tpl-meta {
-            padding: 14px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        /* ── FAQ ── */
-        .faq-body {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 320ms ease;
-        }
-        .faq-body.open { max-height: 360px; }
-        .faq-chevron { transition: transform 250ms ease; }
-
-        /* ── Mobile menu ── */
-        .mob-menu {
-            position: fixed;
-            top: 64px; left: 0; right: 0;
-            background: #fff;
-            z-index: 800;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 280ms cubic-bezier(0.33,1,0.68,1);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-        }
-        .mob-menu.open { max-height: 360px; }
-        .mob-menu a {
-            display: block;
-            padding: 14px 24px;
-            font-size: 16px;
-            color: #374151;
-            font-weight: 500;
-            border-bottom: 1px solid #F9FAFB;
-        }
-
-        /* ── Auth bottom sheet ── */
-        .auth-backdrop {
-            position: fixed; inset: 0;
-            background: rgba(0,0,0,0.42);
-            z-index: 9000;
-            opacity: 0; pointer-events: none;
-            transition: opacity 260ms ease;
-        }
-        .auth-backdrop.open { opacity: 1; pointer-events: auto; }
-
-        .auth-sheet {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: #fff;
-            border-radius: 24px 24px 0 0;
-            padding: 24px 24px 32px;
-            padding-bottom: max(32px, calc(env(safe-area-inset-bottom) + 24px));
-            z-index: 9100;
-            transform: translateY(100%);
-            transition: transform 320ms cubic-bezier(0.32,0,0.67,0);
-            max-width: 480px;
-            margin: 0 auto;
-        }
-        .auth-sheet.open {
-            transform: translateY(0);
-            transition-timing-function: cubic-bezier(0.33,1,0.68,1);
-        }
-
-        .auth-handle {
-            width: 36px; height: 4px;
-            background: #E5E7EB;
-            border-radius: 999px;
-            margin: 0 auto 22px;
-        }
-
-        .phone-input {
-            width: 100%;
-            height: 52px;
-            border: 1.5px solid #E5E7EB;
-            border-radius: 14px;
-            padding: 0 16px;
-            font-size: 16px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 200ms, box-shadow 200ms;
-        }
-        .phone-input:focus {
-            border-color: #F93B7A;
-            box-shadow: 0 0 0 3px rgba(249,59,122,0.10);
-        }
-
-        /* ── Reveal on scroll ── */
-        .reveal {
-            opacity: 0;
-            transform: translateY(28px);
-            transition: opacity .7s ease, transform .7s ease;
-        }
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .reveal-d1 { transition-delay: .08s; }
-        .reveal-d2 { transition-delay: .16s; }
-        .reveal-d3 { transition-delay: .24s; }
-
-        /* ── Fade-up animation (hero) ── */
-        @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(22px); }
-            to   { opacity: 1; transform: translateY(0); }
-        }
-        .fu   { animation: fadeUp 0.5s ease both; }
-        .fu-1 { animation-delay: 0.08s; }
-        .fu-2 { animation-delay: 0.17s; }
-        .fu-3 { animation-delay: 0.26s; }
-        .fu-4 { animation-delay: 0.35s; }
-
-        @media (prefers-reduced-motion: reduce) {
-            .fu, .reveal { animation: none; transition: none; opacity: 1; transform: none; }
-            *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
-        }
-
-        /* ── Section header ── */
-        .sec-eyebrow {
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.22em;
-            text-transform: uppercase;
-            color: #C71F5C;
-        }
-        .sec-h2 {
-            font-size: 28px;
-            font-weight: 700;
-            color: #111827;
-            line-height: 1.2;
-            letter-spacing: -0.01em;
-        }
-        @media (min-width: 768px) {
-            .sec-h2 { font-size: 38px; }
-        }
-        .sec-sub {
-            font-size: 14px;
-            color: #6B7280;
-            line-height: 1.6;
-        }
-
-        /* ── Marquee/trust strip ── */
-        .marquee {
-            overflow: hidden;
-            position: relative;
-            mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-            -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
-        }
-        .marquee-track {
-            display: flex;
-            gap: 36px;
-            width: max-content;
-            animation: marqueeX 32s linear infinite;
-            padding: 6px 0;
-        }
-        @keyframes marqueeX {
-            from { transform: translateX(0); }
-            to   { transform: translateX(-50%); }
-        }
-        .marquee-item {
-            font-size: 13px;
-            color: #9CA3AF;
-            font-weight: 600;
-            white-space: nowrap;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .marquee-item::after {
-            content: '✦';
-            color: #F93B7A;
-            font-size: 11px;
-            margin-left: 32px;
-        }
-
-        /* ── Avatar ── */
-        .avatar {
-            width: 40px; height: 40px;
-            border-radius: 999px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        /* ── Final CTA card ── */
-        .cta-card {
-            background: linear-gradient(140deg, #F93B7A 0%, #FF6D45 100%);
-            border-radius: 28px;
-            padding: 40px 28px;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(249,59,122,0.32);
-        }
-        @media (min-width: 768px) {
-            .cta-card { padding: 60px 56px; border-radius: 36px; }
-        }
-        .cta-card::before {
-            content: '';
-            position: absolute;
-            top: -100px; right: -80px;
-            width: 320px; height: 320px;
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-        .cta-card::after {
-            content: '';
-            position: absolute;
-            bottom: -120px; left: -100px;
-            width: 360px; height: 360px;
-            border: 1px solid rgba(255,255,255,0.12);
-            border-radius: 50%;
-            pointer-events: none;
-        }
-
-        /* ── Review carousel dots ── */
-        .review-dot {
-            width: 8px; height: 8px;
-            border-radius: 999px;
-            background: #E5E7EB;
-            border: none;
-            cursor: pointer;
-            transition: background 200ms, width 200ms;
-            padding: 0;
-        }
-        .review-dot.active {
-            background: #F93B7A;
-            width: 20px;
-        }
-
-        /* ── Hero gradient text ── */
-        .grad-text {
-            background: linear-gradient(135deg, #F93B7A 0%, #FF6D45 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            color: transparent;
-        }
+        :root{--color-bg:#FAFAF8;--color-bg-elevated:#fff;--color-surface:#fff;--color-text:#1E2820;--color-text-secondary:#6B6860;--color-text-muted:#9C968A;--color-accent:#F93B7A;--color-accent-2:#FF6D45;--color-border-strong:#E8E4DE;--color-border:rgba(232,228,222,.8);--color-dark:#1E2820;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-serif:'Cormorant Garamond',Georgia,serif}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html{font-size:16px;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;scroll-behavior:smooth}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--color-text);background:#fff;min-height:100dvh;line-height:1.5;overscroll-behavior-y:none}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}img,svg{display:block;max-width:100%;height:auto}.bg-glow{background:#fff;background-image:radial-gradient(ellipse 70% 50% at 85% 0%,rgba(249,59,122,.07) 0%,transparent 70%),radial-gradient(ellipse 55% 40% at 15% 95%,rgba(249,59,122,.05) 0%,transparent 65%)}
+        header{position:sticky;top:0;z-index:100;height:64px;background:rgba(255,255,255,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(243,244,246,.72)}.mob-menu{position:fixed;top:64px;left:0;right:0;background:#fff;z-index:800;max-height:0;overflow:hidden;transition:max-height .28s cubic-bezier(.33,1,.68,1);box-shadow:0 8px 32px rgba(0,0,0,.08)}.mob-menu.open{max-height:360px}.mob-menu a{display:block;padding:14px 24px;font-size:16px;color:var(--color-text);font-weight:500;border-bottom:1px solid var(--color-border-strong)}
+        .max-w-6xl{max-width:72rem}.max-w-sm{max-width:24rem}.max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}.h-full{height:100%}.w-full{width:100%}.flex{display:flex}.inline-flex{display:inline-flex}.block{display:block}.hidden{display:none}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.flex-shrink-0{flex-shrink:0}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-7{gap:1.75rem}.gap-\[5px\]{gap:5px}.gap-x-5{column-gap:1.25rem}.gap-y-2{row-gap:.5rem}.text-center{text-align:center}.cursor-pointer{cursor:pointer}.overflow-hidden{overflow:hidden}.sticky{position:sticky}.top-0{top:0}.z-50{z-index:50}
+        .px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-7{padding-left:1.75rem;padding-right:1.75rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-\[13px\]{padding-top:13px;padding-bottom:13px}.py-\[14px\]{padding-top:14px;padding-bottom:14px}.p-2{padding:.5rem}.pt-3{padding-top:.75rem}.pb-8{padding-bottom:2rem}.pb-3{padding-bottom:.75rem}.mb-5{margin-bottom:1.25rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-7{margin-top:1.75rem}
+        .text-sm{font-size:.875rem;line-height:1.25rem}.text-\[11px\]{font-size:11px}.text-\[12px\]{font-size:12px}.text-\[14px\]{font-size:14px}.text-\[15px\]{font-size:15px}.text-\[17px\]{font-size:17px}.text-\[34px\]{font-size:34px}.font-medium{font-weight:500}.font-semibold{font-weight:600}.font-bold{font-weight:700}.leading-\[1\.05\]{line-height:1.05}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.tracking-tight{letter-spacing:0}.text-gray-500{color:#6B7280}.text-gray-700{color:#374151}.text-gray-900{color:#111827}.text-white{color:#fff}.rounded-full{border-radius:9999px}.bg-gray-700{background:#374151}.border-b{border-bottom-width:1px}.border-gray-100\/70{border-color:rgba(243,244,246,.7)}.w-\[22px\]{width:22px}.h-\[2px\]{height:2px}.object-contain{object-fit:contain}
+        .btn-pink{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);color:#fff;border-radius:999px;font-weight:600;box-shadow:0 6px 24px rgba(249,59,122,.28);transition:box-shadow .2s ease,transform .2s ease}.btn-pink:active{transform:translateY(0);box-shadow:0 4px 14px rgba(249,59,122,.25)}.btn-outline-pink{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:transparent;color:#F93B7A;border:1.5px solid #F93B7A;border-radius:999px;font-weight:500}.grad-text{background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent}.feat-box{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:#FFF0F6}.fu{opacity:1;transform:none;animation:none}
+        [data-l-section="hero"]{min-height:420px}[data-l-section="hero"]>div{min-height:320px}[data-l-section="miniFeatures"]{display:flex}.max-w-2xl,.max-w-lg{width:100%}
+        @media (min-width:640px){.sm\:inline-flex{display:inline-flex}.sm\:flex-row{flex-direction:row}}
+        @media (min-width:768px){.md\:flex{display:flex}.md\:hidden{display:none}.md\:block{display:block}.md\:max-w-2xl{max-width:42rem}.md\:max-w-lg{max-width:32rem}.md\:mt-5{margin-top:1.25rem}.md\:text-\[13px\]{font-size:13px}.md\:text-\[15px\]{font-size:15px}.md\:text-\[17px\]{font-size:17px}.md\:text-\[56px\]{font-size:56px}}
+        .text-gray-400{color:#64748b}.text-emerald-600{color:#047857}.bg-orange-500{background-color:#c2410c}.btn-outline-pink{color:#C71F5C;border-color:#C71F5C}
+        @keyframes tlIntroFade{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:translate3d(0,0,0)}}@keyframes tlIntroPhone{from{opacity:0;transform:translate(-50%,-45%) scale(.7)}to{opacity:1;transform:translate(-50%,-50%) scale(.75)}}@keyframes tlIntroGlow{from{opacity:0;transform:translate(-50%,-50%) scale(.9)}to{opacity:.7;transform:translate(-50%,-50%) scale(1)}}@keyframes tlIntroBadgeHeart{from{opacity:0;transform:translate3d(-10px,10px,0) scale(.88) rotate(-10deg)}to{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(-5deg)}}@keyframes tlIntroBadgePeople{from{opacity:0;transform:translate3d(10px,14px,0) scale(.88) rotate(10deg)}to{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(5deg)}}html.landing-intro .fu{opacity:0;transform:translate3d(0,14px,0);will-change:opacity,transform}html.landing-intro.intro-ready .fu{animation:tlIntroFade .58s cubic-bezier(.22,1,.36,1) forwards}html.landing-intro.intro-ready .fu-1{animation-delay:.07s}html.landing-intro.intro-ready .fu-2{animation-delay:.15s}html.landing-intro.intro-ready .fu-3{animation-delay:.23s}html.landing-intro.intro-ready .fu-4{animation-delay:.31s}html.landing-intro .iphone-scene{opacity:0;transform:translate(-50%,-45%) scale(.7);will-change:opacity,transform}html.landing-intro.intro-ready .iphone-scene{animation:tlIntroPhone .82s cubic-bezier(.16,1,.3,1) .22s forwards}html.landing-intro .iphone-bg-circle{opacity:0;transform:translate(-50%,-50%) scale(.9);will-change:opacity,transform}html.landing-intro.intro-ready .iphone-bg-circle{animation:tlIntroGlow .82s ease-out .12s forwards}html.landing-intro .ip-badge{opacity:0;will-change:opacity,transform}html.landing-intro.intro-ready .ip-badge-heart{animation:tlIntroBadgeHeart .62s cubic-bezier(.22,1,.36,1) .66s forwards}html.landing-intro.intro-ready .ip-badge-people{animation:tlIntroBadgePeople .62s cubic-bezier(.22,1,.36,1) .74s forwards}@media (prefers-reduced-motion:reduce){html.landing-intro .fu,html.landing-intro .iphone-scene,html.landing-intro .iphone-bg-circle,html.landing-intro .ip-badge{opacity:1;animation:none;will-change:auto}html.landing-intro .fu{transform:none}html.landing-intro .iphone-scene{transform:translate(-50%,-50%) scale(.75)}html.landing-intro .iphone-bg-circle{transform:translate(-50%,-50%) scale(1)}html.landing-intro .ip-badge-heart{transform:rotate(-5deg)}html.landing-intro .ip-badge-people{transform:rotate(5deg)}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
     </style>
 </head>
 
@@ -766,7 +74,7 @@
     <div class="max-w-6xl mx-auto px-4 h-full flex items-center justify-between gap-4">
 
         <a href="/" class="flex items-center gap-2 flex-shrink-0" aria-label="ToiLink — главная">
-            <img src="/images/logo.webp" alt="" width="30" height="30" style="display:block; object-fit:contain;" />
+            <img src="/images/logo-96.webp" alt="" width="30" height="22" decoding="async" style="display:block; object-fit:contain;" />
             <span class="font-bold text-[17px] text-gray-900 tracking-tight">ToiLink</span>
         </a>
 
@@ -809,27 +117,29 @@
 </header>
 
 
+<main id="main-content">
+
 <!-- ═══════════════════════════════════════
      HERO
 ═══════════════════════════════════════ -->
-<section class="pt-3 pb-8 px-5 text-center" data-l-section="hero">
-    <div class="max-w-sm md:max-w-2xl mx-auto">
+<section class="pt-3 pb-8 px-5 text-center" data-l-section="hero" style="min-height:420px">
+    <div class="max-w-sm md:max-w-2xl mx-auto" style="min-height:320px">
 
         <div class="flex justify-center mb-5 fu">
             <span style="display:inline-flex;align-items:center;gap:8px;background:#fff;border:1px solid rgba(249,59,122,0.18);box-shadow:0 4px 14px rgba(249,59,122,0.06);color:#111;border-radius:999px;padding:6px 14px;font-size:12px;font-weight:600;">
                 <span style="display:inline-flex;color:#F59E0B;font-size:11px;letter-spacing:1px;">★★★★★</span>
-                <span style="color:#E5E7EB;">|</span>
-                <span>4.9 · 1 200+ семей в Бишкеке</span>
+                <span style="color:var(--color-border-strong);">|</span>
+                <span data-l-hero-badge-text>4.9 · 1 200+ семей в Бишкеке</span>
             </span>
         </div>
 
         <h1 class="text-[34px] md:text-[56px] font-semibold leading-[1.05] tracking-tight fu fu-1">
-            <span class="text-gray-900">Той вашей мечты —</span><br/>
-            <span class="grad-text">в одной ссылке</span>
+            <span class="text-gray-900">Приглашение, RSVP и гости</span><br/>
+            <span class="grad-text">для тоя в одной ссылке</span>
         </h1>
 
         <p class="mt-4 md:mt-5 text-[14px] md:text-[17px] text-gray-500 leading-relaxed fu fu-2 max-w-md md:max-w-lg mx-auto">
-            Красивое приглашение, RSVP и список гостей — за 5 минут.<br class="hidden md:block"/>
+            Красивое приглашение, ответы гостей и рассадка по столикам — всё в одном кабинете.<br class="hidden md:block"/>
             Гостям не нужно скачивать приложение или регистрироваться.
         </p>
 
@@ -838,10 +148,10 @@
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
                 </svg>
-                Создать бесплатно
+                <span data-l-hero-primary-cta>Создать бесплатно</span>
             </button>
             <a href="#templates" class="btn-outline-pink px-7 py-[13px] text-[14px] md:text-[15px]" style="border-radius:14px;">
-                Посмотреть шаблоны
+                <span data-l-hero-secondary-cta>Посмотреть шаблоны</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
         </div>
@@ -909,7 +219,7 @@
 <!-- ═══════════════════════════════════════
      iPHONE 17 PRO MOCKUP
 ═══════════════════════════════════════ -->
-<section class="pb-6 overflow-hidden" style="position: relative; z-index: 50;" data-l-section="phoneMockup">
+<section class="pb-6 overflow-hidden" style="position:relative;z-index:50;min-height:640px" data-l-section="phoneMockup">
     <div class="iphone-scene-wrap">
         <div class="iphone-bg-circle"></div>
         <div class="iphone-scene">
@@ -917,47 +227,8 @@
             <div class="iphone-shell">
                 <div class="iphone-screen">
                     <div class="ip-dynamic-island"></div>
-
-                    <div class="ip-status">
-                        <span>9:41</span>
-                        <div class="ip-status-right">
-                            <svg width="14" height="9" viewBox="0 0 18 12" fill="currentColor"><path d="M1 9h2v3H1zM5 7h2v5H5zM9 4h2v8H9zM13 1h2v11h-2z"/></svg>
-                            <svg width="13" height="9" viewBox="0 0 18 14" fill="currentColor"><path d="M9 14a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm-3.75-3.5l1.5 1.5a3.182 3.182 0 014.5 0l1.5-1.5a5.318 5.318 0 00-7.5 0zM2.25 7.75l1.5 1.5a7.455 7.455 0 0110.5 0l1.5-1.5a9.591 9.591 0 00-13.5 0zM0 5.5L1.5 7a10.605 10.605 0 0115 0L18 5.5a12.737 12.737 0 00-18 0z"/></svg>
-                            <svg width="22" height="10" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="2.5" stroke="currentColor"/><rect x="2" y="2" width="15" height="8" rx="1" fill="currentColor"/><rect x="23.5" y="4" width="1.5" height="4" rx="0.6" fill="currentColor"/></svg>
-                        </div>
-                    </div>
-
-                    <div class="ip-content">
-                        <div style="font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; color:#b08a48; letter-spacing:1.6px; text-transform:uppercase; margin-top:8px;">Сердечно приглашаем</div>
-
-                        <div class="ip-names">Айбек <span class="amp">&amp;</span> Айгуль</div>
-                        <div class="ip-date">— 23 мая 2026 —</div>
-
-                        <div class="ip-photo-wrap">
-                            <div class="ip-photo-circle">
-                                <span style="font-family:'Cormorant Garamond',serif; font-size:40px; font-weight:600; color:#b08a48; font-style:italic; letter-spacing:0.5px;">А&amp;А</span>
-                            </div>
-                        </div>
-
-                        <div class="ip-countdown">
-                            <div class="ip-cd-block">
-                                <div class="ip-cd-num">19</div>
-                                <span class="ip-cd-lbl">ДНЕЙ</span>
-                            </div>
-                            <div class="ip-cd-sep">•</div>
-                            <div class="ip-cd-block">
-                                <div class="ip-cd-num">14</div>
-                                <span class="ip-cd-lbl">ЧАСОВ</span>
-                            </div>
-                            <div class="ip-cd-sep">•</div>
-                            <div class="ip-cd-block">
-                                <div class="ip-cd-num">32</div>
-                                <span class="ip-cd-lbl">МИНУТ</span>
-                            </div>
-                        </div>
-
-                        <div class="ip-rsvp">Подтвердить участие</div>
-                        <div class="ip-skip">Не смогу прийти</div>
+                    <div class="ip-content" style="overflow:hidden;padding:0">
+                        <img src="/images/template-1-mockup.webp" class="ip-screenshot" alt="Превью приглашения" style="width:100%;height:100%;display:block;object-fit:cover;animation:phoneScroll 8s ease-in-out infinite alternate;">
                     </div>
                 </div>
             </div>
@@ -984,7 +255,7 @@
 <!-- ═══════════════════════════════════════
      STATS CARD
 ═══════════════════════════════════════ -->
-<section class="px-5 pb-6 pt-4" style="background: transparent; position: relative; z-index: 60; margin-top: -430px;" data-l-section="stats">
+<section class="px-5 pb-6 pt-4" style="background: transparent; position: relative; z-index: 60; margin-top: -330px;" data-l-section="stats">
     <div class="max-w-sm mx-auto">
         <div class="stats-card p-5"> <!-- Увеличил padding для «воздуха» -->
 
@@ -1473,7 +744,7 @@
         </div>
 
         <div class="text-center mt-10 reveal">
-            <a href="/templates/template-1/index.html" class="btn-outline-pink px-7 py-3 text-[14px]">
+            <a href="/templates.html" class="btn-outline-pink px-7 py-3 text-[14px]">
                 Смотреть все 12 шаблонов
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F93B7A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </a>
@@ -1551,21 +822,22 @@
      PRICING
 ═══════════════════════════════════════ -->
 <section id="pricing" class="py-14 md:py-20 px-5" style="background: #FFF5F8;" data-l-section="pricing">
-    <div class="max-w-4xl mx-auto">
+    <div class="max-w-5xl mx-auto">
         <div class="text-center mb-10 reveal">
             <div class="sec-eyebrow mb-2">Тарифы</div>
             <h2 class="sec-h2">Простые <span class="grad-text">и честные</span> цены</h2>
-            <p class="sec-sub mt-3">Начните бесплатно. Премиум — один раз для одного события, без подписок.</p>
+            <p class="sec-sub mt-3">Начните бесплатно. Платный тариф — один раз для одного события, без подписок.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-5 md:gap-6 max-w-3xl mx-auto">
+        <div class="grid md:grid-cols-3 gap-5 md:gap-6">
 
+            <!-- Старт -->
             <div class="card-white p-6 md:p-8 reveal reveal-d1 flex flex-col">
                 <div class="flex items-baseline justify-between mb-1">
                     <h3 class="text-[18px] font-bold text-gray-900">Старт</h3>
                     <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">бесплатно</span>
                 </div>
-                <p class="text-[13px] text-gray-500 mb-6">Попробовать без риска</p>
+                <p class="text-[13px] text-gray-500 mb-6">Попробовать и показать близким</p>
 
                 <div class="flex items-baseline gap-1 mb-1">
                     <span class="text-[40px] font-extrabold text-gray-900 leading-none">0</span>
@@ -1576,74 +848,110 @@
                 <ul class="space-y-3 mb-7 flex-1">
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        До 50 гостей
+                        Одна ссылка для всех
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        RSVP-кнопки и список гостей
+                        До 30 гостей
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                        3 базовых шаблона
+                        RSVP
                     </li>
                     <li class="flex items-start gap-2.5 text-[13.5px] text-gray-400">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D1D5DB" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Маленький логотип ToiLink
+                        Логотип ToiLink в footer
                     </li>
                 </ul>
 
                 <button onclick="openAuth()" class="btn-outline-pink w-full py-3 text-[14px]" style="border-radius:14px;">
-                    Начать бесплатно
+                    Опубликовать бесплатно
                 </button>
             </div>
 
-            <div class="reveal reveal-d2 relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">
-                <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:#111827;letter-spacing:0.12em;">
-                    ★ выбирают 87%
+            <!-- Той -->
+            <div class="card-white p-6 md:p-8 reveal reveal-d2 flex flex-col">
+                <div class="flex items-baseline justify-between mb-1">
+                    <h3 class="text-[18px] font-bold text-gray-900">Той</h3>
+                    <span class="text-[11px] uppercase tracking-wider text-gray-400 font-bold">одно событие</span>
+                </div>
+                <p class="text-[13px] text-gray-500 mb-6">Красивое приглашение по одной ссылке</p>
+
+                <div class="flex items-baseline gap-2 mb-1">
+                    <span class="text-[40px] font-extrabold text-gray-900 leading-none">890</span>
+                    <span class="text-[14px] font-medium text-gray-400">сом</span>
+                    <span class="text-[14px] text-gray-400 line-through ml-1">1 290</span>
+                </div>
+                <div class="text-[12px] text-gray-400 mb-6">разово за всё событие</div>
+
+                <ul class="space-y-3 mb-7 flex-1">
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        До 150 гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Все шаблоны, карта, музыка
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Список ответов гостей
+                    </li>
+                    <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Без логотипа ToiLink
+                    </li>
+                </ul>
+
+                <button onclick="openAuth()" class="btn-outline-pink w-full py-3.5 text-[14px]" style="border-radius:14px;">
+                    Выбрать Той
+                </button>
+            </div>
+
+            <!-- Toi Pro -->
+            <div class="reveal reveal-d3 relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">
+                <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:var(--color-dark);letter-spacing:0.12em;">
+                    Рекомендуем от 100 гостей
                 </div>
                 <div class="bg-white p-6 md:p-8 flex flex-col h-full" style="border-radius:18px;">
                     <div class="flex items-baseline justify-between mb-1">
-                        <h3 class="text-[18px] font-bold text-gray-900">Премиум</h3>
-                        <span class="text-[11px] uppercase tracking-wider font-bold" style="color:#C71F5C;">для тоя</span>
+                        <h3 class="text-[18px] font-bold text-gray-900">Toi Pro</h3>
+                        <span class="text-[11px] uppercase tracking-wider font-bold" style="color:#C71F5C;">для свадьбы и тоя</span>
                     </div>
-                    <p class="text-[13px] text-gray-500 mb-6">Идеально для большого события</p>
+                    <p class="text-[13px] text-gray-500 mb-6">Гости, персональные ссылки и столики</p>
 
                     <div class="flex items-baseline gap-2 mb-1">
-                        <span class="text-[40px] font-extrabold text-gray-900 leading-none">990</span>
+                        <span class="text-[40px] font-extrabold text-gray-900 leading-none">1 990</span>
                         <span class="text-[14px] font-medium text-gray-400">сом</span>
-                        <span class="text-[14px] text-gray-400 line-through ml-1">1 990</span>
+                        <span class="text-[14px] text-gray-400 line-through ml-1">2 990</span>
                     </div>
-                    <div class="text-[12px] mb-6" style="color:#C71F5C;font-weight:600;">разово за всё событие · скидка 50%</div>
+                    <div class="text-[12px] mb-6" style="color:#C71F5C;font-weight:600;">разово за всё событие</div>
 
                     <ul class="space-y-3 mb-7 flex-1">
-                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-900 font-semibold">
+                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Гостей — без ограничений
+                            Всё из тарифа «Той»
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Все 12 премиум-шаблонов
+                            Персональные ссылки гостям
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Без водяного знака
+                            Рассадка по столикам
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Экспорт списка гостей в Excel
+                            Excel для банкетного зала
                         </li>
                         <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Уведомления о новых RSVP
-                        </li>
-                        <li class="flex items-start gap-2.5 text-[13.5px] text-gray-700">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>
-                            Поддержка 24/7 в WhatsApp
+                            Группы и стороны гостей
                         </li>
                     </ul>
 
                     <button onclick="openAuth()" class="btn-pink w-full py-3.5 text-[14px]" style="border-radius:14px;">
-                        Создать приглашение
+                        Выбрать Toi Pro
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                     <p class="text-[11px] text-center text-gray-400 mt-3">Mbank · O!Dengi · Visa · MasterCard</p>
@@ -1682,41 +990,41 @@
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Чем Той отличается от Toi Pro?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Той — одно красивое приглашение для всех гостей по одной ссылке, до 150 гостей. Toi Pro — полный кабинет организатора для большого события: персональные ссылки каждому гостю, рассадка по столикам, группы гостей и Excel для банкетного зала.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Можно ли начать бесплатно?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Тариф «Старт» бесплатный: до 30 гостей, RSVP и базовые шаблоны. Создайте приглашение, увидьте результат — и только потом решайте, нужен ли платный тариф.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
+                    Можно ли перейти на Toi Pro позже?
+                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div class="faq-body">
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Напишите нам в WhatsApp — переведём вас на Toi Pro вручную. Ссылка для гостей при этом не изменится.</p>
+                </div>
+            </div>
+
+            <div class="card-white overflow-hidden">
+                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
                     Нужно ли гостям скачивать приложение?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
                     <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Нет. Гость получает ссылку, открывает её в браузере и видит красивое приглашение. Никаких скачиваний, регистраций и лишних шагов.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Как гости подтверждают участие?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На странице приглашения есть кнопки «Буду» и «Не смогу». Гость нажимает, и вы сразу видите ответ в личном кабинете. Можно также указать количество сопровождающих.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Можно ли изменить приглашение после публикации?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Да. Вы можете редактировать текст, дату и место в любое время. Все уже отправленные ссылки автоматически покажут обновлённую информацию — ссылку заново рассылать не нужно.</p>
-                </div>
-            </div>
-
-            <div class="card-white overflow-hidden">
-                <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Сколько гостей можно добавить?
-                    <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                </button>
-                <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">На бесплатном тарифе — до 50 гостей. На Премиум — неограниченно. Для большого тоя рекомендуем Премиум — там нет ограничений.</p>
                 </div>
             </div>
 
@@ -1732,11 +1040,11 @@
 
             <div class="card-white overflow-hidden">
                 <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                    Как оплатить Премиум?
+                    Как оплатить тариф?
                     <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
                 </button>
                 <div class="faq-body">
-                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается моментально после подтверждения платежа.</p>
+                    <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается в течение нескольких часов после подтверждения платежа.</p>
                 </div>
             </div>
 
@@ -1797,6 +1105,8 @@
 </section>
 
 
+</main>
+
 <!-- ═══════════════════════════════════════
      FOOTER
 ═══════════════════════════════════════ -->
@@ -1805,7 +1115,7 @@
         <div class="grid md:grid-cols-4 gap-8">
             <div class="md:col-span-2">
                 <div class="flex items-center gap-2 mb-3">
-                    <img src="/images/logo.webp" alt="" width="28" height="28" style="display:block; object-fit:contain;" />
+                        <img src="/images/logo-96.webp" alt="" width="28" height="20" loading="lazy" decoding="async" style="display:block; object-fit:contain;" />
                     <span class="font-bold text-[18px] text-gray-900">ToiLink</span>
                 </div>
                 <p class="text-[13px] text-gray-500 leading-relaxed max-w-sm">Цифровые приглашения для особых моментов вашей жизни — свадьба, той, юбилей, день рождения.</p>
@@ -1861,419 +1171,8 @@
 <!-- ═══════════════════════════════════════
      SCRIPTS
 ═══════════════════════════════════════ -->
-<script>
-    window.__landingConfig = null;
-
-    function lEsc(value) {
-        return String(value ?? '').replace(/[&<>"']/g, ch => ({
-            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-        }[ch]));
-    }
-
-    function lLines(value) {
-        return lEsc(value).replace(/\n/g, '<br/>');
-    }
-
-    function lSetText(selector, value) {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) el.textContent = value;
-    }
-
-    function lSetHtml(selector, value) {
-        const el = document.querySelector(selector);
-        if (el && value !== undefined && value !== null) el.innerHTML = lLines(value);
-    }
-
-    function lSection(name) {
-        return document.querySelector(`[data-l-section="${name}"]`);
-    }
-
-    function lApplySectionVisibility(sections = {}) {
-        Object.entries(sections).forEach(([name, enabled]) => {
-            const el = lSection(name);
-            if (el) el.style.display = enabled === false ? 'none' : '';
-        });
-    }
-
-    function lApplyMeta(meta = {}) {
-        if (meta.title) document.title = meta.title;
-        const desc = document.querySelector('meta[name="description"]');
-        const ogTitle = document.querySelector('meta[property="og:title"]');
-        const ogDesc = document.querySelector('meta[property="og:description"]');
-        if (desc && meta.description) desc.setAttribute('content', meta.description);
-        if (ogTitle && meta.ogTitle) ogTitle.setAttribute('content', meta.ogTitle);
-        if (ogDesc && meta.ogDescription) ogDesc.setAttribute('content', meta.ogDescription);
-    }
-
-    function lApplyHero(hero = {}) {
-        lSetText('[data-l-section="hero"] .fu span:last-child', hero.badge);
-        lSetText('[data-l-section="hero"] h1 span.text-gray-900', hero.titleTop);
-        lSetText('[data-l-section="hero"] h1 .grad-text', hero.titleAccent);
-        lSetHtml('[data-l-section="hero"] p.fu-2', hero.subtitle);
-        lSetText('[data-l-section="hero"] .btn-pink', hero.primaryCta);
-        const secondary = document.querySelector('[data-l-section="hero"] .btn-outline-pink');
-        if (secondary && hero.secondaryCta) secondary.childNodes[0].textContent = hero.secondaryCta + ' ';
-        if (Array.isArray(hero.bullets)) {
-            const wrap = document.querySelector('[data-l-section="hero"] .fu-4');
-            if (wrap) wrap.innerHTML = hero.bullets.map(item => `
-                <span class="inline-flex items-center gap-1.5">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    ${lEsc(item)}
-                </span>
-            `).join('');
-        }
-    }
-
-    function lApplyMiniFeatures(items) {
-        if (!Array.isArray(items)) return;
-        document.querySelectorAll('[data-l-section="miniFeatures"] > div span').forEach((el, i) => {
-            if (items[i]?.title) el.innerHTML = lLines(items[i].title);
-        });
-    }
-
-    function lApplyStats(stats = {}) {
-        lSetHtml('[data-l-section="stats"] .text-\\[11px\\].text-gray-800', stats.socialProof);
-        if (Array.isArray(stats.items)) {
-            document.querySelectorAll('[data-l-section="stats"] .grid.grid-cols-3 > div').forEach((el, i) => {
-                const item = stats.items[i];
-                if (!item) return;
-                const valueEl = el.querySelector('div:first-child');
-                const labelEl = el.querySelector('div:last-child');
-                if (valueEl) valueEl.textContent = item.value || '';
-                if (labelEl) labelEl.textContent = item.label || '';
-            });
-        }
-    }
-
-    function lRenderTrust(items) {
-        if (!Array.isArray(items)) return;
-        const track = document.querySelector('[data-l-section="trust"] .marquee-track');
-        if (!track) return;
-        const doubled = items.concat(items);
-        track.innerHTML = doubled.map(item => `<span class="marquee-item">${lEsc(item)}</span>`).join('');
-    }
-
-    function lTitleHtml(value) {
-        const text = String(value || '');
-        const parts = text.split(' ');
-        if (parts.length < 2) return lEsc(text);
-        const accent = parts.slice(Math.ceil(parts.length / 2)).join(' ');
-        const lead = parts.slice(0, Math.ceil(parts.length / 2)).join(' ');
-        return `${lEsc(lead)} <span class="grad-text">${lEsc(accent)}</span>`;
-    }
-
-    function lRenderCategories(categories = {}) {
-        const section = lSection('categories');
-        if (!section) return;
-        lSetText('[data-l-section="categories"] .sec-eyebrow', categories.eyebrow);
-        if (categories.title) section.querySelector('.sec-h2').innerHTML = lTitleHtml(categories.title);
-        const grid = section.querySelector('.grid');
-        if (grid && Array.isArray(categories.items)) {
-            grid.innerHTML = categories.items.map(item => `
-                <div onclick="openAuth()" role="button" tabindex="0" class="cat-card cursor-pointer rounded-2xl p-5 flex flex-col gap-3 transition-all hover:-translate-y-1" style="background:linear-gradient(135deg,#FFF0F6 0%,#FFFAF8 100%); border:1px solid rgba(249,59,122,0.12);">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style="background:rgba(249,59,122,0.10);">${lEsc(item.emoji || '✦')}</div>
-                    <div>
-                        <div class="font-semibold text-[14px] text-gray-900">${lEsc(item.title)}</div>
-                        <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">${lEsc(item.text)}</div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    }
-
-    function lApplyHow(how = {}) {
-        const section = lSection('how');
-        if (!section) return;
-        lSetText('[data-l-section="how"] .sec-eyebrow', how.eyebrow);
-        if (how.title) section.querySelector('.sec-h2').innerHTML = lTitleHtml(how.title);
-        lSetText('[data-l-section="how"] .sec-sub', how.subtitle);
-        lSetText('[data-l-section="how"] .btn-pink', how.cta);
-        if (Array.isArray(how.steps)) {
-            const grid = section.querySelector('.grid');
-            grid.innerHTML = how.steps.map((step, i) => `
-                <div class="card-white p-5 reveal reveal-d${(i % 3) + 1} visible">
-                    <div class="flex items-start gap-3">
-                        <div class="step-num">${i + 1}</div>
-                        <div>
-                            <h3 class="font-semibold text-gray-900 text-[15px]">${lEsc(step.title)}</h3>
-                            <p class="text-[13px] text-gray-500 mt-1 leading-relaxed">${lEsc(step.text)}</p>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
-        }
-    }
-
-    function lApplyFeatureCopy(features = {}) {
-        const section = lSection('features');
-        if (!section) return;
-        lSetText('[data-l-section="features"] .sec-eyebrow', features.eyebrow);
-        if (features.title) section.querySelector('.sec-h2').innerHTML = lTitleHtml(features.title);
-        lSetText('[data-l-section="features"] .sec-sub', features.subtitle);
-        if (Array.isArray(features.items)) {
-            section.querySelectorAll('.card-white:not(.overflow-hidden)').forEach((card, i) => {
-                const item = features.items[i];
-                if (!item) return;
-                const title = card.querySelector('h3');
-                const text = card.querySelector('p');
-                if (title) title.textContent = item.title || '';
-                if (text) text.textContent = item.text || '';
-            });
-        }
-        const highlight = section.querySelector('.col-span-2');
-        if (highlight) {
-            const h = highlight.querySelector('h3');
-            const p = highlight.querySelector('p');
-            const btn = highlight.querySelector('button');
-            if (h && features.highlightTitle) h.textContent = features.highlightTitle;
-            if (p && features.highlightText) p.textContent = features.highlightText;
-            if (btn && features.highlightCta) btn.childNodes[0].textContent = features.highlightCta + ' ';
-        }
-    }
-
-    function lApplySimpleHeader(sectionName, data = {}) {
-        const section = lSection(sectionName);
-        if (!section) return;
-        lSetText(`[data-l-section="${sectionName}"] .sec-eyebrow`, data.eyebrow);
-        const h = section.querySelector('.sec-h2');
-        if (h && data.title) h.innerHTML = lTitleHtml(data.title);
-        lSetText(`[data-l-section="${sectionName}"] .sec-sub`, data.subtitle);
-        const cta = section.querySelector('.btn-pink, .btn-outline-pink');
-        if (cta && data.cta) cta.childNodes[0].textContent = data.cta + ' ';
-    }
-
-    function lRenderReviews(reviews = {}) {
-        const section = lSection('reviews');
-        if (!section) return;
-        lSetText('[data-l-section="reviews"] .sec-eyebrow', reviews.eyebrow);
-        if (reviews.title) section.querySelector('.sec-h2').innerHTML = lTitleHtml(reviews.title);
-        const slides = document.getElementById('reviewSlides');
-        const dots = document.getElementById('reviewDots');
-        if (!slides || !dots || !Array.isArray(reviews.items)) return;
-        slides.innerHTML = reviews.items.map(item => `
-            <div class="review-slide card-white p-5 md:p-6" style="min-width:100%; box-sizing:border-box;">
-                <div class="flex items-center gap-1 mb-3" style="color:#F59E0B;">★★★★★</div>
-                <p class="text-[14px] md:text-[15px] leading-relaxed text-gray-800">«${lEsc(item.text)}»</p>
-                <div class="mt-5 pt-4 border-t border-gray-100 flex items-center gap-3">
-                    <div class="avatar" style="background:#FCE7F3; color:#9D174D;">${lEsc(item.avatar || 'T')}</div>
-                    <div>
-                        <div class="font-semibold text-[13px] text-gray-900">${lEsc(item.name)}</div>
-                        <div class="text-[11px] text-gray-500">${lEsc(item.meta)}</div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-        dots.innerHTML = reviews.items.map((_, i) => `<button onclick="reviewGoTo(${i})" class="review-dot" aria-label="Отзыв ${i + 1}"></button>`).join('');
-        const freshDots = dots.querySelectorAll('.review-dot');
-        window.reviewGoTo = (i) => {
-            const total = Math.max(1, freshDots.length);
-            const current = ((i % total) + total) % total;
-            slides.style.transform = 'translateX(-' + (current * 100) + '%)';
-            freshDots.forEach((d, idx) => d.classList.toggle('active', idx === current));
-        };
-        window.reviewGoTo(0);
-    }
-
-    function lRenderPricing(pricing = {}) {
-        const section = lSection('pricing');
-        if (!section) return;
-        lApplySimpleHeader('pricing', pricing);
-        const grid = section.querySelector('.grid.md\\:grid-cols-2');
-        if (grid && Array.isArray(pricing.plans)) {
-            grid.innerHTML = pricing.plans.map((plan, idx) => {
-                const premium = idx === 1;
-                const features = Array.isArray(plan.features) ? plan.features : [];
-                const card = `
-                    ${plan.badge ? `<div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase text-white whitespace-nowrap" style="background:#111827;letter-spacing:0.12em;">${lEsc(plan.badge)}</div>` : ''}
-                    <div class="bg-white p-6 md:p-8 flex flex-col h-full" style="border-radius:${premium ? '18px' : '20px'};">
-                        <div class="flex items-baseline justify-between mb-1">
-                            <h3 class="text-[18px] font-bold text-gray-900">${lEsc(plan.name)}</h3>
-                            <span class="text-[11px] uppercase tracking-wider font-bold ${premium ? '' : 'text-gray-400'}" style="${premium ? 'color:#C71F5C;' : ''}">${lEsc(plan.tag)}</span>
-                        </div>
-                        <p class="text-[13px] text-gray-500 mb-6">${lEsc(plan.description)}</p>
-                        <div class="flex items-baseline gap-2 mb-1">
-                            <span class="text-[40px] font-extrabold text-gray-900 leading-none">${lEsc(plan.price)}</span>
-                            <span class="text-[14px] font-medium text-gray-400">${lEsc(plan.currency)}</span>
-                            ${plan.oldPrice ? `<span class="text-[14px] text-gray-400 line-through ml-1">${lEsc(plan.oldPrice)}</span>` : ''}
-                        </div>
-                        <div class="text-[12px] mb-6" style="${premium ? 'color:#C71F5C;font-weight:600;' : ''}">${lEsc(plan.note)}</div>
-                        <ul class="space-y-3 mb-7 flex-1">
-                            ${features.map(f => `<li class="flex items-start gap-2.5 text-[13.5px] text-gray-700"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="flex-shrink-0 mt-0.5"><polyline points="20 6 9 17 4 12"/></svg>${lEsc(f)}</li>`).join('')}
-                        </ul>
-                        <button onclick="openAuth()" class="${premium ? 'btn-pink' : 'btn-outline-pink'} w-full py-3.5 text-[14px]" style="border-radius:14px;">${lEsc(plan.cta)}</button>
-                    </div>`;
-                return premium
-                    ? `<div class="reveal reveal-d2 visible relative" style="border-radius:20px;background:linear-gradient(135deg,#F93B7A 0%,#FF6D45 100%);padding:2px;box-shadow:0 18px 40px rgba(249,59,122,0.22);">${card}</div>`
-                    : `<div class="card-white p-0 reveal reveal-d1 visible flex flex-col">${card}</div>`;
-            }).join('');
-        }
-        const badges = section.querySelector('.flex.flex-wrap.items-center.justify-center.gap-x-6');
-        if (badges && Array.isArray(pricing.badges)) {
-            badges.innerHTML = pricing.badges.map(item => `<span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>${lEsc(item)}</span>`).join('');
-        }
-    }
-
-    function lRenderFaq(faq = {}) {
-        const section = lSection('faq');
-        if (!section) return;
-        lSetText('[data-l-section="faq"] .sec-eyebrow', faq.eyebrow);
-        if (faq.title) section.querySelector('.sec-h2').innerHTML = lTitleHtml(faq.title);
-        const list = section.querySelector('.space-y-3');
-        if (list && Array.isArray(faq.items)) {
-            list.innerHTML = faq.items.map(item => `
-                <div class="card-white overflow-hidden">
-                    <button onclick="toggleFaq(this)" class="w-full text-left px-5 py-4 flex items-center justify-between text-[14px] font-semibold text-gray-900 cursor-pointer gap-3">
-                        ${lEsc(item.question)}
-                        <svg class="faq-chevron flex-shrink-0" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9CA3AF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
-                    </button>
-                    <div class="faq-body"><p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">${lEsc(item.answer)}</p></div>
-                </div>
-            `).join('');
-        }
-    }
-
-    function lApplyFinalCta(cta = {}) {
-        lSetText('[data-l-section="finalCta"] .inline-flex.rounded-full', cta.badge);
-        lSetHtml('[data-l-section="finalCta"] h2', cta.title);
-        lSetHtml('[data-l-section="finalCta"] p', cta.subtitle);
-        const buttons = document.querySelectorAll('[data-l-section="finalCta"] button, [data-l-section="finalCta"] a');
-        if (buttons[0] && cta.primaryCta) buttons[0].childNodes[0].textContent = cta.primaryCta + ' ';
-        if (buttons[1] && cta.secondaryCta) buttons[1].textContent = cta.secondaryCta;
-        const bulletWrap = document.querySelector('[data-l-section="finalCta"] .mt-7');
-        if (bulletWrap && Array.isArray(cta.bullets)) {
-            bulletWrap.innerHTML = cta.bullets.map(item => `<span class="inline-flex items-center gap-1.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>${lEsc(item)}</span>`).join('');
-        }
-    }
-
-    function lApplyFooter(footer = {}) {
-        lSetText('[data-l-section="footer"] .md\\:col-span-2 p', footer.text);
-        const contacts = document.querySelectorAll('[data-l-section="footer"] .space-y-2\\.5 li');
-        if (contacts[4] && footer.phone) contacts[4].textContent = footer.phone;
-        if (contacts[5] && footer.email) contacts[5].textContent = footer.email;
-        if (contacts[6] && footer.city) contacts[6].textContent = footer.city;
-        lSetText('[data-l-section="footer"] .mt-10 p', footer.copyright);
-    }
-
-    function applyLandingConfig(config) {
-        window.__landingConfig = config;
-        lApplyMeta(config.meta);
-        lApplySectionVisibility(config.sections);
-        lApplyHero(config.hero);
-        lApplyMiniFeatures(config.miniFeatures);
-        lApplyStats(config.stats);
-        lRenderTrust(config.trust);
-        lRenderCategories(config.categories);
-        lApplyHow(config.how);
-        lApplyFeatureCopy(config.features);
-        lApplySimpleHeader('comparison', config.comparison);
-        lApplySimpleHeader('templates', config.templates);
-        lRenderReviews(config.reviews);
-        lRenderPricing(config.pricing);
-        lRenderFaq(config.faq);
-        lApplyFinalCta(config.finalCta);
-        lApplyFooter(config.footer);
-    }
-
-    fetch('/api/public/landing', { credentials: 'omit' })
-        .then(res => res.ok ? res.json() : null)
-        .then(config => { if (config) applyLandingConfig(config); })
-        .catch(() => {});
-
-    /* ── Mobile menu ── */
-    const mobileMenuPanel  = document.getElementById('mobileMenuPanel');
-    const mobileMenuButton = document.getElementById('mobileMenuButton');
-
-    function toggleMobileMenu(e) {
-        if (e) e.stopPropagation();
-        const willOpen = !mobileMenuPanel.classList.contains('open');
-        mobileMenuPanel.classList.toggle('open', willOpen);
-        mobileMenuButton.setAttribute('aria-expanded', String(willOpen));
-    }
-
-    function closeMobileMenu() {
-        mobileMenuPanel.classList.remove('open');
-        mobileMenuButton.setAttribute('aria-expanded', 'false');
-    }
-
-    document.addEventListener('click', (e) => {
-        if (!mobileMenuPanel.contains(e.target) && !mobileMenuButton.contains(e.target)) {
-            closeMobileMenu();
-        }
-    });
-
-    window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMobileMenu(); });
-
-    /* ── Auth sheet ── */
-    function openAuth() {
-        closeMobileMenu();
-        location.href = '/templates.html';
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') { closeMobileMenu(); }
-    });
-
-    /* ── FAQ accordion ── */
-    function toggleFaq(btn) {
-        const body    = btn.nextElementSibling;
-        const chevron = btn.querySelector('.faq-chevron');
-        const isOpen  = body.classList.contains('open');
-
-        document.querySelectorAll('.faq-body.open').forEach(b => {
-            b.classList.remove('open');
-            b.previousElementSibling.querySelector('.faq-chevron').style.transform = '';
-        });
-
-        if (!isOpen) {
-            body.classList.add('open');
-            chevron.style.transform = 'rotate(180deg)';
-        }
-    }
-
-    /* ── Reveal on scroll ── */
-    const revealObs = new IntersectionObserver((entries) => {
-        entries.forEach(e => {
-            if (e.isIntersecting) {
-                e.target.classList.add('visible');
-                revealObs.unobserve(e.target);
-            }
-        });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
-
-    /* ── Reviews carousel ── */
-    (function () {
-        const slides = document.getElementById('reviewSlides');
-        const dots   = document.querySelectorAll('.review-dot');
-        let current  = 0;
-        let timer    = null;
-
-        function goTo(i) {
-            current = (i + dots.length) % dots.length;
-            slides.style.transform = 'translateX(-' + (current * 100) + '%)';
-            dots.forEach((d, idx) => d.classList.toggle('active', idx === current));
-        }
-
-        window.reviewGoTo = goTo;
-        goTo(0);
-
-        function next() { goTo(current + 1); }
-        function startTimer() { timer = setInterval(next, 4000); }
-        function stopTimer()  { clearInterval(timer); }
-
-        startTimer();
-        document.getElementById('reviewTrack').addEventListener('mouseenter', stopTimer);
-        document.getElementById('reviewTrack').addEventListener('mouseleave', startTimer);
-
-        let tx = 0;
-        document.getElementById('reviewTrack').addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
-        document.getElementById('reviewTrack').addEventListener('touchend', e => {
-            const dx = e.changedTouches[0].clientX - tx;
-            if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
-        }, { passive: true });
-    })();
-
-</script>
+<script src="/js/landing-editor.js" defer></script>
+<script src="/js/landing.js" defer></script>
 
 </body>
 </html>
