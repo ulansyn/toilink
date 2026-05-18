@@ -516,3 +516,126 @@ window.__landingConfig = null;
             if (Math.abs(dx) > 40) goTo(dx < 0 ? current + 1 : current - 1);
         }, { passive: true });
     });
+
+    /* ── Template Showcase: curved coverflow ── */
+    (function initShowcase() {
+        const stage = document.getElementById('showcase-stage');
+        if (!stage) return;
+        const cards = Array.from(stage.querySelectorAll('.showcase-card'));
+        if (!cards.length) return;
+        const dotsWrap = document.querySelector('.showcase-dots');
+        const prevBtn = document.querySelector('[data-showcase-prev]');
+        const nextBtn = document.querySelector('[data-showcase-next]');
+        const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        const N = cards.length;
+        const offsets = [
+            { x: 0,    y: 24,  scale: 1.00, ry: 0,   op: 1.00, z: 30 },
+            { x: 0.60, y: -8,  scale: 0.82, ry: 30,  op: 0.95, z: 22 },
+            { x: 1.02, y: -42, scale: 0.62, ry: 42,  op: 0.55, z: 14 },
+            { x: 1.34, y: -72, scale: 0.46, ry: 52,  op: 0.18, z: 6  }
+        ];
+
+        let active = 0;
+        let timer = null;
+
+        if (dotsWrap) {
+            dotsWrap.innerHTML = cards.map((_, i) =>
+                `<button type="button" class="showcase-dot" data-sc-dot="${i}" aria-label="Шаблон ${i + 1}"></button>`
+            ).join('');
+        }
+        const dots = Array.from(document.querySelectorAll('.showcase-dot'));
+
+        function update() {
+            cards.forEach((card, i) => {
+                let d = i - active;
+                if (d > N / 2) d -= N;
+                if (d < -N / 2) d += N;
+                const ad = Math.abs(d);
+
+                if (ad > 3) {
+                    card.style.opacity = '0';
+                    card.style.pointerEvents = 'none';
+                    card.style.transform = 'translate3d(0,-100px,-500px) scale(.3)';
+                    card.style.zIndex = '0';
+                    card.classList.remove('is-active');
+                    card.setAttribute('aria-hidden', 'true');
+                    return;
+                }
+
+                const o = offsets[ad];
+                const sign = d === 0 ? 0 : (d < 0 ? -1 : 1);
+                const tx = sign * o.x;
+                const ry = -sign * o.ry;
+                card.style.transform = `translate3d(calc(${tx} * var(--sc-card-w)), ${o.y}px, 0) rotateY(${ry}deg) scale(${o.scale})`;
+                card.style.opacity = String(o.op);
+                card.style.zIndex = String(o.z);
+                card.style.pointerEvents = ad === 0 ? 'auto' : 'none';
+                card.classList.toggle('is-active', ad === 0);
+                card.setAttribute('aria-hidden', ad === 0 ? 'false' : 'true');
+            });
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === active));
+        }
+
+        function goTo(i) {
+            active = ((i % N) + N) % N;
+            update();
+        }
+        function next() { goTo(active + 1); }
+        function prev() { goTo(active - 1); }
+
+        update();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => stage.classList.remove('sc-init'));
+        });
+
+        function startTimer() {
+            if (reduced) return;
+            stopTimer();
+            timer = window.setInterval(next, 3800);
+        }
+        function stopTimer() {
+            if (timer) { window.clearInterval(timer); timer = null; }
+        }
+
+        startTimer();
+
+        stage.addEventListener('mouseenter', stopTimer);
+        stage.addEventListener('mouseleave', startTimer);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopTimer(); else startTimer();
+        });
+
+        if (prevBtn) prevBtn.addEventListener('click', () => { prev(); startTimer(); });
+        if (nextBtn) nextBtn.addEventListener('click', () => { next(); startTimer(); });
+        dots.forEach(dot => dot.addEventListener('click', () => {
+            goTo(parseInt(dot.dataset.scDot, 10) || 0);
+            startTimer();
+        }));
+        cards.forEach((card, i) => {
+            card.addEventListener('click', () => {
+                if (!card.classList.contains('is-active')) {
+                    goTo(i);
+                    startTimer();
+                }
+            });
+        });
+
+        let touchX = 0, touchY = 0, tracking = false;
+        stage.addEventListener('touchstart', e => {
+            touchX = e.touches[0].clientX;
+            touchY = e.touches[0].clientY;
+            tracking = true;
+            stopTimer();
+        }, { passive: true });
+        stage.addEventListener('touchend', e => {
+            if (!tracking) return;
+            tracking = false;
+            const dx = e.changedTouches[0].clientX - touchX;
+            const dy = e.changedTouches[0].clientY - touchY;
+            if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
+                if (dx < 0) next(); else prev();
+            }
+            startTimer();
+        }, { passive: true });
+    })();
