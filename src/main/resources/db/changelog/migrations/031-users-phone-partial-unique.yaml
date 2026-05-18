@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 031-users-phone-partial-unique
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              ALTER TABLE users DROP CONSTRAINT IF EXISTS users_phone_key;
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS ux_users_phone_active
+              ON users (phone)
+              WHERE deleted_at IS NULL;

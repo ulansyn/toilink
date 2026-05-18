@@ -1,6 +1,7 @@
 package kg.toilink.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import kg.toilink.dto.request.AuthRequest;
@@ -14,6 +15,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,23 +24,25 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
+    private final SecurityContextRepository securityContextRepository;
 
     @PostMapping("/login")
-    public AuthResponse login(@Valid @RequestBody AuthRequest req, HttpServletRequest httpReq) {
+    public AuthResponse login(@Valid @RequestBody AuthRequest req,
+                              HttpServletRequest httpReq,
+                              HttpServletResponse httpRes) {
         User user = userService.loginOrRegister(req.phone(), req.password(), clientIp(httpReq));
 
         UserDetails details = userService.loadUserByUsername(user.getPhone());
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(details, null, details.getAuthorities());
 
+        HttpSession old = httpReq.getSession(false);
+        if (old != null) old.invalidate();
+
         SecurityContext ctx = SecurityContextHolder.createEmptyContext();
         ctx.setAuthentication(auth);
         SecurityContextHolder.setContext(ctx);
-
-        HttpSession old = httpReq.getSession(false);
-        if (old != null) old.invalidate();
-        HttpSession session = httpReq.getSession(true);
-        session.setAttribute("SPRING_SECURITY_CONTEXT", ctx);
+        securityContextRepository.saveContext(ctx, httpReq, httpRes);
 
         return new AuthResponse(user.getPhone(), user.getName(), user.getRole());
     }
@@ -79,10 +83,6 @@ public class AuthController {
     }
 
     private String clientIp(HttpServletRequest req) {
-        String forwarded = req.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return req.getRemoteAddr();
     }
 }

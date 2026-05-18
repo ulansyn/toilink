@@ -34,6 +34,40 @@ function formatTime(iso) {
   return d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
 }
 
+function escapeHtml(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function safeLinkUrl(value, fallback = '#') {
+  const raw = String(value == null ? '' : value).trim();
+  if (!raw) return fallback;
+  if (raw.startsWith('#') || raw.startsWith('/')) return raw;
+  try {
+    const url = new URL(raw, location.origin);
+    return ['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol) ? raw : fallback;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function safeImageUrl(value) {
+  const raw = String(value == null ? '' : value).trim();
+  if (!raw) return '';
+  if (raw.startsWith('/') || raw.startsWith('blob:')) return raw;
+  if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(raw)) return raw;
+  try {
+    const url = new URL(raw, location.origin);
+    return ['http:', 'https:'].includes(url.protocol) ? raw : '';
+  } catch (_) {
+    return '';
+  }
+}
+
 // ─── Fade-in on scroll ────────────────────────────────────────────────────────
 function observeFadeIn() {
   const io = new IntersectionObserver((entries) => {
@@ -81,16 +115,18 @@ window.addEventListener('pagehide', () => {
 // ─── Block renderers ──────────────────────────────────────────────────────────
 const blockRenderers = {
   hero(data, event) {
+    const coverImageUrl = safeImageUrl(event.coverImageUrl);
+    const title = escapeHtml(data.title || event.title || '');
     return `
       <div class="relative overflow-hidden rounded-3xl mb-6 fade-in">
-        ${event.coverImageUrl
-          ? `<img src="${event.coverImageUrl}" alt="cover" class="w-full h-72 md:h-96 object-cover"/>`
+        ${coverImageUrl
+          ? `<img src="${escapeHtml(coverImageUrl)}" alt="cover" class="w-full h-72 md:h-96 object-cover"/>`
           : `<div class="w-full h-72 md:h-96 bg-gradient-to-br from-[#8B7355] via-[#6B8F71] to-[#4A5C4D] flex items-center justify-center">
-               <span class="font-cormorant text-5xl text-white/80 italic">${event.title || ''}</span>
+               <span class="font-cormorant text-5xl text-white/80 italic">${escapeHtml(event.title || '')}</span>
              </div>`}
         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6">
-          <p class="text-white/70 text-sm uppercase tracking-widest mb-2">${data.subtitle || ''}</p>
-          <h1 class="font-cormorant text-4xl md:text-5xl font-semibold text-white leading-tight">${data.title || event.title || ''}</h1>
+          <p class="text-white/70 text-sm uppercase tracking-widest mb-2">${escapeHtml(data.subtitle || '')}</p>
+          <h1 class="font-cormorant text-4xl md:text-5xl font-semibold text-white leading-tight">${title}</h1>
         </div>
       </div>`;
   },
@@ -107,6 +143,10 @@ const blockRenderers = {
 
   location(data) {
     if (!data.address) return '';
+    // Editor saves the field as `mapLink`; keep `map_url` as legacy fallback
+    // for any older configs that pre-date the rename.
+    const rawMap = data.mapLink || data.map_url || '';
+    const mapUrl = safeLinkUrl(rawMap);
     return `
       <div class="bg-white rounded-2xl p-5 mb-4 flex items-start gap-4 shadow-sm fade-in">
         <div class="w-10 h-10 rounded-xl bg-[#6B8F71]/10 flex items-center justify-center flex-shrink-0">
@@ -117,8 +157,8 @@ const blockRenderers = {
         </div>
         <div>
           <p class="text-xs text-[#1E2820]/40 uppercase tracking-widest mb-1">Место</p>
-          <p class="text-[#1E2820] font-medium">${data.address}</p>
-          ${data.map_url ? `<a href="${data.map_url}" target="_blank" class="text-[#6B8F71] text-sm mt-1 inline-block hover:underline">Открыть на карте →</a>` : ''}
+          <p class="text-[#1E2820] font-medium">${escapeHtml(data.address)}</p>
+          ${rawMap ? `<a href="${escapeHtml(mapUrl)}" target="_blank" rel="noopener" class="text-[#6B8F71] text-sm mt-1 inline-block hover:underline">Открыть на карте →</a>` : ''}
         </div>
       </div>`;
   },
@@ -128,7 +168,7 @@ const blockRenderers = {
     return `
       <div class="bg-[#F5F0E8] rounded-2xl p-5 mb-4 fade-in">
         <p class="text-xs text-[#1E2820]/40 uppercase tracking-widest mb-2">Дресс-код</p>
-        <p class="text-[#1E2820]/80">${data.text}</p>
+        <p class="text-[#1E2820]/80">${escapeHtml(data.text)}</p>
       </div>`;
   },
 
@@ -136,8 +176,8 @@ const blockRenderers = {
     if (!data.text) return '';
     return `
       <div class="bg-white rounded-2xl p-5 mb-4 shadow-sm fade-in">
-        ${data.title ? `<p class="font-medium text-[#1E2820] mb-2">${data.title}</p>` : ''}
-        <p class="text-[#1E2820]/70 leading-relaxed">${data.text}</p>
+        ${data.title ? `<p class="font-medium text-[#1E2820] mb-2">${escapeHtml(data.title)}</p>` : ''}
+        <p class="text-[#1E2820]/70 leading-relaxed">${escapeHtml(data.text)}</p>
       </div>`;
   },
 };
@@ -209,7 +249,7 @@ function renderRsvp(event) {
         <div class="mb-5">
           <label class="text-xs uppercase tracking-widest text-[#1E2820]/40 mb-2 block">Ваше имя</label>
           <input id="rsvp-name" type="text" placeholder="Как вас зовут?"
-            class="w-full bg-[#FAFAF8] border border-[#E5E0D8] rounded-xl px-4 py-3 text-[#1E2820] outline-none focus:border-[#6B8F71] transition-colors"/>
+            class="w-full bg-[#FFF8FB] border border-[#E5E0D8] rounded-xl px-4 py-3 text-[#1E2820] outline-none focus:border-[#6B8F71] transition-colors"/>
         </div>` : ''}
 
       <div class="mb-5">
@@ -238,7 +278,7 @@ function renderRsvp(event) {
       <div class="mb-5">
         <label class="text-xs uppercase tracking-widest text-[#1E2820]/40 mb-2 block">Комментарий (необязательно)</label>
         <textarea id="rsvp-comment" rows="2" placeholder="Пожелания, аллергии..."
-          class="w-full bg-[#FAFAF8] border border-[#E5E0D8] rounded-xl px-4 py-3 text-[#1E2820] outline-none focus:border-[#6B8F71] transition-colors resize-none"></textarea>
+          class="w-full bg-[#FFF8FB] border border-[#E5E0D8] rounded-xl px-4 py-3 text-[#1E2820] outline-none focus:border-[#6B8F71] transition-colors resize-none"></textarea>
       </div>
 
       <button onclick="submitRsvp('${event.slug}')"
@@ -355,7 +395,7 @@ async function init() {
 
 function renderError() {
   document.getElementById('app').innerHTML = `
-    <div class="min-h-screen bg-[#FAFAF8] flex items-center justify-center p-6">
+    <div class="min-h-screen bg-[#FFF8FB] flex items-center justify-center p-6">
       <div class="text-center">
         <p class="font-cormorant text-6xl text-[#1E2820]/20 mb-4">404</p>
         <p class="text-[#1E2820]/40">Событие не найдено</p>

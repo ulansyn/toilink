@@ -29,6 +29,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.event.id = :eventId AND p.status IN ('PENDING','AWAITING_CONFIRMATION')")
     List<Payment> findAllActiveByUserAndEvent(@Param("userId") Long userId, @Param("eventId") Long eventId);
 
+    @Query("SELECT p FROM Payment p WHERE p.user.id = :userId AND p.status IN ('PENDING','AWAITING_CONFIRMATION')")
+    List<Payment> findAllActiveByUserId(@Param("userId") Long userId);
+
     @EntityGraph(attributePaths = {"user", "event"})
     @Query("""
             SELECT p FROM Payment p

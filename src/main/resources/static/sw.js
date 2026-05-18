@@ -1,4 +1,4 @@
-const SW_VERSION = 'toilink-app-v7';
+const SW_VERSION = 'toilink-app-v8';
 const PAGE_CACHE = `${SW_VERSION}:pages`;
 const ASSET_CACHE = `${SW_VERSION}:assets`;
 

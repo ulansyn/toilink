@@ -33,7 +33,7 @@ function startOverlay(resolve) {
     overlay.id = 'auth-overlay';
     overlay.style.cssText = `
       position: fixed; inset: 0; z-index: 100;
-      background: #FAFAF8;
+      background: #FFF8FB;
       display: flex; flex-direction: column;
       align-items: center; justify-content: center;
       padding: 24px;

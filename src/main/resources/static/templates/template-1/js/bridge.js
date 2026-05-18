@@ -38,9 +38,6 @@
   `;
   document.head.appendChild(previewStyle);
 
-  // Block guest-loader from running
-  window.__SKIP_GUEST_LOADER = true;
-
   // ─── Section mapping: loaded from schema.json via postMessage ───────────
   // Fallback hardcoded for initial render before first EDITOR_UPDATE arrives
   let SECTION_MAP = {

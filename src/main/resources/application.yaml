@@ -53,6 +53,14 @@ logging:
     liquibase: INFO
 server:
   port: ${PORT:8888}
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:none}
+  servlet:
+    session:
+      cookie:
+        name: TOILINK_SESSION
+        http-only: true
+        same-site: lax
+        secure: ${SESSION_COOKIE_SECURE:true}
   compression:
     enabled: true
     mime-types: text/html,text/css,text/javascript,application/javascript,application/json,image/svg+xml,application/xml,text/xml,text/plain

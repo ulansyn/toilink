@@ -11,8 +11,6 @@
   const sheetScrollThumb = document.getElementById('sheetScrollThumb');
 
   const eventId = new URLSearchParams(location.search).get('id');
-  let phone = '';
-  try { phone = localStorage.getItem('tl_phone') || ''; } catch (_) {}
 
   const imageOptions = [
     '/templates/template-1/images/hero-bg2.jpg',
@@ -283,11 +281,17 @@
   }
 
   function scheduleAutosave() {
-    if (!eventId || !phone) return;
+    if (!eventId) return;
     clearTimeout(autosaveTimer);
     autosaveTimer = setTimeout(async () => {
       if (!isDirty) return;
-      try { await saveEvent(); setDirty(false); } catch { showToast('Ошибка сохранения — проверьте соединение', true); }
+      try {
+        await saveEvent();
+        setDirty(false);
+      } catch (err) {
+        if (err?.unauthorized) return; // redirect already issued
+        showToast('Ошибка сохранения — проверьте соединение', true);
+      }
     }, 3000);
   }
 
@@ -640,10 +644,25 @@
     open();
   }
 
+  let pendingScrollSection = null;
+
   function scrollPreviewTo(section) {
     const targetName = sections[section]?.target;
     if (!targetName || !previewFrame?.contentWindow) return;
+    if (!state.previewReady) {
+      // Remember the last requested section so we can scroll once the iframe is ready.
+      pendingScrollSection = section;
+      return;
+    }
     previewFrame.contentWindow.postMessage({ type: 'EDITOR_SCROLL_TO', section: targetName }, location.origin);
+  }
+
+  function flushPendingScroll() {
+    if (pendingScrollSection && state.previewReady) {
+      const section = pendingScrollSection;
+      pendingScrollSection = null;
+      scrollPreviewTo(section);
+    }
   }
 
   function sendToPreviewDebounced() {
@@ -964,7 +983,16 @@
       const event = await res.json();
       if (event.blocksConfig) {
         const saved = JSON.parse(event.blocksConfig);
-        state.data = { ...state.data, ...saved };
+        // Deep-merge per section so that defaults (e.g. new fields added
+        // after the event was first saved) are preserved instead of dropped.
+        for (const key of Object.keys(state.data)) {
+          const incoming = saved[key];
+          if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+            state.data[key] = { ...state.data[key], ...incoming };
+          } else if (incoming !== undefined) {
+            state.data[key] = incoming;
+          }
+        }
       } else {
         if (event.person1) state.data.cover.person1 = event.person1;
         if (event.person2) state.data.cover.person2 = event.person2;
@@ -1000,7 +1028,9 @@
     });
     if (res.status === 401 || res.status === 403) {
       location.replace('/login.html?next=' + encodeURIComponent(location.pathname + location.search));
-      return;
+      const err = new Error('Unauthorized');
+      err.unauthorized = true;
+      throw err;
     }
     if (!res.ok) throw new Error('Ошибка сохранения');
   }
@@ -1028,8 +1058,8 @@
   async function handleSave() {
     const btn = document.getElementById('saveBtn');
     if (btn?.disabled) return;
-    if (!eventId || !phone) {
-      showToast('Войдите в аккаунт чтобы сохранить', true);
+    if (!eventId) {
+      showToast('Откройте событие из списка, чтобы сохранить', true);
       return;
     }
     setSaveState('saving');
@@ -1037,7 +1067,8 @@
       await saveEvent();
       setSaveState('saved');
       setTimeout(() => setSaveState('idle'), 2000);
-    } catch {
+    } catch (err) {
+      if (err?.unauthorized) return; // redirect already issued
       setSaveState('error');
       setTimeout(() => setSaveState('idle'), 2500);
     }
@@ -1052,6 +1083,7 @@
       if (event.data?.type === 'TEMPLATE_READY') {
         state.previewReady = true;
         sendToPreview();
+        flushPendingScroll();
       }
       if (event.data?.type === 'TEMPLATE_CLICK' && event.data.block) {
         const entry = Object.entries(sections).find(([, def]) => def.block === event.data.block);
@@ -1063,6 +1095,7 @@
       window.setTimeout(() => {
         state.previewReady = true;
         sendToPreview();
+        flushPendingScroll();
       }, 350);
     });
 

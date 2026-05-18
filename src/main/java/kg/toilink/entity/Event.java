@@ -2,8 +2,6 @@ package kg.toilink.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.util.ArrayList;
-import java.util.List;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -50,9 +48,6 @@ public class Event {
 
     @Column(nullable = false, unique = true, length = 50)
     private String slug;
-
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Guest> guests = new ArrayList<>();
 
     @Column(nullable = false, unique = true)
     private UUID previewToken;

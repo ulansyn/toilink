@@ -1,6 +1,7 @@
 package kg.toilink.dto.request;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -30,6 +31,7 @@ public record RsvpRequest(
         String status,
 
         @Min(value = 1, message = "Group size must be at least 1")
+        @Max(value = 20, message = "Group size must not exceed 20")
         Integer groupSize,
 
         String comment

@@ -42,15 +42,56 @@ class WeddingRenderer {
     return path.split('.').reduce((acc, part) => acc && acc[part], obj);
   }
 
+  escapeHtml(value) {
+    return String(value == null ? '' : value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  safeLinkUrl(value, fallback = '#') {
+    const raw = String(value == null ? '' : value).trim();
+    if (!raw) return fallback;
+    if (raw.startsWith('#') || raw.startsWith('/')) return raw;
+    try {
+      const url = new URL(raw, location.origin);
+      return ['http:', 'https:', 'mailto:', 'tel:'].includes(url.protocol) ? raw : fallback;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  safeImageUrl(value) {
+    const raw = String(value == null ? '' : value).trim();
+    if (!raw) return '';
+    if (raw.startsWith('/') || raw.startsWith('blob:')) return raw;
+    if (/^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(raw)) return raw;
+    try {
+      const url = new URL(raw, location.origin);
+      return ['http:', 'https:'].includes(url.protocol) ? raw : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  safeCssColor(value) {
+    const raw = String(value == null ? '' : value).trim();
+    if (/^#[0-9a-f]{3,8}$/i.test(raw)) return raw;
+    if (/^(?:rgb|hsl)a?\(\s*[\d.%\s,/-]+\)$/i.test(raw)) return raw;
+    return '#d9c7aa';
+  }
+
   setImages() {
     document.querySelectorAll('[data-img]').forEach(el => {
       const imgKey = el.getAttribute('data-img');
-      const src = this.config.images[imgKey];
+      const src = this.safeImageUrl(this.config.images[imgKey]);
       if (src) {
         if (el.tagName === 'IMG') {
           el.src = src;
         } else {
-          el.style.backgroundImage = `url('${src}')`;
+          el.style.backgroundImage = `url("${src}")`;
         }
       }
     });
@@ -59,7 +100,7 @@ class WeddingRenderer {
   setLinks() {
     document.querySelectorAll('[data-link]').forEach(el => {
       const path = el.getAttribute('data-link');
-      const href = this.getNestedValue(this.config, path);
+      const href = this.safeLinkUrl(this.getNestedValue(this.config, path));
       if (href && el.tagName === 'A') {
         el.href = href;
       }
@@ -83,7 +124,7 @@ class WeddingRenderer {
     const container = document.querySelector('[data-render="invitation.paragraphs"]');
     if (!container) return;
     container.innerHTML = this.config.invitation.paragraphs
-      .map(p => `<p>${p}</p>`)
+      .map(p => `<p>${this.escapeHtml(p)}</p>`)
       .join('');
   }
 
@@ -95,7 +136,9 @@ class WeddingRenderer {
     }
     if (section) section.style.display = '';
     section.innerHTML = '';
-    const photos = this.config.images.gallery || [this.config.images.couplePhoto];
+    const photos = (this.config.images.gallery || [this.config.images.couplePhoto])
+      .map(src => this.safeImageUrl(src))
+      .filter(Boolean);
 
     section.innerHTML = `
       <div class="gallery-editorial">
@@ -107,7 +150,7 @@ class WeddingRenderer {
         <div class="gallery-photo-wrap">
           <div class="gallery-photo-inner" id="gallery-track">
             ${photos.map((src, i) => `
-              <img src="${src}" class="gallery-slide ${i === 0 ? 'active' : ''}" alt="Photo ${i + 1}" draggable="false">
+              <img src="${this.escapeHtml(src)}" class="gallery-slide ${i === 0 ? 'active' : ''}" alt="Photo ${i + 1}" draggable="false">
             `).join('')}
           </div>
           <div class="gallery-photo-frame"></div>
@@ -187,13 +230,16 @@ class WeddingRenderer {
       const item = document.createElement('div');
       item.className = 'timeline-item';
       const iconSvg = this.getIconSvg(event.icon || 'music');
+      const time = this.escapeHtml(event.time);
+      const title = this.escapeHtml(event.title || event.text);
+      const description = this.escapeHtml(event.description);
       item.innerHTML = `
         <div class="timeline-header">
-            <span class="timeline-time">${event.time}</span>
+            <span class="timeline-time">${time}</span>
             <div class="timeline-icon-inline">${iconSvg}</div>
-            <h3 class="timeline-title">${event.title || event.text}</h3>
+            <h3 class="timeline-title">${title}</h3>
         </div>
-        ${event.description ? `<p class="timeline-desc">${event.description}</p>` : ''}
+        ${event.description ? `<p class="timeline-desc">${description}</p>` : ''}
       `;
       container.appendChild(item);
     });
@@ -248,7 +294,10 @@ class WeddingRenderer {
     const palette = document.querySelector('[data-render="dresscode.colors"]');
     if (!palette) return;
     palette.innerHTML = this.config.dresscode.colors
-      .map((color, i) => `<span class="dresscode-circle circle-${i + 1}" style="background: ${color}; color: ${color}"></span>`)
+      .map((color, i) => {
+        const safeColor = this.safeCssColor(color);
+        return `<span class="dresscode-circle circle-${i + 1}" style="background: ${safeColor}; color: ${safeColor}"></span>`;
+      })
       .join('');
   }
 
@@ -262,6 +311,12 @@ class WeddingRenderer {
     const container = document.querySelector('[data-render="rsvp"]');
     if (!container) return;
     const rsvp = this.config.rsvp;
+    const fields = rsvp.fields || {};
+    const nameField = fields.name || {};
+    const presenceField = fields.presence || {};
+    const messageField = fields.message || {};
+    const formAction = this.safeLinkUrl(rsvp.formAction);
+    const formMethod = String(rsvp.method || 'POST').toUpperCase() === 'GET' ? 'GET' : 'POST';
 
     // Check if event is closed for responses (skip in editor preview)
     const meta = window.EVENT_META;
@@ -297,12 +352,12 @@ class WeddingRenderer {
 
     container.innerHTML = `
       <div class="rsvp-form-wrap">
-        <h2 class="rsvp-heading">${rsvp.heading}</h2>
-        <p class="rsvp-subtitle">${rsvp.subtitle}</p>
-        <form class="rsvp-form" action="${rsvp.formAction}" method="${rsvp.method}" novalidate>
+        <h2 class="rsvp-heading">${this.escapeHtml(rsvp.heading)}</h2>
+        <p class="rsvp-subtitle">${this.escapeHtml(rsvp.subtitle)}</p>
+        <form class="rsvp-form" action="${this.escapeHtml(formAction)}" method="${this.escapeHtml(formMethod)}" novalidate>
           <div class="rsvp-field rsvp-field--floating">
-            <input type="text" id="rsvp-name" class="rsvp-input" placeholder=" " name="name" ${rsvp.fields.name.required ? 'required' : ''}>
-            <label class="rsvp-floating-label" for="rsvp-name">${rsvp.fields.name.label}</label>
+            <input type="text" id="rsvp-name" class="rsvp-input" placeholder=" " name="name" ${nameField.required ? 'required' : ''}>
+            <label class="rsvp-floating-label" for="rsvp-name">${this.escapeHtml(nameField.label)}</label>
           </div>
 
           <div class="rsvp-field rsvp-field--floating">
@@ -311,15 +366,15 @@ class WeddingRenderer {
           </div>
 
           <div class="rsvp-field rsvp-presence-field">
-            <span class="rsvp-static-label">${rsvp.fields.presence.label}</span>
+            <span class="rsvp-static-label">${this.escapeHtml(presenceField.label)}</span>
             <div class="rsvp-presence-toggle">
               <label class="presence-option">
                 <input type="radio" name="presence" value="yes" checked>
-                <div class="presence-box"><span class="emoji">${rsvp.fields.presence.yesEmoji}</span><span class="text">${rsvp.fields.presence.yesText}</span></div>
+                <div class="presence-box"><span class="emoji">${this.escapeHtml(presenceField.yesEmoji)}</span><span class="text">${this.escapeHtml(presenceField.yesText)}</span></div>
               </label>
               <label class="presence-option">
                 <input type="radio" name="presence" value="no">
-                <div class="presence-box"><span class="emoji">${rsvp.fields.presence.noEmoji}</span><span class="text">${rsvp.fields.presence.noText}</span></div>
+                <div class="presence-box"><span class="emoji">${this.escapeHtml(presenceField.noEmoji)}</span><span class="text">${this.escapeHtml(presenceField.noText)}</span></div>
               </label>
             </div>
           </div>
@@ -328,11 +383,11 @@ class WeddingRenderer {
 
           <div class="rsvp-field rsvp-field--floating">
             <textarea id="rsvp-message" class="rsvp-input rsvp-textarea" placeholder=" " name="message"></textarea>
-            <label class="rsvp-floating-label" for="rsvp-message">${rsvp.fields.message.label}</label>
+            <label class="rsvp-floating-label" for="rsvp-message">${this.escapeHtml(messageField.label)}</label>
           </div>
 
           <button type="submit" class="rsvp-button">
-            <span class="btn-text">${rsvp.submitButton}</span>
+            <span class="btn-text">${this.escapeHtml(rsvp.submitButton)}</span>
           </button>
         </form>
       </div>
@@ -577,6 +632,6 @@ class WeddingRenderer {
 
 document.addEventListener('DOMContentLoaded', () => {
   const renderer = new WeddingRenderer(window.WEDDING_CONFIG);
-  window.weddingRenderer = renderer; // Экспортируем для guest-loader.js
+  window.weddingRenderer = renderer; // Expose renderer for preview bridge updates.
   renderer.render();
 });

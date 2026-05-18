@@ -110,21 +110,20 @@ public class PaymentController {
             throw new BadRequestException("Event id is required");
         }
 
-        var event = eventRepository.findByIdAndDeletedAtIsNull(body.eventId())
+        var event = eventRepository.findByIdForUpdate(body.eventId())
                 .filter(e -> e.getUser().getId().equals(user.getId()))
                 .orElseThrow(() -> NotFoundException.event(body.eventId()));
 
         if ("DRAFT".equals(event.getStatus())) {
-            long existing = eventRepository.countByUserIdAndStatusAndPlanCodeAndDeletedAtIsNull(
-                    user.getId(), "PUBLISHED", "FREE");
-            if (existing >= 1) {
+            event.setStatus("PUBLISHED");
+            event.setPlanCode("FREE");
+            try {
+                eventRepository.saveAndFlush(event);
+            } catch (DataIntegrityViolationException ex) {
                 throw new BadRequestException(
                     "У вас уже есть бесплатное опубликованное событие. " +
                     "Для нового события выберите платный тариф.");
             }
-            event.setStatus("PUBLISHED");
-            event.setPlanCode("FREE");
-            eventRepository.save(event);
         }
 
         return Map.of("status", event.getStatus(), "eventId", event.getId());

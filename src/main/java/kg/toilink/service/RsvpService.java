@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -194,13 +193,7 @@ public class RsvpService {
     }
 
     private Optional<Guest> findByNormalizedPhone(Long eventId, String normalizedPhone) {
-        List<Guest> candidates = guestRepository.findAllWithPhoneByEventId(eventId);
-        for (Guest g : candidates) {
-            if (normalizedPhone.equals(PhoneUtils.normalize(g.getPhone()))) {
-                return Optional.of(g);
-            }
-        }
-        return Optional.empty();
+        return guestRepository.findActiveByEventIdAndPhoneNormalized(eventId, normalizedPhone);
     }
 
     /** Reads event.blocksConfig.rsvp.allowCompanion (boolean). Default: false. */

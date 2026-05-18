@@ -1,0 +1,25 @@
+databaseChangeLog:
+  - changeSet:
+      id: 033-guests-phone-normalized
+      author: codex
+      changes:
+        - addColumn:
+            tableName: guests
+            columns:
+              - column:
+                  name: phone_normalized
+                  type: varchar(30)
+        - sql:
+            sql: |
+              UPDATE guests
+              SET phone_normalized = CASE
+                WHEN regexp_replace(phone, '\D', '', 'g') ~ '^0[0-9]{9}$'
+                  THEN '996' || substring(regexp_replace(phone, '\D', '', 'g') FROM 2)
+                ELSE NULLIF(regexp_replace(phone, '\D', '', 'g'), '')
+              END
+              WHERE phone IS NOT NULL;
+        - sql:
+            sql: |
+              CREATE INDEX IF NOT EXISTS idx_guests_event_phone_norm
+              ON guests (event_id, phone_normalized)
+              WHERE phone_normalized IS NOT NULL AND deleted_at IS NULL;

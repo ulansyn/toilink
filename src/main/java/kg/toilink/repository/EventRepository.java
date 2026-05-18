@@ -17,11 +17,21 @@ import java.util.Optional;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    @Query("SELECT e FROM Event e WHERE e.slug = :slug AND e.deletedAt IS NULL")
+    @Query("""
+            SELECT e FROM Event e
+            WHERE e.slug = :slug
+              AND e.deletedAt IS NULL
+              AND (e.user IS NULL OR (e.user.deletedAt IS NULL AND e.user.isActive = true))
+            """)
     Optional<Event> findBySlug(@Param("slug") String slug);
 
     @EntityGraph(attributePaths = {"template"})
-    @Query("SELECT e FROM Event e WHERE e.slug = :slug AND e.deletedAt IS NULL")
+    @Query("""
+            SELECT e FROM Event e
+            WHERE e.slug = :slug
+              AND e.deletedAt IS NULL
+              AND (e.user IS NULL OR (e.user.deletedAt IS NULL AND e.user.isActive = true))
+            """)
     Optional<Event> findWithTemplateBySlug(@Param("slug") String slug);
 
     @Query("SELECT e FROM Event e WHERE e.id = :id AND e.deletedAt IS NULL")

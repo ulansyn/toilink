@@ -36,6 +36,10 @@ build/
 ### Uploads ###
 uploads/
 
+### Playwright ###
+test-results/
+playwright-report/
+
 ### macOS ###
 .DS_Store
 **/.DS_Store

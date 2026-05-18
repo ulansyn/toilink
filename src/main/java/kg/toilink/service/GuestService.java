@@ -15,6 +15,7 @@ import kg.toilink.repository.EventRepository;
 import kg.toilink.repository.GuestRepository;
 import kg.toilink.repository.RsvpResponseRepository;
 import kg.toilink.repository.SeatingTableRepository;
+import kg.toilink.util.PhoneUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -72,6 +73,7 @@ public class GuestService {
         Event event = verifyOwnership(eventId, phone);
         int guestsToAdd = req.companionName() != null && !req.companionName().isBlank() ? 2 : 1;
         checkGuestLimit(event, guestsToAdd);
+        rejectDuplicatePhone(eventId, req.phone());
         String side = req.side() != null ? req.side() : "SHARED";
         String source = shouldCreatePersonalLink(event, req) ? "PERSONAL_LINK" : "MANUAL";
 
@@ -107,13 +109,14 @@ public class GuestService {
             primary = guestRepository.save(primary);
         }
 
-        return GuestResponse.from(primary, req.rsvpStatus(), resolveRelatedName(primary.getRelatedToId()), null);
+        return GuestResponse.from(primary, req.rsvpStatus(), resolveRelatedName(event.getId(), primary.getRelatedToId()), null);
     }
 
     @Transactional
     public GuestResponse updateGuest(Long eventId, Long guestId, UpdateGuestRequest req, String phone) {
         Event event = verifyOwnership(eventId, phone);
         Guest guest = guestRepository.findById(guestId)
+                .filter(g -> g.getDeletedAt() == null)
                 .orElseThrow(() -> NotFoundException.guest(guestId));
         if (!guest.getEvent().getId().equals(eventId)) {
             throw NotFoundException.guest(guestId);
@@ -123,15 +126,17 @@ public class GuestService {
         guest.setPhone(req.phone() != null && !req.phone().isBlank() ? req.phone().trim() : null);
         guest.setNotes(req.notes() != null && !req.notes().isBlank() ? req.notes().trim() : null);
         if (req.side() != null) guest.setSide(req.side());
-        guest.setRelatedToId(req.relatedToId());
-        guest.setRelationType(req.relatedToId() != null ? req.relationType() : null);
+        Long relatedToId = validateRelatedGuest(event, guest.getId(), req.relatedToId());
+        guest.setRelatedToId(relatedToId);
+        guest.setRelationType(relatedToId != null ? req.relationType() : null);
         guest.setTableId(validateTableAssignment(event, req.tableId()));
+        validateRsvpStatusChange(req.rsvpStatus());
         Guest saved = guestRepository.save(guest);
 
         String finalStatus = applyRsvpStatus(saved, event, req.rsvpStatus());
         String tableName = saved.getTableId() != null ?
                 seatingTableRepository.findById(saved.getTableId()).map(SeatingTable::getName).orElse(null) : null;
-        return GuestResponse.from(saved, finalStatus, resolveRelatedName(saved.getRelatedToId()), tableName);
+        return GuestResponse.from(saved, finalStatus, resolveRelatedName(event.getId(), saved.getRelatedToId()), tableName);
     }
 
     private String applyRsvpStatus(Guest guest, Event event, String rsvpStatus) {
@@ -145,6 +150,7 @@ public class GuestService {
                     .ifPresent(rsvpResponseRepository::delete);
             return null;
         }
+        validateRsvpStatusChange(rsvpStatus);
         rsvpResponseRepository.findByGuestIdAndEventId(guest.getId(), event.getId())
                 .ifPresentOrElse(
                         r -> { r.setStatus(rsvpStatus); rsvpResponseRepository.save(r); },
@@ -154,9 +160,20 @@ public class GuestService {
         return rsvpStatus;
     }
 
-    private String resolveRelatedName(Long relatedToId) {
+    private void validateRsvpStatusChange(String rsvpStatus) {
+        if (rsvpStatus == null || "NONE".equals(rsvpStatus)) return;
+        if (!Set.of("ATTENDING", "DECLINED", "MAYBE").contains(rsvpStatus)) {
+            throw new BadRequestException("Status must be ATTENDING, DECLINED or MAYBE");
+        }
+    }
+
+    private String resolveRelatedName(Long eventId, Long relatedToId) {
         if (relatedToId == null) return null;
-        return guestRepository.findById(relatedToId).map(Guest::getName).orElse(null);
+        return guestRepository.findById(relatedToId)
+                .filter(g -> g.getDeletedAt() == null)
+                .filter(g -> g.getEvent() != null && g.getEvent().getId().equals(eventId))
+                .map(Guest::getName)
+                .orElse(null);
     }
 
     @Transactional
@@ -170,6 +187,16 @@ public class GuestService {
         }
         guest.setDeletedAt(LocalDateTime.now());
         guestRepository.save(guest);
+    }
+
+    private void rejectDuplicatePhone(Long eventId, String rawPhone) {
+        String normalized = PhoneUtils.normalize(rawPhone);
+        if (normalized == null || normalized.isEmpty()) return;
+        guestRepository.findActiveByEventIdAndPhoneNormalized(eventId, normalized)
+                .ifPresent(existing -> {
+                    throw new BadRequestException(
+                            "Гость с этим телефоном уже добавлен: " + existing.getName());
+                });
     }
 
     private void checkGuestLimit(Event event, int guestsToAdd) {
@@ -191,6 +218,20 @@ public class GuestService {
             throw new BadRequestException("Стол не принадлежит этому событию");
         }
         return tableId;
+    }
+
+    private Long validateRelatedGuest(Event event, Long guestId, Long relatedToId) {
+        if (relatedToId == null) return null;
+        if (relatedToId.equals(guestId)) {
+            throw new BadRequestException("Гость не может быть связан сам с собой");
+        }
+        Guest related = guestRepository.findById(relatedToId)
+                .filter(g -> g.getDeletedAt() == null)
+                .orElseThrow(() -> new BadRequestException("Связанный гость не найден"));
+        if (related.getEvent() == null || !related.getEvent().getId().equals(event.getId())) {
+            throw new BadRequestException("Связанный гость не принадлежит этому событию");
+        }
+        return relatedToId;
     }
 
     private Event verifyOwnership(Long eventId, String phone) {

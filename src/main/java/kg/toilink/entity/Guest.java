@@ -1,10 +1,8 @@
 package kg.toilink.entity;
 
 import jakarta.persistence.*;
+import kg.toilink.util.PhoneUtils;
 import lombok.*;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -32,6 +30,9 @@ public class Guest {
     @Column(length = 20)
     private String phone;
 
+    @Column(name = "phone_normalized", length = 30)
+    private String phoneNormalized;
+
     @Column(nullable = false, length = 20)
     private String source;
 
@@ -53,9 +54,6 @@ public class Guest {
     @Column(name = "table_id")
     private Long tableId;
 
-    @OneToMany(mappedBy = "guest", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<RsvpResponse> rsvpResponses = new ArrayList<>();
-
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
@@ -67,5 +65,16 @@ public class Guest {
         if (source == null) source = "PERSONAL_LINK";
         if (side == null) side = "SHARED";
         if (token == null) token = UUID.randomUUID();
+        recalcPhoneNormalized();
+    }
+
+    @PreUpdate
+    void preUpdate() {
+        recalcPhoneNormalized();
+    }
+
+    private void recalcPhoneNormalized() {
+        String normalized = PhoneUtils.normalize(phone);
+        phoneNormalized = (normalized == null || normalized.isEmpty()) ? null : normalized;
     }
 }

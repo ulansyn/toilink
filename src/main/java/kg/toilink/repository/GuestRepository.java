@@ -29,6 +29,11 @@ public interface GuestRepository extends JpaRepository<Guest, Long> {
 
     @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.phone IS NOT NULL AND g.phone <> '' AND g.deletedAt IS NULL")
     List<Guest> findAllWithPhoneByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT g FROM Guest g WHERE g.event.id = :eventId AND g.phoneNormalized = :normalized AND g.deletedAt IS NULL")
+    Optional<Guest> findActiveByEventIdAndPhoneNormalized(
+            @Param("eventId") Long eventId,
+            @Param("normalized") String normalized);
     @Query("SELECT COUNT(g) FROM Guest g WHERE g.event.id = :eventId AND g.deletedAt IS NULL")
     long countByEventId(@Param("eventId") Long eventId);
 

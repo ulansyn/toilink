@@ -304,6 +304,61 @@ function guestRow(g) {
     </div>`;
 }
 
+// ─── Multi-event helpers ──────────────────────────────────────────────────────
+function pickFeaturedEvent(events) {
+  if (!events || events.length === 0) return null;
+  const now = Date.now();
+  const withDate = events.filter(e => e.eventDate);
+  const upcoming = withDate
+    .filter(e => new Date(e.eventDate).getTime() >= now)
+    .sort((a, b) => new Date(a.eventDate) - new Date(b.eventDate));
+  if (upcoming.length) return upcoming[0];
+  const past = withDate
+    .filter(e => new Date(e.eventDate).getTime() < now)
+    .sort((a, b) => new Date(b.eventDate) - new Date(a.eventDate));
+  if (past.length) return past[0];
+  return [...events].sort((a, b) => (b.id || 0) - (a.id || 0))[0] || events[0];
+}
+
+const FILTER_CHIPS = [
+  { id: 'all',      label: 'Все',        match: () => true },
+  { id: 'upcoming', label: 'Скоро',      match: e => e.eventDate && new Date(e.eventDate) >= new Date() },
+  { id: 'drafts',   label: 'Черновики',  match: e => e.status === 'DRAFT' },
+  { id: 'past',     label: 'Прошедшие',  match: e => e.eventDate && new Date(e.eventDate) < new Date() },
+];
+
+let _currentFilter = 'all';
+
+function eventIdFromUrl() {
+  const raw = new URLSearchParams(location.search).get('event');
+  const id = Number(raw);
+  return Number.isFinite(id) && id > 0 ? id : null;
+}
+
+function navigateToEvent(eventId) {
+  const url = new URL(location.href);
+  url.searchParams.set('event', String(eventId));
+  history.pushState({ event: eventId }, '', url);
+  rerenderFromCache();
+}
+
+function navigateToOverview() {
+  const url = new URL(location.href);
+  url.searchParams.delete('event');
+  history.pushState({}, '', url);
+  rerenderFromCache();
+}
+
+function rerenderFromCache() {
+  const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 10 * 60_000);
+  const cachedStats = cacheGet(STATS_CACHE_KEY, 10 * 60_000) || {};
+  if (cachedEvents) {
+    renderDashboardSnapshot(cachedEvents, cachedStats);
+    // Scroll to top when switching views so the user sees the new content
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }
+}
+
 // ─── Render ───────────────────────────────────────────────────────────────────
 function renderEmpty() {
   const _gh = document.getElementById('genericHero');
@@ -582,12 +637,18 @@ function buildPlanBlock(event, stats) {
 }
 
 // ─── Event Hub (single-event layout, landing-style) ───────────────────────────
-function renderEventHub(event, stats) {
+function renderEventHub(event, stats, showBack = false) {
   const eventUrl = buildEventUrl(event) || (event?.slug ? `${location.origin}/e/${event.slug}` : '');
   const slugPath = eventUrl.replace(location.origin, '');
 
   const genericHero = document.getElementById('genericHero');
   if (genericHero) genericHero.style.display = 'none';
+
+  const backBtn = showBack ? `
+    <button class="back-to-list fade-in" onclick="navigateToOverview()" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M19 12H5m7-7l-7 7 7 7"/></svg>
+      К событиям
+    </button>` : '';
 
   const d = daysBetween(event.eventDate);
   const dateLabel = event.eventDate ? formatDate(event.eventDate) : null;
@@ -624,6 +685,7 @@ function renderEventHub(event, stats) {
   const content = document.getElementById('content');
   content.innerHTML = `
     <div class="fade-in">
+      ${backBtn}
       <!-- HERO (с pink-orange fallback) -->
       <section class="hub-hero">
         ${cover}
@@ -820,6 +882,198 @@ window.shareEvent = async function (url, title) {
   copyLink(url);
 };
 
+// ─── Multi-event Overview ─────────────────────────────────────────────────────
+function renderMultiOverview(events, statsMap) {
+  const _gh = document.getElementById('genericHero');
+  if (_gh) _gh.style.display = 'none';
+
+  const featured = pickFeaturedEvent(events);
+  const filtered = FILTER_CHIPS.find(c => c.id === _currentFilter)?.match
+    ? events.filter(FILTER_CHIPS.find(c => c.id === _currentFilter).match)
+    : events;
+  const others = filtered
+    .filter(e => e.id !== featured.id)
+    .sort((a, b) => {
+      const da = a.eventDate ? new Date(a.eventDate).getTime() : Infinity;
+      const db = b.eventDate ? new Date(b.eventDate).getTime() : Infinity;
+      return da - db;
+    });
+
+  const statsValues = Object.values(statsMap || {});
+  const totalGuests = statsValues.reduce((sum, s) => sum + (s?.total || 0), 0);
+  const totalPending = statsValues.reduce((sum, s) => {
+    if (!s) return sum;
+    const responded = (s.attending || 0) + (s.declined || 0) + (s.maybe || 0);
+    return sum + Math.max(0, (s.total || 0) - responded);
+  }, 0);
+
+  const greetingHtml = `
+    <div class="overview-greeting fade-in">
+      <div>
+        <p class="overview-eyebrow">Личный кабинет</p>
+        <h1 class="overview-title">Мои <em>события</em></h1>
+      </div>
+      <div class="overview-counters">
+        <span><strong>${events.length}</strong> ${pluralize(events.length, ['событие','события','событий'])}</span>
+        ${totalGuests > 0 ? `<span class="dot"></span><span><strong>${totalGuests}</strong> ${pluralize(totalGuests, ['гость','гостя','гостей'])}</span>` : ''}
+        ${totalPending > 0 ? `<span class="dot"></span><span><strong>${totalPending}</strong> ждут</span>` : ''}
+      </div>
+    </div>`;
+
+  const showChips = events.length >= 4;
+  const chipsHtml = showChips ? `
+    <div class="event-chips fade-in">
+      ${FILTER_CHIPS.map(c => {
+        const count = events.filter(c.match).length;
+        if (c.id !== 'all' && count === 0) return '';
+        return `<button class="event-chip ${c.id === _currentFilter ? 'active' : ''}" data-filter="${c.id}" type="button">${c.label}${c.id !== 'all' ? ` <span>${count}</span>` : ''}</button>`;
+      }).join('')}
+    </div>` : '';
+
+  const featuredStats = statsMap?.[featured.id] || cacheGet(`tl:event:stats:${featured.id}`, 10 * 60_000) || null;
+  const featuredHtml = renderFeaturedHero(featured, featuredStats);
+
+  const othersHtml = others.length === 0
+    ? (showChips && _currentFilter !== 'all'
+        ? `<div class="overview-section fade-in"><div class="text-muted text-[13px] py-6 text-center">В этой выборке пусто</div></div>`
+        : '')
+    : `
+      <div class="overview-section fade-in">
+        <div class="overview-section-head">
+          <span class="overview-section-title">Другие события</span>
+          <span class="overview-section-count">${others.length}</span>
+        </div>
+        <div class="mini-grid">
+          ${others.map(e => renderMiniCard(e, statsMap?.[e.id] || cacheGet(`tl:event:stats:${e.id}`, 10 * 60_000) || null)).join('')}
+        </div>
+      </div>`;
+
+  const createBtn = `
+    <div class="overview-create fade-in">
+      <button type="button" onclick="showCreateSheet()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Создать ещё событие
+      </button>
+    </div>`;
+
+  document.getElementById('content').innerHTML = greetingHtml + chipsHtml + featuredHtml + othersHtml + createBtn;
+
+  document.querySelectorAll('.event-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      _currentFilter = btn.dataset.filter;
+      renderMultiOverview(events, statsMap);
+    });
+  });
+
+  _observeFadeIn();
+}
+
+function renderFeaturedHero(event, stats) {
+  const eventUrl = buildEventUrl(event) || (event?.slug ? `${location.origin}/e/${event.slug}` : '');
+  const d = daysBetween(event.eventDate);
+  const dateLabel = event.eventDate ? formatDate(event.eventDate) : null;
+  const countdown = (() => {
+    if (d === null) return null;
+    if (d > 0)  return { text: `Осталось ${d} ${pluralize(d, ['день','дня','дней'])}`, num: d, past: false };
+    if (d === 0) return { text: 'Событие сегодня', num: '✦', past: false };
+    return { text: `${Math.abs(d)} ${pluralize(Math.abs(d), ['день','дня','дней'])} назад`, num: Math.abs(d), past: true };
+  })();
+
+  const s = stats || { total: 0, attending: 0, declined: 0, maybe: 0 };
+  const responded = (s.attending || 0) + (s.declined || 0) + (s.maybe || 0);
+  const pending = Math.max(0, s.total - responded);
+  const pct = s.total > 0 ? Math.round((responded / s.total) * 100) : 0;
+
+  const cover = event.coverImageUrl
+    ? `<div class="feat-cover"><img src="${escapeAttr(event.coverImageUrl)}" alt=""/></div>`
+    : `<div class="feat-cover feat-cover-fallback"></div>`;
+
+  const names = event.person1
+    ? `${escapeAttr(event.person1)}${event.person2 ? ' <span class="feat-amp">&amp;</span> ' + escapeAttr(event.person2) : ''}`
+    : escapeAttr(event.title || 'Без названия');
+
+  return `
+    <section class="feat-hero fade-in" data-open-hub="${event.id}">
+      <div class="feat-eyebrow">
+        <span>Ближайшее событие</span>
+        <div class="feat-chips">
+          <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
+          <span class="plan-chip"><span class="chip-dot"></span>${eventPlanLabel(event)}</span>
+        </div>
+      </div>
+      <div class="feat-body">
+        ${cover}
+        <div class="feat-info">
+          <h2 class="feat-title">${names}</h2>
+          <div class="feat-meta">
+            ${dateLabel ? `
+              <span>
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                ${dateLabel}
+              </span>` : ''}
+            ${event.location ? `
+              <span>
+                <svg fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                ${escapeAttr(event.location)}
+              </span>` : ''}
+          </div>
+          ${countdown ? `<div class="feat-countdown ${countdown.past ? 'past' : ''}"><span class="num">${countdown.num}</span>${countdown.text}</div>` : ''}
+          ${s.total > 0 ? `
+            <div class="feat-stats">
+              <span class="feat-stat-yes">● ${pct}% ответили</span>
+              ${pending > 0 ? `<span class="feat-stat-wait">○ ${pending} ${pluralize(pending, ['ждёт','ждут','ждут'])}</span>` : ''}
+            </div>` : ''}
+          <div class="feat-cta">
+            <button type="button" data-open-hub="${event.id}" class="btn-primary">
+              Открыть Hub
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14m-7-7l7 7-7 7"/></svg>
+            </button>
+            <button type="button" data-action="share-event" data-share-url="${escapeAttr(eventUrl)}" data-share-title="${escapeAttr(event.title || '')}" class="btn-secondary">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+              Поделиться
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>`;
+}
+
+function renderMiniCard(event, stats) {
+  const cover = event.coverImageUrl
+    ? `<img src="${escapeAttr(event.coverImageUrl)}" alt=""/>`
+    : `<div class="mini-cover-fallback"></div>`;
+  const s = stats || { total: 0, attending: 0, declined: 0, maybe: 0 };
+  const responded = (s.attending || 0) + (s.declined || 0) + (s.maybe || 0);
+  const pct = s.total > 0 ? Math.round((responded / s.total) * 100) : null;
+  const dateLabel = event.eventDate ? formatDateShort(event.eventDate) : null;
+  const names = event.person1
+    ? `${escapeAttr(event.person1)}${event.person2 ? ' &amp; ' + escapeAttr(event.person2) : ''}`
+    : escapeAttr(event.title || 'Без названия');
+
+  return `
+    <article class="mini-card fade-in" data-open-hub="${event.id}">
+      <div class="mini-cover">
+        ${cover}
+        <div class="mini-status">
+          <span class="${statusChipClass(event.status)}"><span class="chip-dot"></span>${statusLabel(event.status)}</span>
+        </div>
+      </div>
+      <div class="mini-body">
+        <h3 class="mini-title">${names}</h3>
+        <div class="mini-meta">
+          ${dateLabel ? `<span>${dateLabel}</span>` : `<span class="mini-meta-mute">без даты</span>`}
+          ${s.total > 0
+            ? `<span class="dot"></span><span>${pct}% · ${s.total} ${pluralize(s.total,['гость','гостя','гостей'])}</span>`
+            : `<span class="dot"></span><span class="mini-meta-mute">нет гостей</span>`}
+        </div>
+        <div class="mini-actions">
+          <button type="button" class="mini-btn primary" data-open-hub="${event.id}">Открыть</button>
+          <a href="/guests.html?eventId=${event.id}" class="mini-btn" data-stop-bubble>Гости</a>
+        </div>
+      </div>
+    </article>`;
+}
+
 function renderEvents(events, statsMap) {
   const _gh = document.getElementById('genericHero');
   if (_gh) _gh.style.display = '';
@@ -903,6 +1157,20 @@ function renderDashboardSnapshot(events, statsMap) {
     renderEmpty();
     return true;
   }
+
+  const targetId = eventIdFromUrl();
+  if (targetId) {
+    const event = events.find(e => e.id === targetId);
+    if (event) {
+      const stats = statsMap?.[event.id] || cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000) || null;
+      renderEventHub(event, stats, events.length > 1);
+      cacheSet(`tl:event:${event.id}`, event);
+      return true;
+    }
+    navigateToOverview();
+    return true;
+  }
+
   if (events.length === 1) {
     const event = events[0];
     const stats = statsMap?.[event.id] || cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000) || null;
@@ -910,7 +1178,7 @@ function renderDashboardSnapshot(events, statsMap) {
     cacheSet(`tl:event:${event.id}`, event);
     return true;
   }
-  renderEvents(events, statsMap || {});
+  renderMultiOverview(events, statsMap || {});
   return true;
 }
 
@@ -924,28 +1192,17 @@ async function refreshDashboard() {
 
   cacheSet(EVENTS_CACHE_KEY, events);
   cacheSet(STATS_CACHE_KEY, statsMap);
-
-  if (events.length === 0) {
-    renderEmpty();
-    prefetchLikelyNextSteps(events);
-    return;
-  }
-
-  if (events.length === 1) {
-    const event = events[0];
-    const stats = statsMap[event.id] || cacheGet(`tl:event:stats:${event.id}`, 10 * 60_000) || null;
-    if (stats) cacheStats(event.id, stats);
-    renderEventHub(event, stats);
-    cacheSet(`tl:event:${event.id}`, event);
-    fetchGuests(event.id)
-      .then((guests) => cacheSet(`tl:guests:${event.id}`, guests))
-      .catch(() => {});
-    prefetchLikelyNextSteps(events);
-    return;
-  }
-
   Object.entries(statsMap).forEach(([eventId, stats]) => cacheStats(Number(eventId), stats));
-  renderEvents(events, statsMap);
+
+  renderDashboardSnapshot(events, statsMap);
+
+  const targetId = eventIdFromUrl();
+  const primaryId = targetId && events.find(e => e.id === targetId) ? targetId : (events[0]?.id);
+  if (primaryId) {
+    fetchGuests(primaryId)
+      .then((guests) => cacheSet(`tl:guests:${primaryId}`, guests))
+      .catch(() => {});
+  }
   prefetchLikelyNextSteps(events);
 }
 
@@ -1031,6 +1288,20 @@ function installShareDelegation() {
 
 async function init() {
   installShareDelegation();
+
+  // Multi‑event: navigate to Hub on card click (skip links & action buttons)
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('a, [data-action], [data-stop-bubble]')) return;
+    const hub = e.target.closest('[data-open-hub]');
+    if (!hub) return;
+    e.preventDefault();
+    navigateToEvent(Number(hub.dataset.openHub));
+  });
+
+  // Browser back/forward re-renders the correct view
+  window.addEventListener('popstate', () => {
+    rerenderFromCache();
+  });
 
   // Render cached content immediately — no need to wait for auth network call.
   const cachedEvents = cacheGet(EVENTS_CACHE_KEY, 2 * 60_000);

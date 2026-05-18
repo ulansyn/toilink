@@ -57,6 +57,9 @@ public class UserService implements UserDetailsService {
         Optional<User> existing = findExistingUserByPhone(phone);
 
         if (existing.isEmpty()) {
+            if (rawPassword == null || rawPassword.length() < 8) {
+                throw new BadRequestException("Пароль должен быть не короче 8 символов");
+            }
             User user = User.builder()
                     .phone(normalizedPhone)
                     .passwordHash(passwordEncoder.encode(rawPassword))
@@ -68,9 +71,6 @@ public class UserService implements UserDetailsService {
         }
 
         User user = existing.get();
-        if (user.getDeletedAt() != null) {
-            throw new BadRequestException("Аккаунт удалён");
-        }
         if (!user.isActive()) {
             throw new BadRequestException("Аккаунт заблокирован");
         }
@@ -79,6 +79,9 @@ public class UserService implements UserDetailsService {
         }
 
         if (user.getPasswordHash() == null) {
+            if (rawPassword == null || rawPassword.length() < 8) {
+                throw new BadRequestException("Пароль должен быть не короче 8 символов");
+            }
             user.setPasswordHash(passwordEncoder.encode(rawPassword));
             markSuccessfulLogin(user, ip);
             return userRepository.save(user);
@@ -135,10 +138,10 @@ public class UserService implements UserDetailsService {
 
     private Optional<User> findExistingUserByPhone(String phone) {
         String normalizedPhone = normalizeLoginPhone(phone);
-        Optional<User> normalizedUser = userRepository.findByPhone(normalizedPhone);
+        Optional<User> normalizedUser = userRepository.findByPhoneAndDeletedAtIsNull(normalizedPhone);
         if (normalizedUser.isPresent() || normalizedPhone.equals(phone)) {
             return normalizedUser;
         }
-        return userRepository.findByPhone(phone);
+        return userRepository.findByPhoneAndDeletedAtIsNull(phone);
     }
 }

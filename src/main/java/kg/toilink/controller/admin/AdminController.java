@@ -171,6 +171,9 @@ public class AdminController {
         }
         User target = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
+        if (target.getDeletedAt() != null) {
+            throw new BadRequestException("Нельзя менять роль удалённого пользователя");
+        }
         if ("SUPERADMIN".equals(target.getRole()) && !"SUPERADMIN".equals(newRole)
                 && userRepository.countByRoleAndDeletedAtIsNull("SUPERADMIN") <= 1) {
             throw new BadRequestException("Нельзя снять роль у последнего SUPERADMIN");
@@ -192,7 +195,17 @@ public class AdminController {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found: " + id));
         protectLastSuperAdmin(user, admin);
-        user.setDeletedAt(LocalDateTime.now());
+
+        LocalDateTime now = LocalDateTime.now();
+        for (Event event : eventRepository.findAllByUserIdOrderByCreatedAtDesc(user.getId())) {
+            event.setDeletedAt(now);
+            eventRepository.save(event);
+        }
+        for (Payment p : paymentRepository.findAllActiveByUserId(user.getId())) {
+            p.setStatus("CANCELLED");
+        }
+
+        user.setDeletedAt(now);
         user.setActive(false);
         userRepository.save(user);
         audit(admin, request, "USER_DELETE", "USER", id, reason(body));
@@ -260,10 +273,7 @@ public class AdminController {
                                            HttpServletRequest request) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.event(id));
-        LocalDateTime now = LocalDateTime.now();
-        guestRepository.softDeleteAllByEventId(id, now);
-        rsvpResponseRepository.deleteAllByEventId(id);
-        event.setDeletedAt(now);
+        event.setDeletedAt(LocalDateTime.now());
         eventRepository.save(event);
         audit(admin, request, "EVENT_DELETE", "EVENT", id, reason(body));
         return ResponseEntity.noContent().build();
@@ -351,7 +361,8 @@ public class AdminController {
                                                HttpServletRequest request) {
         Template template = templateRepository.findById(id)
                 .orElseThrow(() -> NotFoundException.template(id));
-        templateRepository.delete(template);
+        template.setActive(false);
+        templateRepository.save(template);
         audit(admin, request, "TEMPLATE_DELETE", "TEMPLATE", id, null);
         return ResponseEntity.noContent().build();
     }
@@ -403,6 +414,12 @@ public class AdminController {
                 if (isDraft) linkedEvent.setStatus("PUBLISHED");
                 linkedEvent.setPlanCode(payment.getPlanCode());
                 eventRepository.save(linkedEvent);
+            }
+            for (Payment competitor : paymentRepository.findAllActiveByUserAndEvent(
+                    payment.getUser().getId(), linkedEvent.getId())) {
+                if (!competitor.getId().equals(payment.getId())) {
+                    competitor.setStatus("CANCELLED");
+                }
             }
         }
 
@@ -599,10 +616,6 @@ public class AdminController {
     }
 
     private String clientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
-        }
         return request.getRemoteAddr();
     }
 

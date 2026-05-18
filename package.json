@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "css:dev": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --watch",
-    "css:build": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --minify"
+    "css:build": "npx tailwindcss -i ./src/main/resources/static/css/input.css -o ./src/main/resources/static/css/tailwind.css --minify",
+    "lint": "eslint playwright.config.js tests src/main/resources/static/js src/main/resources/static/sw.js src/main/resources/static/templates/template-1/js",
+    "test:e2e": "playwright test"
   },
   "repository": {
     "type": "git",
@@ -20,6 +22,10 @@
   },
   "homepage": "https://github.com/ulansyn/toilink#readme",
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.60.0",
+    "eslint": "^10.4.0",
+    "globals": "^17.6.0",
     "tailwindcss": "^3.4.19"
   }
 }

@@ -39,7 +39,7 @@ const MALE_NAMES = new Set([
 
 function tokenize(name) {
   if (!name) return [];
-  return String(name).toLowerCase().split(/[\s\-]+/).filter(t => t.length > 2);
+  return String(name).toLowerCase().split(/[\s-]+/).filter(t => t.length > 2);
 }
 
 function detectOnToken(t) {
@@ -555,7 +555,7 @@ function simulatedAnnealing(state, groups, rng, iterations, onProgress) {
     if (!hasCouples) op = r < 0.7 ? 'SWAP' : 'MOVE';
     else op = r < 0.6 ? 'SWAP' : r < 0.85 ? 'MOVE' : 'SWAP_GROUPS';
 
-    let accepted = false;
+    let accepted;
     if (op === 'SWAP') accepted = trySwapGuests(state, rng);
     else if (op === 'MOVE') accepted = tryMoveGuest(state, rng);
     else accepted = trySwapGroups(state, rng, pickGroupAt);

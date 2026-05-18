@@ -5,12 +5,15 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.core.annotation.Order;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -20,6 +23,7 @@ public class RsvpRateLimitFilter extends OncePerRequestFilter {
     private static final int MAX_REQUESTS = 10;
     private static final long WINDOW_MS = 60_000L;
     private static final long RETRY_AFTER_SECONDS = WINDOW_MS / 1_000L;
+    private static final int MAX_TRACKED_IPS = 50_000;
 
     private final ConcurrentHashMap<String, Deque<Long>> timestampsByIp = new ConcurrentHashMap<>();
 
@@ -47,10 +51,29 @@ public class RsvpRateLimitFilter extends OncePerRequestFilter {
                 );
                 return;
             }
-            timestamps.addLast(now);
         }
 
         chain.doFilter(request, response);
+
+        synchronized (timestamps) {
+            if (response.getStatus() >= 400 && timestampsByIp.size() < MAX_TRACKED_IPS) {
+                timestamps.addLast(now);
+            }
+        }
+    }
+
+    @Scheduled(fixedDelayString = "PT5M")
+    void cleanup() {
+        long now = System.currentTimeMillis();
+        Iterator<Map.Entry<String, Deque<Long>>> it = timestampsByIp.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, Deque<Long>> entry = it.next();
+            Deque<Long> timestamps = entry.getValue();
+            synchronized (timestamps) {
+                prune(timestamps, now);
+                if (timestamps.isEmpty()) it.remove();
+            }
+        }
     }
 
     private boolean isRsvpRequest(HttpServletRequest req) {
@@ -59,8 +82,6 @@ public class RsvpRateLimitFilter extends OncePerRequestFilter {
     }
 
     private String clientIp(HttpServletRequest req) {
-        String forwarded = req.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) return forwarded.split(",")[0].trim();
         return req.getRemoteAddr();
     }
 

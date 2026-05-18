@@ -49,9 +49,23 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(DataIntegrityViolationException.class)
     ResponseEntity<ErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
-        log.warn("Data integrity violation: {}", ex.getMostSpecificCause().getMessage());
+        String cause = ex.getMostSpecificCause().getMessage();
+        log.warn("Data integrity violation: {}", cause);
+        String causeLower = cause == null ? "" : cause.toLowerCase();
+        if (causeLower.contains("foreign key") || causeLower.contains("violates foreign key")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse("CONFLICT", "Связанные данные используются в другом месте и не могут быть удалены", 409));
+        }
+        if (causeLower.contains("unique") || causeLower.contains("duplicate")) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(new ErrorResponse("CONFLICT", "Значение уже существует", 409));
+        }
+        if (causeLower.contains("null value") || causeLower.contains("not null")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse("BAD_REQUEST", "Не заполнено обязательное поле", 400));
+        }
         return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(new ErrorResponse("CONFLICT", "Duplicate value conflicts with existing data", 409));
+                .body(new ErrorResponse("CONFLICT", "Конфликт целостности данных", 409));
     }
 
     @ExceptionHandler(Exception.class)

@@ -15,12 +15,12 @@
 
   <style>
     html, body { height: 100%; overflow: hidden; }
-    body { font-family: 'Inter', sans-serif; background: #FAFAF8; color: #1E2820; overscroll-behavior: none; }
+    body { font-family: 'Inter', sans-serif; background: var(--color-bg); color: #1E2820; overscroll-behavior: none; }
 
     /* ── Top App Bar ─────────────────────────────── */
     .top-app-bar {
       position: sticky; top: 0; z-index: 30;
-      background: rgba(250,250,248,0.92); backdrop-filter: blur(20px);
+      background: rgba(255,248,251,0.92); backdrop-filter: blur(20px);
       border-bottom: 1px solid var(--color-border-strong);
       padding-top: env(safe-area-inset-top, 0px);
       flex-shrink: 0;
@@ -47,7 +47,7 @@
     #previewArea {
       flex: 1; min-height: 0;
       display: flex; align-items: center; justify-content: center;
-      background: #EEECEA;
+      background: var(--color-bg);
       position: relative; overflow: hidden;
     }
     .phone-frame {
@@ -106,7 +106,7 @@
       flex-shrink: 0;
       padding: 7px 14px; border-radius: 100px;
       border: 1.5px solid #E8E5E1;
-      background: #FAFAF8; color: #6B6860;
+      background: var(--color-bg); color: #6B6860;
       font-size: 13px; font-weight: 500;
       cursor: pointer; white-space: nowrap;
       transition: all 0.15s; line-height: 1; font-family: 'Inter', sans-serif;

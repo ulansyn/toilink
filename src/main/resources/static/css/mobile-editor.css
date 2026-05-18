@@ -23,7 +23,7 @@
   --editor-width: 430px;
   --editor-ink: #1E2820;
   --editor-muted: #6B6860;
-  --editor-soft: var(--color-bg, #FAFAF8);
+  --editor-soft: var(--color-bg, #FFF8FB);
   --editor-accent: var(--color-accent, #F93B7A);
   --editor-accent-2: var(--color-accent-2, #FF6D45);
   --editor-accent-soft: var(--color-accent-soft, rgba(249, 59, 122, 0.08));
@@ -50,10 +50,7 @@ body {
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 18% -10%, rgba(249, 59, 122, 0.18), transparent 32%),
-    radial-gradient(circle at 86% 96%, rgba(255, 109, 69, 0.12), transparent 30%),
-    var(--editor-soft);
+  background: var(--editor-soft);
   color: var(--editor-ink);
   font-family: var(--font-sans, Inter, -apple-system, BlinkMacSystemFont, sans-serif);
 }
@@ -226,7 +223,10 @@ select {
   transition:
     transform 360ms cubic-bezier(0.22, 1, 0.36, 1),
     border-radius 360ms cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 1;
+  /* Above the backdrop (z-index 20) so iframe clicks reach the preview and
+     bridge.js can postMessage TEMPLATE_CLICK back. Backdrop still catches
+     taps outside the scaled iframe rect (close-on-tap-outside). */
+  z-index: 25;
 }
 
 .editor-device.editing {

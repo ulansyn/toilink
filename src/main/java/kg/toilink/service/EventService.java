@@ -130,7 +130,9 @@ public class EventService {
         if (req.blocksConfig() != null) event.setBlocksConfig(req.blocksConfig());
         if (req.status() != null) {
             validateStatus(req.status());
-            if ("PUBLISHED".equals(req.status()) && "DRAFT".equals(event.getStatus())) {
+            if ("PUBLISHED".equals(req.status())
+                    && !"PUBLISHED".equals(event.getStatus())
+                    && (event.getPlanCode() == null || event.getPlanCode().isBlank())) {
                 throw new BadRequestException(
                         "Чтобы опубликовать событие, выберите тариф в разделе оплаты.");
             }
@@ -143,10 +145,7 @@ public class EventService {
     @Transactional
     public void delete(Long id, String phone) {
         Event event = getEventForUser(id, phone);
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
-        guestRepository.softDeleteAllByEventId(id, now);
-        rsvpResponseRepository.deleteAllByEventId(id);
-        event.setDeletedAt(now);
+        event.setDeletedAt(java.time.LocalDateTime.now());
         eventRepository.save(event);
     }
 

@@ -155,7 +155,5 @@ document.addEventListener('DOMContentLoaded', () => {
     if (typeof window.WEDDING_CONFIG !== 'undefined') {
         const envelope = new LuxuryEnvelope(window.WEDDING_CONFIG);
         envelope.init();
-    } else {
-
     }
 });

@@ -1,0 +1,12 @@
+databaseChangeLog:
+  - changeSet:
+      id: 032-events-free-published-unique
+      author: codex
+      changes:
+        - sql:
+            sql: |
+              CREATE UNIQUE INDEX IF NOT EXISTS ux_events_user_free_published
+              ON events (user_id)
+              WHERE status = 'PUBLISHED'
+                AND plan_code = 'FREE'
+                AND deleted_at IS NULL;

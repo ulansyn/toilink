@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>ToiLink — Создать приглашение</title>
-  <meta name="theme-color" content="#ffffff"/>
+  <meta name="theme-color" content="#FFF8FB"/>
 
     <link rel="preload" as="image" href="/images/logo.webp" type="image/webp">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="/fonts/inter-500.woff2">
@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/css/critical.css">
     <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
     <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
+  <link rel="stylesheet" href="/css/app-shell.css?v=app3">
   <link rel="stylesheet" href="/css/date-time-picker.css"/>
 
   <style>
@@ -36,21 +37,18 @@
 
     html, body {
       margin: 0; padding: 0;
-      background: var(--white);
+      background: var(--surface);
       color: var(--text);
       font-family: var(--sans);
       height: 100dvh;
       overflow: hidden;
     }
 
-    /* ── Pink bg glows (matching landing) ── */
     body::before {
       content: '';
       position: fixed;
       inset: 0;
-      background-image:
-        radial-gradient(ellipse 70% 50% at 85% 0%, rgba(249,59,122,0.07) 0%, transparent 70%),
-        radial-gradient(ellipse 55% 40% at 15% 95%, rgba(249,59,122,0.05) 0%, transparent 65%);
+      background: var(--surface);
       pointer-events: none;
       z-index: 0;
     }
@@ -1077,21 +1075,27 @@
   </style>
   <script src="/js/sheet-behavior.js"></script>
 </head>
-<body>
+<body data-app-page="wizard">
 
-<!-- Desktop nav (hidden on mobile) -->
-<nav class="wiz-desk-nav">
-  <div class="wiz-desk-nav-inner">
-    <a href="/" class="wiz-desk-nav-logo" aria-label="ToiLink — главная">
+<header class="tl-app-header" aria-label="Основная навигация">
+  <div class="tl-app-header-inner">
+    <a href="/" class="tl-shell-brand" aria-label="ToiLink — главная">
       <img src="/images/logo.webp" alt="">
-      <span>ToiLink</span>
+      <span class="tl-shell-brand-text">ToiLink</span>
     </a>
-    <div class="wiz-desk-nav-links">
-      <a href="/templates.html" class="wiz-desk-nav-link">Шаблоны</a>
-      <a href="/index.html" class="wiz-desk-nav-link">Мой кабинет</a>
+    <nav class="tl-shell-nav" aria-label="Разделы кабинета">
+      <a href="/index.html" class="tl-shell-nav-link">Мои события</a>
+      <a href="/templates.html" class="tl-shell-nav-link is-active">Шаблоны</a>
+      <a href="/profile.html" class="tl-shell-nav-link">Профиль</a>
+    </nav>
+    <div class="tl-shell-actions">
+      <a href="/templates.html" class="tl-shell-button tl-shell-button--surface">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+        К шаблонам
+      </a>
     </div>
   </div>
-</nav>
+</header>
 
 <!-- ══ PICKER SCREEN (step -1) ═══════════════════════════════ -->
 <div id="pickerScreen">

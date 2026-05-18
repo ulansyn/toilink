@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <title>Профиль — ToiLink</title>
-  <meta name="theme-color" content="#FAF7F2"/>
+  <meta name="theme-color" content="#FFF8FB"/>
 
   <script>
     fetch('/api/auth/me', { credentials: 'include' })
@@ -18,17 +18,17 @@
   <link rel="stylesheet" href="/css/critical.css">
   <link rel="stylesheet" href="/css/fonts.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/fonts.css"></noscript>
-  <link rel="stylesheet" href="/css/app-shell.css?v=app2">
+  <link rel="stylesheet" href="/css/app-shell.css?v=app3">
   <link rel="stylesheet" href="/css/tailwind.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="/css/tailwind.css"></noscript>
-  <script src="/js/app-shell.js?v=app2"></script>
+  <script src="/js/app-shell.js?v=app3"></script>
 
   <style>
-    body { font-family: 'Inter', sans-serif; color: #1E2820; background: #FAF7F2; overscroll-behavior-y: none; }
+    body { font-family: 'Inter', sans-serif; color: #1E2820; background: var(--color-bg); overscroll-behavior-y: none; }
     .font-cormorant { font-family: 'Cormorant Garamond', serif; }
 
     .top-nav {
-      background: rgba(250,247,242,.88);
+      background: rgba(255,248,251,.88);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(232,228,222,.6);
     }
@@ -39,13 +39,13 @@
     .brand-text { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 600; }
 
     .mobile-header {
-      background: rgba(250,247,242,.9);
+      background: rgba(255,248,251,.9);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(232,228,222,.6);
     }
 
     .nav-bar {
-      background: rgba(250,247,242,.92);
+      background: rgba(255,248,251,.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(232,228,222,.5);
     }
@@ -120,7 +120,7 @@
 
     /* ── Stat tiles ── */
     .stat-tile {
-      background: rgba(250,247,242,.8); border-radius: 14px;
+      background: var(--color-bg); border-radius: 14px;
       border: 1px solid rgba(232,228,222,.6);
       padding: 12px 14px; text-align: center;
     }
@@ -212,36 +212,32 @@
   </style>
 </head>
 
-<body>
+<body data-app-page="profile">
 
-<!-- ── TOP NAV (desktop) ── -->
-<header class="top-nav fixed top-0 left-0 right-0 z-40 hidden md:flex items-center" style="height:64px;">
-  <div class="max-w-6xl mx-auto px-6 w-full flex items-center justify-between">
-    <a href="/" class="brand-link" aria-label="ToiLink — главная">
-      <img src="/images/logo.webp" alt="" style="height:28px;">
-      <span class="brand-text">ToiLink</span>
+<header class="tl-app-header" aria-label="Основная навигация">
+  <div class="tl-app-header-inner">
+    <a href="/" class="tl-shell-brand" aria-label="ToiLink — главная">
+      <img src="/images/logo.webp" alt="">
+      <span class="tl-shell-brand-text">ToiLink</span>
     </a>
-    <nav class="flex items-center gap-8">
-      <a href="/index.html" class="nav-link">Мои события</a>
-      <a href="/templates.html" class="nav-link">Шаблоны</a>
-      <a href="/profile.html" class="nav-link active">Профиль</a>
+    <nav class="tl-shell-nav" aria-label="Разделы кабинета">
+      <a href="/index.html" class="tl-shell-nav-link">Мои события</a>
+      <a href="/templates.html" class="tl-shell-nav-link">Шаблоны</a>
+      <a href="/profile.html" class="tl-shell-nav-link is-active">Профиль</a>
     </nav>
-    <div style="min-width:120px; text-align:right;">
-      <span id="topPhone" style="font-size:12px; color:#9C968A;"></span>
+    <div class="tl-shell-actions">
+      <span id="topPhone" class="tl-shell-user-phone"></span>
     </div>
   </div>
 </header>
 
-<!-- ── MOBILE HEADER ── -->
-<header class="mobile-header md:hidden fixed top-0 left-0 right-0 z-40" style="height:56px;">
-  <div class="flex items-center justify-between px-4 h-full">
-    <a href="/index.html" style="width:36px; height:36px; display:flex; align-items:center; justify-content:center; border-radius:50%; transition:background .15s; color:#1E2820;" onmouseover="this.style.background='rgba(30,40,32,.07)'" onmouseout="this.style.background='transparent'">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
-      </svg>
+<header class="tl-mobile-header tl-mobile-header--fixed md:hidden" aria-label="Мобильная навигация">
+  <div class="tl-mobile-header-inner">
+    <a href="/index.html" class="tl-icon-button" aria-label="Назад к событиям">
+      <svg fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
     </a>
-    <span class="font-cormorant" style="font-size:18px; font-weight:600; font-style:italic;">Профиль</span>
-    <div style="width:36px;"></div>
+    <div class="tl-mobile-title">Профиль</div>
+    <span aria-hidden="true"></span>
   </div>
 </header>
 
@@ -340,21 +336,19 @@
   </div>
 </main>
 
-<!-- ── BOTTOM NAV (mobile) ── -->
-<nav class="nav-bar md:hidden fixed bottom-0 left-0 right-0 z-30"
-     style="padding-bottom: env(safe-area-inset-bottom, 0px);">
-  <div class="flex">
-    <a href="/index.html" class="nav-item">
-      <svg style="width:24px;height:24px;" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      <span class="nav-label">Главная</span>
+<nav class="tl-bottom-nav md:hidden" aria-label="Нижняя навигация">
+  <div class="tl-bottom-nav-inner">
+    <a href="/index.html" class="tl-bottom-nav-item">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>События</span>
     </a>
-    <a href="/templates.html" class="nav-item">
-      <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
-      <span class="nav-label">Шаблоны</span>
+    <a href="/templates.html" class="tl-bottom-nav-item">
+      <svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span>Шаблоны</span>
     </a>
-    <a href="/profile.html" class="nav-item active">
-      <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
-      <span class="nav-label">Профиль</span>
+    <a href="/profile.html" class="tl-bottom-nav-item is-active">
+      <svg fill="none" stroke="currentColor" stroke-width="1.7" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+      <span>Профиль</span>
     </a>
   </div>
 </nav>

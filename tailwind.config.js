@@ -13,7 +13,7 @@ module.exports = {
       colors: {
         ink: '#1E2820',
         muted: '#6B6860',
-        cream: '#FAFAF8',
+        cream: '#FFF8FB',
         cream2: '#F5F2EE',
         cream3: '#F0EDE8',
         line: '#E8E4DE',
