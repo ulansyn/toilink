@@ -517,107 +517,116 @@ window.__landingConfig = null;
         }, { passive: true });
     });
 
-    /* ── Template Showcase: curved coverflow ── */
+    /* ── Template Showcase: shallow moving arc ── */
     (function initShowcase() {
         const stage = document.getElementById('showcase-stage');
         if (!stage) return;
         const cards = Array.from(stage.querySelectorAll('.showcase-card'));
         if (!cards.length) return;
-        const dotsWrap = document.querySelector('.showcase-dots');
         const prevBtn = document.querySelector('[data-showcase-prev]');
         const nextBtn = document.querySelector('[data-showcase-next]');
         const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         const N = cards.length;
-        const offsets = [
-            { x: 0,    y: 24,  scale: 1.00, ry: 0,   op: 1.00, z: 30 },
-            { x: 0.60, y: -8,  scale: 0.82, ry: 30,  op: 0.95, z: 22 },
-            { x: 1.02, y: -42, scale: 0.62, ry: 42,  op: 0.55, z: 14 },
-            { x: 1.34, y: -72, scale: 0.46, ry: 52,  op: 0.18, z: 6  }
-        ];
+        let offset = 0;
+        let targetOffset = 0;
+        let paused = false;
+        let lastTime = null;
+        let rafId = null;
 
-        let active = 0;
-        let timer = null;
-
-        if (dotsWrap) {
-            dotsWrap.innerHTML = cards.map((_, i) =>
-                `<button type="button" class="showcase-dot" data-sc-dot="${i}" aria-label="Шаблон ${i + 1}"></button>`
-            ).join('');
+        function mod(value, divisor) {
+            return ((value % divisor) + divisor) % divisor;
         }
-        const dots = Array.from(document.querySelectorAll('.showcase-dot'));
 
-        function update() {
+        function layout() {
+            const stageWidth = stage.clientWidth;
+            if (!stageWidth) return;
+            const style = window.getComputedStyle(stage);
+            const cardWidth = parseFloat(style.getPropertyValue('--sc-card-w')) || 120;
+            const arc = parseFloat(style.getPropertyValue('--sc-arc')) || 18;
+            const minSpacing = cardWidth * (window.innerWidth < 640 ? 1.18 : 1.04);
+            const minTravel = minSpacing * (N - 1);
+            const edge = Math.max(cardWidth * 0.82, (minTravel - stageWidth + cardWidth) / 2);
+            const travel = stageWidth + edge * 2 - cardWidth;
+            const halfChord = travel / 2;
+            const radius = ((halfChord * halfChord) / (2 * arc)) + (arc / 2);
+
             cards.forEach((card, i) => {
-                let d = i - active;
-                if (d > N / 2) d -= N;
-                if (d < -N / 2) d += N;
-                const ad = Math.abs(d);
+                const slot = mod(i - offset, N);
+                const tLinear = N === 1 ? 0.5 : slot / (N - 1);
+                const c = tLinear * 2 - 1;
+                const centered = 0.7 * c + 0.3 * Math.sin(c * Math.PI / 2);
+                const t = (centered + 1) / 2;
+                const localX = (t - 0.5) * travel;
+                const x = (stageWidth - cardWidth) / 2 + localX;
+                const y = radius - Math.sqrt(Math.max(0, (radius * radius) - (localX * localX)));
+                const depth = 1 - Math.abs(centered);
+                const scale = 0.75 + (depth * 0.55);
+                const rotate = Math.asin(Math.max(-1, Math.min(1, localX / radius))) * (180 / Math.PI);
 
-                if (ad > 3) {
-                    card.style.opacity = '0';
-                    card.style.pointerEvents = 'none';
-                    card.style.transform = 'translate3d(0,-100px,-500px) scale(.3)';
-                    card.style.zIndex = '0';
-                    card.classList.remove('is-active');
-                    card.setAttribute('aria-hidden', 'true');
-                    return;
-                }
-
-                const o = offsets[ad];
-                const sign = d === 0 ? 0 : (d < 0 ? -1 : 1);
-                const tx = sign * o.x;
-                const ry = -sign * o.ry;
-                card.style.transform = `translate3d(calc(${tx} * var(--sc-card-w)), ${o.y}px, 0) rotateY(${ry}deg) scale(${o.scale})`;
-                card.style.opacity = String(o.op);
-                card.style.zIndex = String(o.z);
-                card.style.pointerEvents = ad === 0 ? 'auto' : 'none';
-                card.classList.toggle('is-active', ad === 0);
-                card.setAttribute('aria-hidden', ad === 0 ? 'false' : 'true');
+                card.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${rotate}deg) scale(${scale})`;
+                card.style.zIndex = String(Math.round(10 + depth * 10));
+                card.style.pointerEvents = 'auto';
+                card.setAttribute('aria-hidden', 'false');
             });
-            dots.forEach((dot, i) => dot.classList.toggle('active', i === active));
         }
 
-        function goTo(i) {
-            active = ((i % N) + N) % N;
-            update();
-        }
-        function next() { goTo(active + 1); }
-        function prev() { goTo(active - 1); }
+        function animate(now) {
+            if (lastTime === null) lastTime = now;
+            const dt = Math.min(64, now - lastTime);
+            lastTime = now;
 
-        update();
+            if (!paused && !reduced) {
+                targetOffset += dt / 4600;
+            }
+
+            const diff = targetOffset - offset;
+            const ease = Math.min(1, dt / 260);
+            offset += diff * ease;
+            layout();
+            rafId = window.requestAnimationFrame(animate);
+        }
+
+        function next() { targetOffset += 1; }
+        function prev() { targetOffset -= 1; }
+
+        layout();
         requestAnimationFrame(() => {
             requestAnimationFrame(() => stage.classList.remove('sc-init'));
         });
 
-        function startTimer() {
-            if (reduced) return;
-            stopTimer();
-            timer = window.setInterval(next, 3800);
-        }
-        function stopTimer() {
-            if (timer) { window.clearInterval(timer); timer = null; }
-        }
-
-        startTimer();
-
-        stage.addEventListener('mouseenter', stopTimer);
-        stage.addEventListener('mouseleave', startTimer);
-        document.addEventListener('visibilitychange', () => {
-            if (document.hidden) stopTimer(); else startTimer();
+        window.addEventListener('resize', layout);
+        stage.querySelectorAll('img').forEach(img => {
+            if (!img.complete) img.addEventListener('load', layout);
         });
 
-        if (prevBtn) prevBtn.addEventListener('click', () => { prev(); startTimer(); });
-        if (nextBtn) nextBtn.addEventListener('click', () => { next(); startTimer(); });
-        dots.forEach(dot => dot.addEventListener('click', () => {
-            goTo(parseInt(dot.dataset.scDot, 10) || 0);
-            startTimer();
-        }));
+        function startMotion() {
+            paused = false;
+        }
+        function stopMotion() {
+            paused = true;
+        }
+
+        rafId = window.requestAnimationFrame(animate);
+
+        stage.addEventListener('mouseenter', stopMotion);
+        stage.addEventListener('mouseleave', startMotion);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (rafId) window.cancelAnimationFrame(rafId);
+                rafId = null;
+                lastTime = null;
+            } else if (!rafId) {
+                rafId = window.requestAnimationFrame(animate);
+            }
+        });
+
+        if (prevBtn) prevBtn.addEventListener('click', prev);
+        if (nextBtn) nextBtn.addEventListener('click', next);
         cards.forEach((card, i) => {
             card.addEventListener('click', () => {
-                if (!card.classList.contains('is-active')) {
-                    goTo(i);
-                    startTimer();
-                }
+                const slot = mod(i - Math.round(targetOffset), N);
+                targetOffset += slot > N / 2 ? slot - N : slot;
             });
         });
 
@@ -626,7 +635,7 @@ window.__landingConfig = null;
             touchX = e.touches[0].clientX;
             touchY = e.touches[0].clientY;
             tracking = true;
-            stopTimer();
+            stopMotion();
         }, { passive: true });
         stage.addEventListener('touchend', e => {
             if (!tracking) return;
@@ -636,6 +645,7 @@ window.__landingConfig = null;
             if (Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) {
                 if (dx < 0) next(); else prev();
             }
-            startTimer();
+            startMotion();
         }, { passive: true });
+        window.addEventListener('resize', layout);
     })();

@@ -50,7 +50,7 @@
 
         <style>
 
-        :root{--color-bg:#FFF8FB;--color-bg-elevated:#fff;--color-surface:#fff;--color-text:#1E2820;--color-text-secondary:#6B6860;--color-text-muted:#9C968A;--color-accent:#F93B7A;--color-accent-2:#FF6D45;--color-border-strong:#E8E4DE;--color-border:rgba(232,228,222,.8);--color-dark:#1E2820;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-serif:'Cormorant Garamond',Georgia,serif}
+        :root{--color-bg:#FFF8FB;--color-bg-elevated:#fff;--color-surface:#fff;--color-text:#1E2820;--color-text-secondary:#6B6860;--color-text-muted:#9C968A;--color-accent:#F93B7A;--color-accent-2:#FF6D45;--color-border-strong:#E8E4DE;--color-border:rgba(232,228,222,.8);--color-dark:#1E2820;--font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;--font-serif:'Cormorant Garamond',Georgia,serif;--sc-card-w:137px;--sc-card-h:238px;--sc-stage-h:334px;--sc-arc:43px}
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}html{font-size:16px;-webkit-text-size-adjust:100%;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;scroll-behavior:smooth}body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--color-text);background:var(--color-bg);min-height:100dvh;line-height:1.5;overscroll-behavior-y:none}a{color:inherit;text-decoration:none}button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}img,svg{display:block;max-width:100%;height:auto}.bg-glow{background:var(--color-bg);background-image:none}
         header{position:sticky;top:0;z-index:100;height:64px;background:rgba(255,248,251,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-bottom:1px solid rgba(243,244,246,.72)}.mob-menu{position:fixed;top:64px;left:0;right:0;background:#fff;z-index:800;max-height:0;overflow:hidden;transition:max-height .28s cubic-bezier(.33,1,.68,1);box-shadow:0 8px 32px rgba(0,0,0,.08)}.mob-menu.open{max-height:360px}.mob-menu a{display:block;padding:14px 24px;font-size:16px;color:var(--color-text);font-weight:500;border-bottom:1px solid var(--color-border-strong)}
         .max-w-6xl{max-width:72rem}.max-w-sm{max-width:24rem}.max-w-md{max-width:28rem}.mx-auto{margin-left:auto;margin-right:auto}.h-full{height:100%}.w-full{width:100%}.flex{display:flex}.inline-flex{display:inline-flex}.block{display:block}.hidden{display:none}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.flex-shrink-0{flex-shrink:0}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-7{gap:1.75rem}.gap-\[5px\]{gap:5px}.gap-x-5{column-gap:1.25rem}.gap-y-2{row-gap:.5rem}.text-center{text-align:center}.cursor-pointer{cursor:pointer}.overflow-hidden{overflow:hidden}.sticky{position:sticky}.top-0{top:0}.z-50{z-index:50}
@@ -217,7 +217,7 @@
 
 
 <!-- ═══════════════════════════════════════
-     TEMPLATE SHOWCASE — curved coverflow
+     TEMPLATE SHOWCASE — shallow arc
 ═══════════════════════════════════════ -->
 <section class="overflow-hidden" style="position:relative;z-index:50;padding:6px 0 8px" data-l-section="phoneMockup">
     <div class="showcase">
@@ -227,115 +227,57 @@
 
             <article class="showcase-card sc-classic" data-sc-i="0">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Свадьба</div>
-                    <div class="sc-orn"><span aria-hidden="true">◇</span></div>
-                    <div class="sc-name"><span>Айгерим</span><span class="sc-amp">&amp;</span><span>Эрлан</span></div>
-                    <div class="sc-date">18 · 05 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-1.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-rose" data-sc-i="1">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Узатуу</div>
-                    <div class="sc-orn"><span aria-hidden="true">❀</span></div>
-                    <div class="sc-name"><span>Айзада</span><span class="sc-amp">&amp;</span><span>Канат</span></div>
-                    <div class="sc-date">22 · 06 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-2.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-sage" data-sc-i="2">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Юбилей</div>
-                    <div class="sc-orn"><span aria-hidden="true">✦</span></div>
-                    <div class="sc-name"><span>Жанарбек</span><span class="sc-amp">·</span><span>50 жыл</span></div>
-                    <div class="sc-date">12 · 07 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-1.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-noir" data-sc-i="3">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Свадьба</div>
-                    <div class="sc-orn"><span aria-hidden="true">◈</span></div>
-                    <div class="sc-name"><span>Алмаз</span><span class="sc-amp">&amp;</span><span>Бегим</span></div>
-                    <div class="sc-date">08 · 09 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-3.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-baby" data-sc-i="4">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Тушоо той</div>
-                    <div class="sc-orn"><span aria-hidden="true">❁</span></div>
-                    <div class="sc-name"><span>Алинур</span><span class="sc-amp">·</span><span>1 жыл</span></div>
-                    <div class="sc-date">30 · 05 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-2.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-sunset" data-sc-i="5">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Сүннөт той</div>
-                    <div class="sc-orn"><span aria-hidden="true">❖</span></div>
-                    <div class="sc-name"><span>Айбек</span><span class="sc-amp">·</span><span>той</span></div>
-                    <div class="sc-date">14 · 06 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-4.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-wine" data-sc-i="6">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Свадьба</div>
-                    <div class="sc-orn"><span aria-hidden="true">❦</span></div>
-                    <div class="sc-name"><span>Назгүл</span><span class="sc-amp">&amp;</span><span>Тимур</span></div>
-                    <div class="sc-date">02 · 08 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-5.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
 
             <article class="showcase-card sc-meadow" data-sc-i="7">
                 <div class="sc-inner">
-                    <div class="sc-eyebrow">Юбилей</div>
-                    <div class="sc-orn"><span aria-hidden="true">✿</span></div>
-                    <div class="sc-name"><span>Жамиля</span><span class="sc-amp">·</span><span>30 жыл</span></div>
-                    <div class="sc-date">20 · 06 · 2026</div>
-                    <div class="sc-photo"><svg width="62" height="62" viewBox="0 0 60 60" fill="currentColor" aria-hidden="true"><circle cx="30" cy="30" r="28" fill="none" stroke="currentColor" stroke-width=".7" opacity=".55"/><circle cx="30" cy="22" r="8" opacity=".30"/><path d="M14 50c3-9 11-13 16-13s13 4 16 13" opacity=".30"/></svg></div>
-                    <div class="sc-rsvp">Подтвердить</div>
+                    <img src="/images/showcase/showcase-3.webp" class="sc-bg-img" alt="" />
                 </div>
-                <span class="showcase-popular">★ Популярный</span>
-                <span class="showcase-fav" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></span>
             </article>
-
         </div>
 
         <div class="showcase-controls">
             <button class="showcase-arrow" type="button" data-showcase-prev aria-label="Предыдущий шаблон">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
             </button>
-            <div class="showcase-dots" role="tablist" aria-label="Шаблон"></div>
             <button class="showcase-arrow" type="button" data-showcase-next aria-label="Следующий шаблон">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
@@ -378,8 +320,7 @@
                     <div class="text-[9px] md:text-[10px] uppercase tracking-wider text-gray-500 font-bold mt-1 leading-tight">Среднее время настройки</div>
                 </div>
             </div>
-
-        </div>
+                </div>
     </div>
 </section>
 
@@ -468,8 +409,7 @@
                     <div class="text-[12px] text-gray-400 mt-0.5 leading-snug">Официально, чётко и стильно</div>
                 </div>
             </div>
-
-        </div>
+                </div>
     </div>
 </section>
 
@@ -516,8 +456,7 @@
                     </div>
                 </div>
             </div>
-
-        </div>
+                </div>
 
         <div class="text-center mt-10 reveal">
             <button onclick="openAuth()" class="btn-pink px-8 py-3.5 text-[14px]">
@@ -622,8 +561,7 @@
                     </button>
                 </div>
             </div>
-
-        </div>
+                </div>
     </div>
 </section>
 
@@ -889,7 +827,6 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -1134,8 +1071,7 @@
                     <p class="px-5 pb-5 text-[13px] md:text-[14px] text-gray-500 leading-relaxed">Оплата через Mbank, O!Dengi, банковскую карту или перевод. Доступ открывается в течение нескольких часов после подтверждения платежа.</p>
                 </div>
             </div>
-
-        </div>
+                </div>
     </div>
 </section>
 
